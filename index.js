@@ -1,6 +1,6 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.9.29｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.9.32｜ripple & GPT & Claude
  * 抽屉内嵌稳定版：
  * - 情感导演 / 剧情导演 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -1998,7 +1998,7 @@
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "custom", "自定义")
             + '</select>'
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
-            + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">自动触发计数：打开面板后刷新</div>'
+            + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
             + '<div class="adr044-note adr044-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，请点「直接分析」；若要附加要求，请填写补充指令后点「补充指令分析」。</div>'
             + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
             + '</details>'
@@ -2031,7 +2031,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.31</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.32</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -3431,7 +3431,7 @@
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "custom", "自定义")
             + '</select>'
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
-            + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">自动触发计数：打开面板后刷新</div>'
+            + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
             + '<div class="adr048-note adr048-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，请点「直接分析」；若要附加要求，请填写补充指令后点「补充指令分析」。</div>'
             + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
             + '</div>'
@@ -3466,7 +3466,7 @@
         return '<div id="adr048-popup-panel" data-open="0">'
             + '<div id="adr048-popup-shell">'
             + '<div id="adr048-popup-head">'
-            + '<div><b>🎬 Arrebol D 暗河红霞导演系统</b><div id="adr048-popup-sub">小红霞在线｜ripple & GPT & Claude</div></div>'
+            + '<div class="adr048-head-txt"><div class="adr048-title">🎬 Arrebol <span class="adr048-title-d">D</span><span class="adr048-title-cn">暗河红霞导演系统</span></div><div id="adr048-popup-sub">小红霞在线 · ripple &amp; GPT &amp; Claude</div></div>'
             + '<button type="button" id="adr048-popup-close">×</button>'
             + '</div>'
             + '<div id="adr048-popup-body">'
@@ -4215,13 +4215,14 @@
     }
 
 
-    function adrDSetCounterText(type, text) {
+    function adrDSetCounterText(type, info) {
         try {
             var d = rootDoc();
             var id = "adr044-auto-counter-" + type;
+            var html = adrDCounterHTML(info);
             var nodes = Array.prototype.slice.call(d.querySelectorAll("#" + id));
             nodes.forEach(function (el) {
-                if (el) el.textContent = text;
+                if (el) el.innerHTML = html;
             });
         } catch (e) {}
     }
@@ -4472,14 +4473,43 @@
             } catch (ePersist) {}
 
             adrDUpdateAutoCounters();
-            status(type, "已校准当前进度：从当前总数 " + count + " 重新计数 ✓", "#8ed99d");
-            adrDToast("小红霞已校准当前进度");
+            status(type, "已校准 ✓ 基准线移至 " + count + " 楼，从零开始攒", "#9bd8a6");
+            adrDToast("小红霞已校准：基准线移至当前楼层");
             return true;
         } catch (e) {
             console.error("[Arrebol D] manual auto baseline calibrate failed", e);
             try { status(type === "plot" ? "plot" : "emotion", "校准失败，请稍后再试", "#d4726a"); } catch (eStatus) {}
             return false;
         }
+    }
+
+    // v1.9.32：计数条改结构化渲染。主行说人话（已攒/还差/基准线 N 楼起），
+    // 视野与口径标记降为排查小字。所有拼接内容均为内部数值与固定文案，经 esc 转义。
+    function adrDCounterHTML(info) {
+        if (typeof info === "string") {
+            return '<div class="arb-ct"><div class="arb-ct-msg">' + esc(info) + '</div></div>';
+        }
+        var label = esc(info.label || "");
+        var tag = info.tag ? '<span class="arb-ct-tag">' + esc(info.tag) + '</span>' : '';
+        if (info.state !== "ok") {
+            return '<div class="arb-ct">'
+                + '<div class="arb-ct-top"><span class="arb-ct-label">' + label + tag + '</span></div>'
+                + '<div class="arb-ct-msg">' + esc(info.msg || "") + '</div>'
+                + (info.tech ? '<div class="arb-ct-tech">' + esc(info.tech) + '</div>' : '')
+                + '</div>';
+        }
+        var n = Math.max(1, Number(info.n) || 1);
+        var passed = Math.max(0, Number(info.passed) || 0);
+        var pct = Math.max(0, Math.min(100, Math.round(passed / n * 100)));
+        return '<div class="arb-ct">'
+            + '<div class="arb-ct-top">'
+            + '<span class="arb-ct-label">' + label + tag + '</span>'
+            + '<span class="arb-ct-nums"><b>' + esc(passed) + '</b><i>/' + esc(info.n) + '</i></span>'
+            + '</div>'
+            + '<div class="arb-ct-bar"><i style="width:' + pct + '%"></i></div>'
+            + '<div class="arb-ct-line">还差 <b>' + esc(info.left) + '</b> 条触发 · 基准线 <b>' + esc(info.base) + '</b> 楼起</div>'
+            + '<div class="arb-ct-tech">' + esc(info.tech || "") + '</div>'
+            + '</div>';
     }
 
     function adrDAutoCounterText(type) {
@@ -4491,23 +4521,23 @@
             var n = autoTriggerRange(type);
 
             if (!adrDMasterEnabled()) {
-                return label + "：总开关已关闭（一键启动后从当前进度重新计数）";
+                return { state: "off", label: label, msg: "总开关已关闭 · 一键启动后从当前进度重新计数" };
             }
 
             if (!enabled) {
-                return label + "：自动触发未开启";
+                return { state: "off", label: label, msg: "自动触发未开启" };
             }
 
             if (!Number.isFinite(n) || n <= 0) {
-                return label + "：自动触发间隔未设置";
+                return { state: "off", label: label, msg: "自动触发间隔未设置" };
             }
 
             if (!adrDCountReady()) {
-                return label + "：当前总数 " + count + " 条｜视野：" + adrDCountSourceLabel() + "｜等待首次全量历史读取，暂不累积/触发";
+                return { state: "wait", label: label, msg: "正在读取本聊天的全量历史，暂不累积/触发…", tech: "当前读数 " + count + " · 视野 " + adrDCountSourceLabel() };
             }
 
             if (!adrDChatKeyReady()) {
-                return label + "：当前总数 " + count + " 条｜视野：" + adrDCountSourceLabel() + "｜等待聊天标识稳定，暂不落盘/触发";
+                return { state: "wait", label: label, msg: "等待聊天标识稳定，暂不落盘/触发…", tech: "当前读数 " + count + " · 视野 " + adrDCountSourceLabel() };
             }
 
             if (adrDInStartupAutoGrace && adrDInStartupAutoGrace()) {
@@ -4518,7 +4548,7 @@
                 var peekPassed = Math.max(0, count - peekBase);
                 var peekLeft = Math.max(0, n - peekPassed);
                 var peekMode = peek && peek.mode ? String(peek.mode) : (adrDCurrentCountMode ? adrDCurrentCountMode() : "startup-readonly");
-                return label + "：当前总数 " + count + " 条｜视野：" + adrDCountSourceLabel() + "｜已新增 " + peekPassed + " / " + n + " 条角色回复｜距离下次还差 " + peekLeft + " 条｜base " + peekBase + "(" + peekMode + ")｜启动保护中";
+                return { state: "ok", label: label, tag: "启动保护", passed: peekPassed, n: n, left: peekLeft, base: peekBase, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + peekMode };
             }
 
             var state = adrDGetAutoState(type, count);
@@ -4531,7 +4561,7 @@
             var passed = Math.max(0, count - base);
             var left = Math.max(0, n - passed);
             var modeText = state && state.mode ? String(state.mode) : (adrDCurrentCountMode ? adrDCurrentCountMode() : "unknown");
-            return label + "：当前总数 " + count + " 条｜视野：" + adrDCountSourceLabel() + "｜已新增 " + passed + " / " + n + " 条角色回复｜距离下次还差 " + left + " 条｜base " + base + "(" + modeText + ")";
+            return { state: "ok", label: label, passed: passed, n: n, left: left, base: base, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + modeText };
         } catch (e) {
             return "自动触发计数：读取失败";
         }

@@ -6,6 +6,6 @@
   "js": "index.js",
   "css": "style.css",
   "author": "ripple & GPT & Claude",
-  "version": "1.9.31",
-  "description": "Arrebol D 小红霞导演插件｜1.9.31 per-chat count isolation：计数按聊天彻底隔离（缓存打 chatKey 标签+迁移数值闸门+跨聊天污染自愈），换角色卡/换聊天不再串数｜ripple & GPT & Claude"
+  "version": "1.9.32",
+  "description": "Arrebol D 小红霞导演插件｜1.9.31 计数按聊天彻底隔离（换角色卡/聊天窗口不再串数）＋1.9.32「暗河红霞」视觉整备：计数卡人话化（基准线 N 楼起）、进度条、全套控件统一酒黑×霞橘设计语言｜ripple & GPT & Claude"
 }
