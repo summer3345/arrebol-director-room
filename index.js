@@ -2031,7 +2031,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.30</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.31</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -4000,7 +4000,18 @@
     // v1.0.5.6.8.3.5：chatKey 稳定前不落盘/不触发；启动 20 秒内禁自动注入；注入落点只允许助手楼。
     var ADR_D_FULL_COUNT_MODE = "full-chat-v1";
     var ADR_D_STICKY_FULL = true;
-    var adrDFullCountCache = { count: null, source: "window", lastMessageId: -1, updatedAt: 0, loading: false, messages: [], everFull: false };
+    // v1.9.31：per-chat count isolation。缓存记住自己属于哪个 chatKey；
+    // 换聊天后旧缓存一律视为"未就绪"，粘滞保护只在同一聊天内生效，
+    // 杜绝"旧聊天的 count 给新聊天写 baseline"的跨聊天污染。
+    var adrDFullCountCache = { count: null, source: "window", lastMessageId: -1, updatedAt: 0, loading: false, messages: [], everFull: false, chatKey: "" };
+
+    function adrDFullCacheMatchesCurrentChat() {
+        try {
+            return !!adrDFullCountCache.chatKey && adrDFullCountCache.chatKey === (adrDChatKey ? adrDChatKey() : "");
+        } catch (e) {
+            return false;
+        }
+    }
 
     function adrDGetTavernHelper() {
         try { if (typeof TavernHelper !== "undefined" && TavernHelper) return TavernHelper; } catch (e0) {}
@@ -4043,17 +4054,28 @@
     }
 
     async function adrDRefreshFullAssistantRoundCount(reason) {
-        if (adrDFullCountCache.loading) return Number(adrDFullCountCache.count) || adrDWindowAssistantRoundCount();
+        // v1.9.31：粘滞保护按 chatKey 收窄。只有"同一聊天内的瞬时失败"才允许沿用旧全量数；
+        // 换了聊天后旧缓存一律作废，宁可短暂回退窗口计数，也不把上一个聊天的总数带过来。
+        var keyNow = adrDChatKey ? adrDChatKey() : "";
+        var stickyOk = ADR_D_STICKY_FULL && adrDFullCountCache.everFull &&
+            Number.isFinite(Number(adrDFullCountCache.count)) &&
+            adrDFullCountCache.chatKey === keyNow;
+
+        if (adrDFullCountCache.loading) {
+            if (stickyOk) return Number(adrDFullCountCache.count) || 0;
+            return adrDWindowAssistantRoundCount();
+        }
 
         var th = adrDGetTavernHelper();
         if (!th || typeof th.getChatMessages !== "function") {
-            if (ADR_D_STICKY_FULL && adrDFullCountCache.everFull && Number.isFinite(Number(adrDFullCountCache.count))) {
+            if (stickyOk) {
                 try { console.warn("[Arrebol D] full history source temporarily unavailable; keep sticky full cache", reason || ""); } catch (eStickyLog0) {}
                 adrDFullCountCache.updatedAt = Date.now();
                 return Number(adrDFullCountCache.count) || 0;
             }
             adrDFullCountCache.count = adrDWindowAssistantRoundCount();
             adrDFullCountCache.source = "window";
+            adrDFullCountCache.chatKey = keyNow;
             try { adrDFullCountCache.messages = (ctx().chat || []).slice(); } catch (eMsgs0) { adrDFullCountCache.messages = []; }
             adrDFullCountCache.updatedAt = Date.now();
             return adrDFullCountCache.count;
@@ -4074,6 +4096,7 @@
                 adrDFullCountCache.lastMessageId = -1;
                 adrDFullCountCache.messages = [];
                 adrDFullCountCache.everFull = true;
+                adrDFullCountCache.chatKey = keyNow;
                 adrDFullCountCache.updatedAt = Date.now();
                 return 0;
             }
@@ -4091,11 +4114,12 @@
             adrDFullCountCache.source = "full";
             adrDFullCountCache.lastMessageId = lastId;
             adrDFullCountCache.everFull = true;
+            adrDFullCountCache.chatKey = keyNow;
             adrDFullCountCache.updatedAt = Date.now();
-            try { console.log("[Arrebol D] full history count", n, "lastId=", lastId, "reason=", reason || ""); } catch (eLog) {}
+            try { console.log("[Arrebol D] full history count", n, "lastId=", lastId, "chatKey=", keyNow, "reason=", reason || ""); } catch (eLog) {}
             return n;
         } catch (e) {
-            if (ADR_D_STICKY_FULL && adrDFullCountCache.everFull && Number.isFinite(Number(adrDFullCountCache.count))) {
+            if (stickyOk) {
                 console.warn("[Arrebol D] full history count failed; keep sticky full cache", e);
                 adrDFullCountCache.updatedAt = Date.now();
                 return Number(adrDFullCountCache.count) || 0;
@@ -4103,6 +4127,7 @@
             console.warn("[Arrebol D] full history count failed; fallback to window count", e);
             adrDFullCountCache.count = adrDWindowAssistantRoundCount();
             adrDFullCountCache.source = "window";
+            adrDFullCountCache.chatKey = keyNow;
             try { adrDFullCountCache.messages = (ctx().chat || []).slice(); } catch (eMsgs0) { adrDFullCountCache.messages = []; }
             adrDFullCountCache.updatedAt = Date.now();
             return adrDFullCountCache.count;
@@ -4129,6 +4154,7 @@
 
             var hasFreshFullCache = adrDFullCountCache &&
                 adrDFullCountCache.source === "full" &&
+                adrDFullCacheMatchesCurrentChat() &&
                 Array.isArray(adrDFullCountCache.messages) &&
                 adrDFullCountCache.messages.length &&
                 (lastId < 0 || Number(adrDFullCountCache.lastMessageId) === lastId);
@@ -4137,20 +4163,21 @@
                 await adrDRefreshFullAssistantRoundCount(reason || "full-read");
             }
 
-            if (adrDFullCountCache && adrDFullCountCache.source === "full" && Array.isArray(adrDFullCountCache.messages)) {
+            if (adrDFullCountCache && adrDFullCountCache.source === "full" && adrDFullCacheMatchesCurrentChat() && Array.isArray(adrDFullCountCache.messages)) {
                 return adrDFullCountCache.messages;
             }
         }
 
-        if (ADR_D_STICKY_FULL && adrDFullCountCache && adrDFullCountCache.everFull && Array.isArray(adrDFullCountCache.messages)) {
+        // v1.9.31：粘滞兜底同样必须同 chatKey，绝不把上一个聊天的楼层喂给导演。
+        if (ADR_D_STICKY_FULL && adrDFullCountCache && adrDFullCountCache.everFull && adrDFullCacheMatchesCurrentChat() && Array.isArray(adrDFullCountCache.messages)) {
             return adrDFullCountCache.messages;
         }
         try { return (ctx().chat || []).slice(); } catch (e1) { return []; }
     }
 
     function adrDAssistantRoundCount() {
-        // 同步入口保留：UI/旧函数可继续调用。优先返回全量缓存；未就绪时回退当前窗口并异步刷新。
-        if (adrDFullCountCache && adrDFullCountCache.source === "full" && Number.isFinite(Number(adrDFullCountCache.count))) {
+        // 同步入口保留：UI/旧函数可继续调用。优先返回全量缓存；未就绪/换聊天后回退当前窗口并异步刷新。
+        if (adrDFullCountCache && adrDFullCountCache.source === "full" && adrDFullCacheMatchesCurrentChat() && Number.isFinite(Number(adrDFullCountCache.count))) {
             return Number(adrDFullCountCache.count);
         }
         adrDQueueFullAssistantRoundCountRefresh("lazy-count");
@@ -4159,7 +4186,7 @@
 
     function adrDCountSourceLabel() {
         try {
-            if (adrDFullCountCache.source === "full") return "全量历史";
+            if (adrDFullCountCache.source === "full" && adrDFullCacheMatchesCurrentChat()) return "全量历史";
             return "当前窗口/等待全量";
         } catch (e) {
             return "当前窗口";
@@ -4167,15 +4194,16 @@
     }
 
     function adrDCurrentCountMode() {
-        return adrDFullCountCache && adrDFullCountCache.source === "full" ? ADR_D_FULL_COUNT_MODE : "window-v1";
+        return adrDFullCountCache && adrDFullCountCache.source === "full" && adrDFullCacheMatchesCurrentChat() ? ADR_D_FULL_COUNT_MODE : "window-v1";
     }
 
     function adrDCountReady() {
         // 没有 TavernHelper 全量能力时，window 计数就是当前环境的权威来源，保持旧行为。
         var th = adrDGetTavernHelper();
         if (!th || typeof th.getChatMessages !== "function") return true;
-        // 有全量能力时，必须等本次页面生命周期里首次 full 成功后，才允许触发/写 baseline。
-        return !!(adrDFullCountCache && adrDFullCountCache.source === "full");
+        // 有全量能力时，必须等"当前这个聊天"的 full 成功后，才允许触发/写 baseline。
+        // v1.9.31：换聊天后旧缓存不算就绪，堵住换聊瞬间用旧 count 写新聊天 baseline 的竞态。
+        return !!(adrDFullCountCache && adrDFullCountCache.source === "full" && adrDFullCacheMatchesCurrentChat());
     }
 
     function adrDCurrentMessageTailForPoll() {
@@ -4201,6 +4229,9 @@
 
     var ADR_D_AUTO_STATE_KEY = "arrebol_d_auto_trigger_state_v1";
     var ADR_D_AUTO_LAST_KEY = "arrebol_d_auto_trigger_last_key_v1";
+    // v1.9.31：base 比当前全量总数高出这么多条以上，判定为历史版本的跨聊天污染，自动贴齐重记。
+    // 小幅 count < base（swipe/重roll/删几楼）仍走 no-shrink 保护，不动 base。
+    var ADR_D_BASE_OVERRUN_HEAL = 20;
     // v1.0.5.6.8.3.3：刷新后首次被动判定安全网。
     // 如果本次会话第一次被动 auto-check 发现 count-base 已经越过阈值，优先判定为脏 baseline，静默对齐，不抢跑注入。
     var adrDFirstPassiveAutoCheckDone = {};
@@ -4350,6 +4381,18 @@
                 all[key] = item;
                 adrDSaveAutoStateAll(all);
             }
+            // v1.9.31：跨聊天污染自愈。同一聊天内全量总数只增，base 不应高出 count；
+            // 历史版本可能把旧聊天的大 base 写进了这个 chatKey，导致面板永远卡 0/N。
+            // 仅在计数就绪（当前聊天的全量读取已成功）且高出 ADR_D_BASE_OVERRUN_HEAL 条以上时贴齐，
+            // 小幅 count < base（swipe/重roll/删几楼）保持 no-shrink 不动。
+            var healCount = Number(count);
+            if (adrDCountReady() && Number.isFinite(healCount) && healCount >= 0 && Number(item.base) - healCount > ADR_D_BASE_OVERRUN_HEAL) {
+                var healedFrom = Number(item.base);
+                item = { base: healCount, updatedAt: Date.now(), broad: broad, mode: adrDCurrentCountMode ? adrDCurrentCountMode() : "window-v1", healedFromBase: healedFrom };
+                all[key] = item;
+                adrDSaveAutoStateAll(all);
+                try { console.warn("[Arrebol D] heal cross-chat polluted baseline", { key: key, from: healedFrom, to: healCount }); } catch (eHeal) {}
+            }
             adrDSaveAutoLastKey(type, key);
             return item;
         }
@@ -4363,8 +4406,11 @@
             var prevBroad = prev.broad || broad;
             var prevBase = Number(prev.base);
             var c = Number(count) || 0;
-            if (prevBroad === broad && prevBase >= 0) {
-                // count 可能是聊天重载瞬间的 partial 小读数；即使 prevBase > count，也要保住旧 base，不下拉归零。
+            // v1.9.31：迁移加数值闸门。同一聊天内总数只增，真正的"注入后 reload 换了 chatKey"
+            // 必然满足 prevBase <= 当前全量总数；若 prevBase > count，说明是同角色开了新聊天
+            // （新聊天更短），此时绝不继承旧 base，让新聊天从自己的当前总数干净起步。
+            if (prevBroad === broad && prevBase >= 0 && prevBase <= c) {
+                // 同聊重载：chatKey 变了但还是这把对话，继承旧 base 保住进度。
                 item = { base: prevBase, updatedAt: Date.now(), broad: broad, migratedFrom: lastKey, mode: adrDCurrentCountMode ? adrDCurrentCountMode() : "window-v1" };
                 all[key] = item;
                 adrDSaveAutoStateAll(all);
@@ -4743,6 +4789,13 @@
             if (!rootWin().__arrebolDAutoTriggerPoll) {
                 rootWin().__arrebolDAutoTriggerPoll = setInterval(function () {
                     try {
+                        // v1.9.31：轮询同时盯 chatKey。楼层数碰巧相同的两个聊天也要触发换聊刷新。
+                        var keyPoll = adrDChatKey ? adrDChatKey() : "";
+                        if (rootWin().__arrebolDLastChatKeySeen !== keyPoll) {
+                            rootWin().__arrebolDLastChatKeySeen = keyPoll;
+                            adrDQueueFullAssistantRoundCountRefresh("poll-chat-key-change");
+                            adrDScheduleAutoTriggerCheck("poll-chat-key-change");
+                        }
                         var len = adrDCurrentMessageTailForPoll();
                         if (adrDLastChatLengthSeen >= 0 && len !== adrDLastChatLengthSeen) {
                             adrDQueueFullAssistantRoundCountRefresh("poll-tail-change");

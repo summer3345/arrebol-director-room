@@ -6,6 +6,6 @@
   "js": "index.js",
   "css": "style.css",
   "author": "ripple & GPT & Claude",
-  "version": "1.9.30",
-  "description": "Arrebol D 小红霞导演插件｜1.9.30 account-bound storage：模板与API档案迁至服务器侧跟账号走（自动搬家存量+双写灾备），换浏览器/设备不再丢失｜ripple & GPT & Claude"
+  "version": "1.9.31",
+  "description": "Arrebol D 小红霞导演插件｜1.9.31 per-chat count isolation：计数按聊天彻底隔离（缓存打 chatKey 标签+迁移数值闸门+跨聊天污染自愈），换角色卡/换聊天不再串数｜ripple & GPT & Claude"
 }
