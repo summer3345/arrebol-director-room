@@ -1508,3 +1508,57 @@
         transition: none !important;
     }
 }
+
+
+/* ============================================================
+   v1.9.33 防误触扩展 + 校准按钮自包含皮肤 · UI-only
+   1) 校准按钮从右移到左，右侧让出拇指滑动区；
+   2) 情感/剧情页签纳入右侧安全余量，两钮仍均分；
+   3) 校准按钮改深酒底自包含样式——抽屉浅色主题下
+      v1.9.3 的白字透明底会隐身，自带皮肤后主题无关。
+   ============================================================ */
+
+#adr048-popup-body .adr044-auto-calibrate-row {
+    justify-content: flex-start !important;
+    width: calc(100% - var(--adr048-action-safe-gutter)) !important;
+    margin-right: var(--adr048-action-safe-gutter) !important;
+    box-sizing: border-box !important;
+}
+
+#adr044-drawer .adr044-auto-calibrate-row {
+    justify-content: flex-start !important;
+    width: calc(100% - var(--adr044-action-safe-gutter)) !important;
+    margin-right: var(--adr044-action-safe-gutter) !important;
+    box-sizing: border-box !important;
+}
+
+#adr048-popup-body .adr048-tabs {
+    width: calc(100% - var(--adr048-action-safe-gutter)) !important;
+    margin-right: var(--adr048-action-safe-gutter) !important;
+    box-sizing: border-box !important;
+}
+
+#adr044-drawer .adr044-tabs {
+    width: calc(100% - var(--adr044-action-safe-gutter)) !important;
+    margin-right: var(--adr044-action-safe-gutter) !important;
+    box-sizing: border-box !important;
+}
+
+/* 校准按钮：与计数卡同族的深酒底药丸，浅底深底通吃 */
+.adr044-auto-calibrate {
+    background: linear-gradient(160deg, rgba(46, 31, 41, .97), rgba(32, 20, 27, .97)) !important;
+    border: 1px solid rgba(232, 137, 107, .58) !important;
+    color: #F6EEE7 !important;
+    -webkit-text-fill-color: #F6EEE7 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 10px rgba(8, 3, 6, .20) !important;
+    transition: border-color .15s ease, transform .12s ease !important;
+}
+
+.adr044-auto-calibrate:hover {
+    border-color: rgba(232, 137, 107, .85) !important;
+}
+
+.adr044-auto-calibrate:active {
+    transform: scale(.98) !important;
+}
