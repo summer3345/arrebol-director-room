@@ -6,6 +6,6 @@
   "js": "index.js",
   "css": "style.css",
   "author": "ripple & GPT & Claude",
-  "version": "1.9.33",
-  "description": "Arrebol D 小红霞导演插件｜1.9.31 计数按聊天彻底隔离＋1.9.32「暗河红霞」视觉整备＋1.9.33 防误触（校准/页签让出右侧滑动区）与校准按钮自包含皮肤｜ripple & GPT & Claude"
+  "version": "1.9.34",
+  "description": "Arrebol D 小红霞导演插件｜1.9.34 导演进组三件套：跟组模式（导演记得此前指导并评估执行）、跟随注入（最新指导常驻扩展提示词通道，不占楼层、藏楼/摘要洗不掉）、NG 检测（同楼重roll 3次提示请导演）。基准线体系零接触｜ripple & GPT & Claude"
 }

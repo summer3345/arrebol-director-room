@@ -1,6 +1,6 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.9.33｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.9.34｜ripple & GPT & Claude
  * 抽屉内嵌稳定版：
  * - 情感导演 / 剧情导演 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -25,6 +25,10 @@
         injectMode: "visible",
         showFloatingWindow: true,
         showAutoTriggerPopup: true,
+        directorLogEnabled: true,
+        ngDetectEnabled: true,
+        floatInjectEnabled: true,
+        floatDepth: 2,
         fabLeft: null,
         fabTop: null,
         autoTriggerEmotion: false,
@@ -598,7 +602,20 @@
         var satp = qForm("adr044-show-auto-trigger-popup");
         if (satp) save("showAutoTriggerPopup", !!satp.checked);
 
+        var flt = qForm("adr044-float-inject");
+        if (flt) save("floatInjectEnabled", !!flt.checked);
+
+        var fd = qForm("adr044-float-depth");
+        if (fd) save("floatDepth", Number(fd.value || 2));
+
+        var dlog = qForm("adr044-director-log");
+        if (dlog) save("directorLogEnabled", !!dlog.checked);
+
+        var ngd = qForm("adr044-ng-detect");
+        if (ngd) save("ngDetectEnabled", !!ngd.checked);
+
         saveNow();
+        try { adrDRestoreFloatForCurrentChat("settings-change"); } catch (eF34) {}
     }
 
     function syncType(type) {
@@ -981,6 +998,11 @@
             out += contextText + "\n\n";
         }
 
+        var directorLog = adrDDirectorLogBlock(type);
+        if (directorLog) {
+            out += directorLog + "\n\n";
+        }
+
         var recent = await recentContentBlocks(r);
         out += "【最近 " + r + " 轮正文｜精准读取】\n" + (recent || "（未提取到 <content> 正文；用户消息会作为上下文保留）") + "\n\n";
 
@@ -1239,6 +1261,162 @@
             + "\n###";
     }
 
+    // ================= v1.9.34 跟组导演 · 跟随注入 · NG 检测 =================
+    // 三件共用 1.9.31 的 per-chat（chatKey）存储地基。
+    // 铁律：全程不读写 auto state，基准线体系零接触。
+
+    var ADR_D_DIRECTOR_LOG_KEY = "arrebol_d_director_log_v1";
+    var ADR_D_FLOAT_KEY = "arrebol_d_float_note_v1";
+    var ADR_D_FLOAT_EP_KEY = "ARREBOL_D_DIRECTOR_FLOAT";
+    var ADR_D_DIRECTOR_LOG_MAX = 3;
+    var ADR_D_DIRECTOR_LOG_ITEM_CHARS = 1500;
+    var ADR_D_NG_THRESHOLD = 3;
+
+    function adrDReadJsonLS(key) {
+        try {
+            var raw = rootWin().localStorage.getItem(key);
+            var obj = raw ? JSON.parse(raw) : null;
+            return obj && typeof obj === "object" ? obj : {};
+        } catch (e) { return {}; }
+    }
+
+    function adrDWriteJsonLS(key, obj) {
+        try { rootWin().localStorage.setItem(key, JSON.stringify(obj || {})); } catch (e) {}
+    }
+
+    // ---- 跟组导演：按 chatKey::type 滚动存最近 N 条"已注入"的指导 ----
+    function adrDDirectorLogList(type) {
+        try {
+            var all = adrDReadJsonLS(ADR_D_DIRECTOR_LOG_KEY);
+            var list = all[adrDChatKey() + "::" + (type === "plot" ? "plot" : "emotion")];
+            return Array.isArray(list) ? list : [];
+        } catch (e) { return []; }
+    }
+
+    function adrDDirectorLogPush(type, text) {
+        try {
+            if (!settings().directorLogEnabled) return;
+            if (!adrDChatKeyReady || !adrDChatKeyReady()) return;
+            var body = String(text || "").trim();
+            if (!body) return;
+            if (body.length > ADR_D_DIRECTOR_LOG_ITEM_CHARS) body = body.slice(0, ADR_D_DIRECTOR_LOG_ITEM_CHARS) + "…";
+            var all = adrDReadJsonLS(ADR_D_DIRECTOR_LOG_KEY);
+            var k = adrDChatKey() + "::" + (type === "plot" ? "plot" : "emotion");
+            var list = Array.isArray(all[k]) ? all[k] : [];
+            list.push({ t: Date.now(), floor: adrDAssistantRoundCount(), text: body });
+            while (list.length > ADR_D_DIRECTOR_LOG_MAX) list.shift();
+            all[k] = list;
+            adrDWriteJsonLS(ADR_D_DIRECTOR_LOG_KEY, all);
+        } catch (e) {}
+    }
+
+    function adrDDirectorLogBlock(type) {
+        try {
+            if (!settings().directorLogEnabled) return "";
+            var list = adrDDirectorLogList(type);
+            if (!list.length) return "";
+            var lines = list.map(function (it, i) {
+                var floorTxt = Number.isFinite(Number(it.floor)) && Number(it.floor) >= 0 ? "（下达于第 " + it.floor + " 楼）" : "";
+                return "· 指导 " + (i + 1) + floorTxt + "：\n" + String(it.text || "");
+            });
+            return "【跟组记录｜你此前已下达的 " + list.length + " 条指导，最早在前】\n"
+                + lines.join("\n\n")
+                + "\n\n请先用一两句话评估最近一条指导的执行情况（被采纳/部分采纳/被忽略），再给本轮指导；保持与此前指导的连续性，除非剧情确实需要转向。";
+        } catch (e) { return ""; }
+    }
+
+    // ---- 跟随注入：最新指导挂扩展提示词通道，不占楼层，藏楼/摘要正则都碰不到 ----
+    function adrDFloatDepth() {
+        var d = Number(settings().floatDepth);
+        if (!Number.isFinite(d) || d < 0) d = 2;
+        if (d > 99) d = 99;
+        return Math.round(d);
+    }
+
+    function adrDApplyFloatPrompt(text) {
+        try {
+            var c = ctx();
+            if (typeof c.setExtensionPrompt !== "function") return false;
+            var EPT = c.extensionPromptTypes || c.extension_prompt_types || {};
+            var pos = EPT.IN_CHAT != null ? EPT.IN_CHAT : 1;
+            var EPR = c.extensionPromptRoles || c.extension_prompt_roles || {};
+            var role = EPR.SYSTEM != null ? EPR.SYSTEM : 0;
+            c.setExtensionPrompt(ADR_D_FLOAT_EP_KEY, String(text || ""), pos, adrDFloatDepth(), false, role);
+            return true;
+        } catch (e) { return false; }
+    }
+
+    function adrDFloatText(type, text) {
+        var title = type === "plot" ? "剧情导演" : "情感导演";
+        return "【暗河红霞 Arrebol D｜" + title + "·最新指导（常驻）】\n" + String(text || "").trim();
+    }
+
+    function adrDUpdateFloatFromInjection(type, text) {
+        try {
+            var st = settings();
+            if (!st.floatInjectEnabled || !adrDMasterEnabled()) return;
+            if (!adrDChatKeyReady || !adrDChatKeyReady()) return;
+            var body = adrDFloatText(type, text);
+            var all = adrDReadJsonLS(ADR_D_FLOAT_KEY);
+            all[adrDChatKey()] = { t: Date.now(), type: type, text: body };
+            adrDWriteJsonLS(ADR_D_FLOAT_KEY, all);
+            adrDApplyFloatPrompt(body);
+        } catch (e) {}
+    }
+
+    function adrDRestoreFloatForCurrentChat(reason) {
+        try {
+            var st = settings();
+            if (!st.floatInjectEnabled || !adrDMasterEnabled()) {
+                adrDApplyFloatPrompt("");
+                return;
+            }
+            var all = adrDReadJsonLS(ADR_D_FLOAT_KEY);
+            var item = all[adrDChatKey()];
+            adrDApplyFloatPrompt(item && item.text ? item.text : "");
+        } catch (e) {}
+    }
+
+    // ---- NG 检测：同一正文楼重 roll 达阈值提示请导演；纯旁观者，只提示不触发 ----
+    var adrDNgState = { mesKey: "", notified: false };
+
+    function adrDLastAssistantSwipeInfo() {
+        try {
+            var chat = ctx().chat;
+            if (!chat || !chat.length) return null;
+            for (var i = chat.length - 1; i >= 0; i--) {
+                var m = chat[i];
+                if (!m || m.is_system) continue;
+                if (m.is_user === true || String(m.role || "").toLowerCase() === "user") continue;
+                return { idx: i, swipes: Array.isArray(m.swipes) ? m.swipes.length : 1 };
+            }
+            return null;
+        } catch (e) { return null; }
+    }
+
+    function adrDCheckNg(fromWhere) {
+        try {
+            if (!settings().ngDetectEnabled || !adrDMasterEnabled()) return;
+            var info = adrDLastAssistantSwipeInfo();
+            if (!info) return;
+            var mesKey = (adrDChatKey ? adrDChatKey() : "") + "#" + info.idx;
+            if (adrDNgState.mesKey !== mesKey) {
+                adrDNgState = { mesKey: mesKey, notified: false };
+                return;
+            }
+            // swipes 数组含首版：长度 4 = 重 roll 3 次。
+            var rerolls = Math.max(0, info.swipes - 1);
+            if (!adrDNgState.notified && rerolls >= ADR_D_NG_THRESHOLD) {
+                adrDNgState.notified = true;
+                adrDPopupMessage(
+                    "这条戏 NG " + rerolls + " 次了",
+                    "同一楼已连续重 roll " + rerolls + " 次，可能是方向没对上。要不要请导演看看？打开面板点「直接分析」，或填补充指令后点「补充指令分析」。"
+                );
+                try { console.log("[Arrebol D] NG detected", mesKey, "rerolls=", rerolls, "from=", fromWhere); } catch (eNgLog) {}
+            }
+        } catch (e) {}
+    }
+
     function injectionText(type, text) {
         var title = type === "plot" ? "剧情导演" : "情感导演";
         var mode = settings().injectMode || "visible";
@@ -1470,6 +1648,8 @@
             mes = mes.replace(/\n?arrebol_d(?:_visible)?###[\s\S]*?###/g, "").trimEnd();
 
             chat[idx].mes = mes.trimEnd() + add;
+            try { adrDDirectorLogPush(type, text); } catch (eLog34) {}
+            try { adrDUpdateFloatFromInjection(type, text); } catch (eFloat34) {}
             return true;
         } catch (e) {
             console.error("[Arrebol D] inject write failed", e);
@@ -2031,7 +2211,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.33</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.34</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -2056,6 +2236,10 @@
             + '</select>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层，藏楼/摘要洗不掉）</label>'
+            + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行情况</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
             + '</details>'
 
             + '<div class="adr044-tabs">'
@@ -2150,6 +2334,10 @@
             adrDSetAllById("adr044-memory", st.supplementMemory || "");
             adrDSetAllById("adr044-inject-mode", st.injectMode || "visible");
             adrDSetAllById("adr044-show-floating-window", "", st.showFloatingWindow);
+            adrDSetAllById("adr044-float-inject", "", st.floatInjectEnabled !== false);
+            adrDSetAllById("adr044-float-depth", String(st.floatDepth != null ? st.floatDepth : 2));
+            adrDSetAllById("adr044-director-log", "", st.directorLogEnabled !== false);
+            adrDSetAllById("adr044-ng-detect", "", st.ngDetectEnabled !== false);
             adrDSetAllById("adr044-show-auto-trigger-popup", "", st.showAutoTriggerPopup !== false);
 
             ["emotion", "plot"].forEach(function (type) {
@@ -3492,6 +3680,10 @@
             + '</select>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层）</label>'
+            + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
             + '</div>'
 
             + '<div class="adr048-tabs">'
@@ -4813,7 +5005,20 @@
             }
 
             ["MESSAGE_RECEIVED", "MESSAGE_SENT", "GENERATION_ENDED", "CHAT_CHANGED", "CHAT_LOADED"].forEach(on);
+
+            // v1.9.34：NG 检测走 swipe 事件（数组长度只随新生成增长，来回翻页不误计）；
+            // 换聊天时恢复该聊天自己的浮动指导。
+            if (es && typeof es.on === "function") {
+                if (types.MESSAGE_SWIPED) {
+                    es.on(types.MESSAGE_SWIPED, function () { setTimeout(function () { adrDCheckNg("event"); }, 400); });
+                }
+                if (types.CHAT_CHANGED) {
+                    es.on(types.CHAT_CHANGED, function () { setTimeout(function () { adrDRestoreFloatForCurrentChat("chat-changed"); }, 900); });
+                }
+            }
         } catch (e) {}
+
+        try { setTimeout(function () { adrDRestoreFloatForCurrentChat("startup"); }, 2600); } catch (eF34s) {}
 
         try {
             if (!rootWin().__arrebolDAutoTriggerPoll) {
@@ -4825,6 +5030,7 @@
                             rootWin().__arrebolDLastChatKeySeen = keyPoll;
                             adrDQueueFullAssistantRoundCountRefresh("poll-chat-key-change");
                             adrDScheduleAutoTriggerCheck("poll-chat-key-change");
+                            adrDRestoreFloatForCurrentChat("poll-chat-key-change");
                         }
                         var len = adrDCurrentMessageTailForPoll();
                         if (adrDLastChatLengthSeen >= 0 && len !== adrDLastChatLengthSeen) {
@@ -4836,6 +5042,7 @@
                         }
                         adrDLastChatLengthSeen = len;
                         adrDUpdateAutoCounters();
+                        adrDCheckNg("poll");
                     } catch (e) {}
                 }, 9000);
             }
