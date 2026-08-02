@@ -1,7 +1,7 @@
 
 /*
  * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
- * v1.11.0 抽卡三仓库：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
+ * v1.11.1 抽卡三仓库：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -2769,10 +2769,28 @@
         try {
             if (!el) return true;
             if (el.__adrCdTyping) return true;
+            // v1.11.1：刚被点过的控件 1.5s 内免疫任何刷新。
+            // iOS 上原生下拉弹出期间若被改写，选择器会当场关闭，表现为"点不开"。
+            if (el.__adrCdTouchedAt && (Date.now() - el.__adrCdTouchedAt) < 1500) return true;
             var d = rootDoc();
             if (d && d.activeElement === el) return true;
         } catch (e) {}
         return false;
+    }
+
+    function adrCdTouch(el) {
+        try { if (el) el.__adrCdTouchedAt = Date.now(); } catch (e) {}
+    }
+
+    // v1.11.1：落盘改防抖。即时 saveNow() 会在点击当帧触发刷新链，打断 iOS 的原生下拉。
+    var adrCdSaveTimer = null;
+    function adrCdSaveSoon() {
+        try {
+            if (adrCdSaveTimer) clearTimeout(adrCdSaveTimer);
+            adrCdSaveTimer = setTimeout(function () {
+                try { saveNow(); } catch (e) {}
+            }, 900);
+        } catch (e2) { try { saveNow(); } catch (e3) {} }
     }
 
     function adrCdSetValueSafe(id, value) {
@@ -2787,9 +2805,21 @@
     function adrCdSetCheckedSafe(id, checked) {
         try {
             Array.prototype.slice.call(rootDoc().querySelectorAll("#" + id)).forEach(function (el) {
-                if (!el) return;
+                if (!el || adrCdIsBusyEl(el)) return; // 刚点过的勾选框不回刷，否则视觉上"勾不上"
                 el.checked = !!checked;
             });
+        } catch (e) {}
+    }
+
+    // options 没变就绝不重写 DOM——这是 iOS 下拉能被点开的前提
+    function adrCdFillSelect(el, optionsHtml, value, signature) {
+        try {
+            if (!el) return;
+            if (el.__adrCdOptSig !== signature) {
+                el.innerHTML = optionsHtml;
+                el.__adrCdOptSig = signature;
+            }
+            if (el.value !== value) el.value = value;
         } catch (e) {}
     }
 
@@ -2847,10 +2877,10 @@
                     + names.map(function (nm) {
                         return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
                     }).join("");
+                var sig = "slot|" + names.join("\u0001") + "|" + sel;
                 Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-slot-" + slot)).forEach(function (el) {
                     if (adrCdIsBusyEl(el)) return;
-                    el.innerHTML = html;
-                    el.value = sel;
+                    adrCdFillSelect(el, html, sel, sig);
                 });
                 adrCdSetCheckedSafe("adr044-cd-slot-on-" + slot, state.slotOn[slot]);
                 var cnt = 0;
@@ -2872,9 +2902,10 @@
             var html = names.map(function (nm) {
                 return '<option value="' + esc(nm) + '"' + (nm === selectedName ? " selected" : "") + '>' + esc(nm) + '</option>';
             }).join("");
+            var sigEdit = "edit|" + names.join("\u0001");
             Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-edit-select")).forEach(function (el) {
-                el.innerHTML = html;
-                el.value = selectedName;
+                if (adrCdIsBusyEl(el)) return;
+                adrCdFillSelect(el, html, selectedName, sigEdit);
             });
             return selectedName;
         } catch (e) { return ""; }
@@ -3233,8 +3264,9 @@
 
             each("adr044-cd-enabled", function (el) {
                 el.addEventListener("change", function () {
+                    adrCdTouch(el);
                     save("cdEnabled", !!el.checked);
-                    saveNow();
+                    adrCdSaveSoon();
                     if (el.checked) adrCdRestoreFloat("toggle-cd-on");
                     else adrCdApplyFloat("");
                     adrCdUpdateStatusLine();
@@ -3251,21 +3283,27 @@
             });
 
             each("adr044-cd-mode", function (el) {
+                guard(el);
                 el.addEventListener("change", function () {
+                    adrCdTouch(el);
                     save("cdMode", el.value === "pick" ? "pick" : "blind");
-                    saveNow();
+                    adrCdSaveSoon();
                     adrCdUpdateStatusLine();
                 });
             });
 
             each("adr044-cd-paused", function (el) {
-                el.addEventListener("change", function () { adrCdSetPaused(!!el.checked, false); });
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    adrCdSetPaused(!!el.checked, false);
+                });
             });
 
             ADR_CD_SLOTS.forEach(function (slot) {
                 each("adr044-cd-slot-" + slot, function (el) {
                     guard(el);
                     el.addEventListener("change", function () {
+                        adrCdTouch(el);
                         var state = adrCdChatState();
                         state.slots[slot] = String(el.value || "");
                         if (state.slots[slot]) state.slotOn[slot] = true;
@@ -3273,20 +3311,21 @@
                         var defs = adrCdSlotDefaults();
                         defs[slot] = state.slots[slot];
                         save("cdSlotDefaults", defs);
-                        saveNow();
+                        adrCdSaveSoon();
                         adrCdRefreshSlotSelects();
                         adrCdUpdateStatusLine();
                     });
                 });
                 each("adr044-cd-slot-on-" + slot, function (el) {
                     el.addEventListener("change", function () {
+                        adrCdTouch(el);
                         var state = adrCdChatState();
                         state.slotOn[slot] = !!el.checked;
                         adrCdSaveChatState(state);
                         var defsOn = adrCdSlotOnDefaults();
                         defsOn[slot] = !!el.checked;
                         save("cdSlotOnDefaults", defsOn);
-                        saveNow();
+                        adrCdSaveSoon();
                         adrCdUpdateStatusLine();
                     });
                 });
@@ -3321,11 +3360,13 @@
                 el.addEventListener("change", function () { save("cdModel", String(el.value || "").trim()); saveNow(); });
             });
             each("adr044-cd-model-select", function (el) {
+                guard(el);
                 el.addEventListener("change", function () {
+                    adrCdTouch(el);
                     if (!el.value) return;
                     adrCdSetValueSafe("adr044-cd-model", el.value);
                     save("cdModel", String(el.value));
-                    saveNow();
+                    adrCdSaveSoon();
                 });
             });
 
@@ -3337,7 +3378,11 @@
             each("adr044-api-profile-name-cd", function (el) { guard(el); });
 
             each("adr044-cd-edit-select", function (el) {
-                el.addEventListener("change", function () { adrCdLoadEditor(String(el.value || "")); });
+                guard(el);
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    adrCdLoadEditor(String(el.value || ""));
+                });
             });
             each("adr044-cd-lib-name", function (el) { guard(el); });
             each("adr044-cd-lib-editor", function (el) {
@@ -3433,7 +3478,10 @@
             + '<option value="common">挂进通用库</option>'
             + '<option value="nsfw">挂进 NSFW 库</option>'
             + '</select>'
-            + '<div class="' + actionsClass + '"><button id="adr044-cd-import" type="button">导入 .txt/.md</button><button id="adr044-cd-export" type="button">导出这副</button></div>'
+            + '<div class="adr044-template-mini-actions">'
+            + '<button type="button" id="adr044-cd-import">导入 .txt/.md</button>'
+            + '<button type="button" id="adr044-cd-export">导出这副</button>'
+            + '</div>'
             + '<input type="file" id="adr044-cd-import-file" class="adr044-cd-import-file" accept=".txt,.md,text/plain,text/markdown">'
             + '<div class="adr044-template-status" id="adr044-cd-lib-status">## 开一门卡池，一行一张卡；// 开头是注释；即改即生效。</div>'
             + '<textarea id="adr044-cd-lib-editor" rows="12" placeholder="## 卡池名&#10;一行一张卡…"></textarea>'
@@ -3564,7 +3612,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.11.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.11.1</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
