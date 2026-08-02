@@ -1,8 +1,9 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.9.34｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
+ * v1.10.0 抽卡进组：抽卡剧情小能手（每 N 楼贴耳投一张事件卡）+ 红霞转岗统筹（施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
- * - 情感导演 / 剧情导演 双页面
+ * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
  * - 拉取模型
  * - 本地测试
@@ -15,8 +16,9 @@
 
     var EXT = "arrebol-d-final-v1040-stable-settings";
     var EMOTION_PRESET = "你是 RP 情感导演。请阅读最近的聊天内容和用户补充信息，只分析情感曲线与人设稳定，不写正文。\n\n你需要判断：\n1. 当前关系阶段是什么。\n2. 情绪温度是否过热、过冷、空转或错拍。\n3. 角色是否出现 OOC 风险。\n4. 是否存在秒爱、秒软、秒承诺、隐藏深情化。\n5. 是否把照顾误写成占有，把心疼误写成告白。\n6. 是否过度代演用户的心理与选择。\n7. 当前角色根据人设应该如何承接情绪。\n8. 下一阶段情感应该升温、降温、维持、错拍，还是延迟。\n\n输出必须短，不超过 300 字。不要写分析过程。不要写正文。只给下一阶段情感方向，要给可执行动作与明确禁区。\n\n固定输出格式：\n【情感方向】\n……\n\n【人设边界】\n……\n\n【避免】\n……";
-    var PLOT_PRESET = "你是 RP 剧情导演。请阅读最近的聊天内容和用户补充信息，只分析剧情推进、事件张力、伏笔与场景调度，不写正文。\n\n你需要判断：\n1. 当前剧情是否停滞、空转或重复。\n2. 场景是否需要推进、转场、插入事件、制造阻碍，还是维持压抑。\n3. 哪些伏笔可以轻轻回收，哪些伏笔不能急着揭开。\n4. NPC、环境、现实阻尼是否应该介入。\n5. 当前剧情的下一步应该发生什么“可执行事件”。\n6. 避免强行相遇、强行表白、强行救场、巧合堆叠。\n7. 不要替用户决定行动，只给世界和角色侧的推进方向。\n\n输出必须短，不超过 300 字。不要写正文。不要写分析过程。只给下一阶段剧情方向。\n\n固定输出格式：\n【剧情推进】\n……\n\n【事件抓手】\n……\n\n【避免】\n……";
-
+    var PLOT_PRESET = "你是 RP 剧组统筹。请阅读最近的聊天内容、跟组记录与投卡史，一次调用完成四件事，不写正文。\n\n一、派人：调度 NPC 进出场；把久未出场的冷板凳角色捞回场上；给最近投放的无专名事件卡选角——把「某人/口信/来客」铸成戏里真实存在的具体角色。\n二、顺场：检查转场衔接与叙事流畅，指出哪里硌牙、怎么顺。\n三、收线：盘点既有伏笔与已投的事件卡，点名哪条该兑现、哪条再压一压；撒出去的钩子不许无限堆积。\n四、急诊与验收：若因 NG 会诊被请来，先诊断重 roll 原因；若有此前指导，先用一两句评估执行情况。\n\n输出纪律（硬性）：每条意见必须带名字带条目——「让欠主角人情的老周把口信送到」合格；「推进剧情」「增加张力」这类纯口号视为不合格输出，禁止出现。\n不要替用户决定行动。不要写正文。不要写分析过程。输出必须短，不超过 350 字。\n\n固定输出格式：\n【派人】\n……\n\n【顺场】\n……\n\n【收线】\n……\n\n【本轮重点】\n……";
+    // v1.10.0：红霞转岗统筹（派人/顺场/收线/急诊验收四职打包）。旧版预设原文留档，仅用于化石合并。
+    var PLOT_PRESET_LEGACY = "你是 RP 剧情导演。请阅读最近的聊天内容和用户补充信息，只分析剧情推进、事件张力、伏笔与场景调度，不写正文。\n\n你需要判断：\n1. 当前剧情是否停滞、空转或重复。\n2. 场景是否需要推进、转场、插入事件、制造阻碍，还是维持压抑。\n3. 哪些伏笔可以轻轻回收，哪些伏笔不能急着揭开。\n4. NPC、环境、现实阻尼是否应该介入。\n5. 当前剧情的下一步应该发生什么“可执行事件”。\n6. 避免强行相遇、强行表白、强行救场、巧合堆叠。\n7. 不要替用户决定行动，只给世界和角色侧的推进方向。\n\n输出必须短，不超过 300 字。不要写正文。不要写分析过程。只给下一阶段剧情方向。\n\n固定输出格式：\n【剧情推进】\n……\n\n【事件抓手】\n……\n\n【避免】\n……";
     var DEFAULTS = {
         activeTab: "emotion",
         masterEnabled: true,
@@ -34,7 +36,7 @@
         autoTriggerEmotion: false,
         autoTriggerPlot: false,
         autoTriggerEmotionRange: "20",
-        autoTriggerPlotRange: "10",
+        autoTriggerPlotRange: "20",
         autoTriggerEmotionCustomRange: 0,
         autoTriggerPlotCustomRange: 0,
         lastAutoTriggerChatKey: "",
@@ -55,7 +57,20 @@
         plotApiKey: "",
         plotModel: "",
         plotPreset: PLOT_PRESET,
-        plotPreview: ""
+        plotPreview: "",
+
+        // v1.10.0 抽卡剧情小能手（账号级；卡库本体走 adrCdLibraries() 懒初始化，避免 DEFAULTS 对象引用共享；
+        // cdEnvelope 空串表示使用出厂信封 ADR_CD_DEFAULT_ENVELOPE）
+        cdEnabled: false,
+        cdN: 5,
+        cdCooldown: 8,
+        cdDepth: 2,
+        cdMode: "blind",
+        cdNsfwEnabled: false,
+        cdEnvelope: "",
+        cdApiEndpoint: "",
+        cdApiKey: "",
+        cdModel: "deepseek-chat"
     };
 
     var initialized = false;
@@ -175,6 +190,8 @@
         }
         if (!st.emotionPreset) st.emotionPreset = EMOTION_PRESET;
         if (!st.plotPreset) st.plotPreset = PLOT_PRESET;
+        // v1.10.0：统筹转岗化石合并。存量若与旧默认逐字相同，就地升级；用户自改过的预设一律不动。
+        if (st.plotPreset === PLOT_PRESET_LEGACY) st.plotPreset = PLOT_PRESET;
         // v1.9.29：注入方式化石合并。hidden 与 folded 自统一以来行为完全一致，存量值就地迁移。
         if (st.injectMode === "hidden") st.injectMode = "folded";
         return st;
@@ -443,6 +460,7 @@
             saveNow();
             try { adrDSaveLocalBackup(settings()); } catch (eBk) {}
             adrDRefreshMasterToggleUI();
+            try { adrCdRestoreFloat("master-toggle"); } catch (eCdM) {} // v1.10.0：总开关同时管抽卡耳机
 
             if (!next) {
                 adrDToast("小红霞已暂停：自动分析与重试全部停止，手动按钮不受影响");
@@ -476,7 +494,7 @@
     // ===== 总开关结束 =====
 
     function labelOf(type) {
-        return type === "plot" ? "剧情导演" : "情感导演";
+        return type === "plot" ? "统筹" : "情感导演";
     }
 
     function prefixOf(type) {
@@ -1003,11 +1021,19 @@
             out += directorLog + "\n\n";
         }
 
+        // v1.10.0：统筹采买清单新增投卡史（账房盘账得看得见牌桌）。
+        if (type === "plot") {
+            var cdHist = adrCdHistoryBlock();
+            if (cdHist) {
+                out += cdHist + "\n\n";
+            }
+        }
+
         var recent = await recentContentBlocks(r);
         out += "【最近 " + r + " 轮正文｜精准读取】\n" + (recent || "（未提取到 <content> 正文；用户消息会作为上下文保留）") + "\n\n";
 
         if (type === "plot") {
-            out += "请根据以上内容输出剧情导演方向。只输出方向结果，不要复述分析过程，不要写正文。";
+            out += "请根据以上内容输出统筹调度。只输出调度结果（派人/顺场/收线/本轮重点），每条带名字带条目，不要复述分析过程，不要写正文。";
         } else {
             out += "请根据以上内容输出情感导演方向。只输出方向结果，不要复述分析过程，不要写正文。";
         }
@@ -1347,7 +1373,7 @@
     }
 
     function adrDFloatText(type, text) {
-        var title = type === "plot" ? "剧情导演" : "情感导演";
+        var title = type === "plot" ? "统筹" : "情感导演";
         return "【暗河红霞 Arrebol D｜" + title + "·最新指导（常驻）】\n" + String(text || "").trim();
     }
 
@@ -1365,6 +1391,7 @@
     }
 
     function adrDRestoreFloatForCurrentChat(reason) {
+        try { adrCdRestoreFloat(reason); } catch (eCdRestore) {} // v1.10.0：抽卡小能手耳机同车恢复（导演早退路径不影响）
         try {
             var st = settings();
             if (!st.floatInjectEnabled || !adrDMasterEnabled()) {
@@ -1410,7 +1437,7 @@
                 adrDNgState.notified = true;
                 adrDPopupMessage(
                     "这条戏 NG " + rerolls + " 次了",
-                    "同一楼已连续重 roll " + rerolls + " 次，可能是方向没对上。要不要请导演看看？打开面板点「直接分析」，或填补充指令后点「补充指令分析」。"
+                    "同一楼已连续重 roll " + rerolls + " 次，可能是方向没对上。要不要请统筹会诊？打开面板在统筹页点「直接分析」，或填补充指令后点「补充指令分析」。"
                 );
                 try { console.log("[Arrebol D] NG detected", mesKey, "rerolls=", rerolls, "from=", fromWhere); } catch (eNgLog) {}
             }
@@ -1418,7 +1445,7 @@
     }
 
     function injectionText(type, text) {
-        var title = type === "plot" ? "剧情导演" : "情感导演";
+        var title = type === "plot" ? "统筹" : "情感导演";
         var mode = settings().injectMode || "visible";
         var t = type === "plot" ? "plot" : "emotion";
 
@@ -1634,7 +1661,7 @@
                 startAt2 = mes.indexOf(startMark2);
             }
 
-            var visibleName = type === "plot" ? "剧情导演" : "情感导演";
+            var visibleName = type === "plot" ? "统筹" : "情感导演";
             var reOldVisible = new RegExp("\\n\\n【(?:红霞导演室|暗河红霞 Arrebol D)(?:｜|\\|)" + visibleName + "】[\\s\\S]*$", "m");
             mes = mes.replace(reOldVisible, "");
 
@@ -2140,6 +2167,939 @@
     }
 
 
+    // ================= v1.10.0 抽卡剧情小能手（进组模块）=================
+    // 定位：每 N 楼向模型贴耳投放一张"发生了一半的事"，治长上下文剧情塌缩。
+    // 机器全瞎，聪明预付在卡里；唯一可选的眼睛（DS 择池）只准看卡池名，不准看卡面。
+    // 纪律：与导演共用全量计数与 chatKey 地基；耳机通道独立 key；基准线体系零接触；
+    //       失败保拍（不投出不推进 lastDrawAt）；DS 任何异常当场降级盲抽，抽卡器永不停摆。
+    // 需求与终裁：江 ｜ 架构与施工：波哥（Claude Fable 5）｜ 原体血统：ripple & GPT & Claude
+
+    var ADR_CD_EP_KEY = "ARREBOL_D_CARD_DRAWER"; // 工程铁则：与 ARREBOL_D_DIRECTOR_FLOAT 互异
+    var ADR_CD_LS_KEY = "arrebol_d_cd_chat_v1";  // localStorage 灾备镜像（按 chatKey 分档）
+    var ADR_CD_META_KEY = "arrebol_d_cd";        // chat_metadata 服务器侧主档
+    var ADR_CD_HISTORY_MAX = 5;                  // 投卡史条数（供统筹采买）
+    var ADR_CD_RECENT_MAX = 32;                  // 冷却池底仓
+    var ADR_CD_PICK_TIMEOUT_MS = 8000;           // 择池 DS 超时（§2.4 降级铁律）
+
+    var ADR_CD_DEFAULT_ENVELOPE = "【场外事实】以下事件已然发生。织入正文；不得复述原文；不得在单楼内全部兑现：{卡面}";
+
+    var ADR_CD_FACTORY_LIB = [
+        "## 意外",
+        "门房捎来一句口信：三天前就该到的人，今晚到了。",
+        "后厨传来一声碎响，随后是长得反常的安静。",
+        "信封里除了信，还多出一把不认识的钥匙。",
+        "雨停了，屋檐下多了一双不属于任何人的鞋。",
+        "",
+        "## 转折",
+        "一直没人坐的那把椅子，今天有人径直坐下了。",
+        "原本说定的价钱，对方临场翻了一倍，理由只字不提。",
+        "那扇常年上锁的门虚掩着，锁孔里还插着钥匙。",
+        "有人当众叫出了一个很久没人敢提的名字。",
+        "",
+        "## 伏笔",
+        "桌角压着半张车票，日期是十天以后。",
+        "巷口停了辆车，从昨夜到现在没熄过火。",
+        "账本最后一页被撕走了，撕口很新。",
+        "墙上的合影少了一个人，相框却没换小。",
+        "",
+        "## 代价",
+        "上次帮忙的人捎话来了：该还的，这两天要还。",
+        "旧伤在变天前又疼了，比上一次更深一些。",
+        "有人替这边挡了一句话，代价当场没说，记下了。",
+        "",
+        "## 外力",
+        "停电了，整条街只剩一户还亮着灯。",
+        "官面上的人来过了，没进门，只在对街站了一炷香。",
+        "天气骤变，原定今晚的路走不成了。",
+        "",
+        "## 狗血",
+        "席间有人认错了人，偏偏错得有名有姓。",
+        "一封没署名的信，把三个人写在了同一句话里。",
+        "旧物摊上摆着一件本不该流出去的东西。",
+        "",
+        "## nsfw",
+        "// 这一池由你自己填。家法：写\"把房间弄斜的一件事实\"——灯没关、门没锁、话说了一半；不写动作说明书。"
+    ].join("\n");
+
+    var ADR_CD_HELP_TEXT = [
+        "卡面家法：一行一张卡。每张卡是一件\"发生了一半的事\"，三特征缺一不可——",
+        "· 具体：有人有物有时刻；",
+        "· 悬置：谁 / 为何，卡不说，留给演员说；",
+        "· 可嫁接：无专名，什么局都能落（专名由统筹在场上现铸）。",
+        "写的是意象与事实，不是指令。\"门房捎来一句口信：三天前就该到的人，今晚到了\"合格；\"现在发生一个转折\"不合格。",
+        "格式：`## 卡池名` 一行开卡池，一行一张卡，空行随意，`//` 开头是注释行；即改即生效。",
+        "卡池在语义空间里铺开；两段抽保各卡池出场均等，想加重某方向就多开卡池去切它。",
+        "nsfw 池补充家法：照守以上全部，另加一条——写\"把房间弄斜的一件事实\"，不写动作说明书。灯没关、门没锁、话说了一半，都是卡；后面的事是演员的。"
+    ].join("\n");
+
+    // ---- 纯函数区（挂 __adrCdTest 供桩测与真机 console 验证）----
+
+    function adrCdParseLibraryText(text) {
+        var pools = [];
+        var cur = null;
+        String(text || "").split(/\r?\n/).forEach(function (line) {
+            var s = String(line || "").trim();
+            if (!s) return;
+            var m = s.match(/^##\s*(.+)$/);
+            if (m) {
+                cur = { name: m[1].trim(), cards: [] };
+                pools.push(cur);
+                return;
+            }
+            if (s.indexOf("//") === 0) return; // 注释行
+            if (!cur) {
+                cur = { name: "未分池", cards: [] };
+                pools.push(cur);
+            }
+            cur.cards.push(s);
+        });
+        return pools;
+    }
+
+    function adrCdFilterPools(pools, nsfwEnabled) {
+        return (pools || []).filter(function (p) {
+            if (!p || !Array.isArray(p.cards) || !p.cards.length) return false;
+            if (!nsfwEnabled && String(p.name || "").trim().toLowerCase() === "nsfw") return false;
+            return true;
+        });
+    }
+
+    function adrCdPickFromPool(cards, recentList, cooldownM, rng) {
+        rng = typeof rng === "function" ? rng : Math.random;
+        cards = Array.isArray(cards) ? cards : [];
+        if (!cards.length) return "";
+        var M = Math.max(0, Math.floor(Number(cooldownM) || 0));
+        // 自动降冷却：单池卡数 <= 冷却量时降到 卡数-1，防抽空死锁（§1.2）
+        if (cards.length <= M) M = Math.max(0, cards.length - 1);
+        var elig = [];
+        while (true) {
+            var recent = (recentList || []).slice(-M);
+            var set = {};
+            recent.forEach(function (c) { set[c] = 1; });
+            elig = cards.filter(function (c) { return !set[c]; });
+            if (elig.length || M <= 0) break;
+            M--;
+        }
+        if (!elig.length) elig = cards.slice();
+        return elig[Math.floor(rng() * elig.length)] || "";
+    }
+
+    function adrCdSanitizePickResponse(raw, menu) {
+        var s = String(raw || "").trim();
+        // 只许剥掉包装（引号/括号/句读），不做联想；剥完必须与菜单一字不差
+        s = s.replace(/^["'「『【\[\(（\s]+/, "").replace(/["'」』】\]\)）。．.!！\s]+$/, "").trim();
+        for (var i = 0; i < (menu || []).length; i++) {
+            if (s === String(menu[i])) return menu[i];
+        }
+        return "";
+    }
+
+    function adrCdBuildEnvelope(template, card) {
+        var tpl = String(template || "").trim() || ADR_CD_DEFAULT_ENVELOPE;
+        if (tpl.indexOf("{卡面}") >= 0) return tpl.split("{卡面}").join(String(card || ""));
+        return tpl + String(card || "");
+    }
+
+    try {
+        rootWin().__adrCdTest = {
+            parseLibraryText: adrCdParseLibraryText,
+            filterPools: adrCdFilterPools,
+            pickFromPool: adrCdPickFromPool,
+            sanitizePickResponse: adrCdSanitizePickResponse,
+            buildEnvelope: adrCdBuildEnvelope,
+            factoryLib: ADR_CD_FACTORY_LIB
+        };
+    } catch (eCdTestHook) {}
+
+    // ---- 账号级设置读取 ----
+
+    function adrCdActive() {
+        try {
+            var st = settings();
+            return !!st.cdEnabled && adrDMasterEnabled();
+        } catch (e) { return false; }
+    }
+
+    function adrCdN() {
+        var n = Math.round(Number(settings().cdN));
+        if (!Number.isFinite(n)) n = 5;
+        if (n < 1) n = 1;
+        if (n > 20) n = 20;
+        return n;
+    }
+
+    function adrCdDepth() {
+        var d = Math.round(Number(settings().cdDepth));
+        if (!Number.isFinite(d)) d = 2;
+        if (d < 0) d = 0;
+        if (d > 4) d = 4;
+        return d;
+    }
+
+    function adrCdCooldown() {
+        var m = Math.round(Number(settings().cdCooldown));
+        if (!Number.isFinite(m) || m < 0) m = 8;
+        if (m > 99) m = 99;
+        return m;
+    }
+
+    function adrCdLibraries() {
+        var st = settings();
+        if (!st.cdLibraries || typeof st.cdLibraries !== "object" || Array.isArray(st.cdLibraries)) {
+            st.cdLibraries = {};
+        }
+        if (!Object.keys(st.cdLibraries).length) {
+            st.cdLibraries["通用"] = ADR_CD_FACTORY_LIB; // 出厂示例（§3.1）
+        }
+        return st.cdLibraries;
+    }
+
+    // ---- 聊天级状态：chat_metadata 主档（跟聊天文件走）＋ localStorage 按 chatKey 镜像灾备 ----
+    // 沿用 v1.9.30 双写判例：读取优先服务器侧，写入双写。chatKey 稳定前不落盘。
+
+    function adrCdMetaRoot() {
+        try {
+            var c = ctx();
+            var m = c.chatMetadata || c.chat_metadata;
+            if (m && typeof m === "object") return m;
+        } catch (e) {}
+        return null;
+    }
+
+    function adrCdNormalizeChatState(raw) {
+        var o = raw && typeof raw === "object" ? raw : {};
+        return {
+            lastDrawAt: Number.isFinite(Number(o.lastDrawAt)) ? Number(o.lastDrawAt) : -1,
+            lib: typeof o.lib === "string" ? o.lib : "",
+            history: Array.isArray(o.history) ? o.history.slice(-ADR_CD_HISTORY_MAX) : [],
+            recent: Array.isArray(o.recent) ? o.recent.slice(-ADR_CD_RECENT_MAX) : [],
+            paused: o.paused === true,
+            streak: o.streak && typeof o.streak === "object"
+                ? { pool: String(o.streak.pool || ""), n: Math.max(0, Number(o.streak.n) || 0) }
+                : { pool: "", n: 0 },
+            floatText: typeof o.floatText === "string" ? o.floatText : ""
+        };
+    }
+
+    function adrCdChatState() {
+        var fromMeta = null;
+        try {
+            var root = adrCdMetaRoot();
+            if (root && root[ADR_CD_META_KEY] && typeof root[ADR_CD_META_KEY] === "object") {
+                fromMeta = root[ADR_CD_META_KEY];
+            }
+        } catch (e0) {}
+        if (fromMeta) return adrCdNormalizeChatState(fromMeta);
+        try {
+            var all = adrDReadJsonLS(ADR_CD_LS_KEY);
+            return adrCdNormalizeChatState(all[adrDChatKey()]);
+        } catch (e1) {}
+        return adrCdNormalizeChatState(null);
+    }
+
+    function adrCdSaveChatState(state) {
+        try { if (!adrDChatKeyReady()) return; } catch (eK) { return; }
+        var clean = adrCdNormalizeChatState(state);
+        try {
+            var root = adrCdMetaRoot();
+            if (root) {
+                root[ADR_CD_META_KEY] = clean;
+                var c = ctx();
+                if (typeof c.saveMetadataDebounced === "function") c.saveMetadataDebounced();
+                else if (typeof c.saveMetadata === "function") c.saveMetadata();
+            }
+        } catch (eMeta) {}
+        try {
+            var all = adrDReadJsonLS(ADR_CD_LS_KEY);
+            all[adrDChatKey()] = clean;
+            adrDWriteJsonLS(ADR_CD_LS_KEY, all);
+        } catch (eLs) {}
+    }
+
+    function adrCdActiveLibName(state) {
+        var libs = adrCdLibraries();
+        var names = Object.keys(libs);
+        if (state && state.lib && libs[state.lib] !== undefined) return state.lib;
+        return names[0] || "通用";
+    }
+
+    // ---- 耳机通道（独立 key，不占楼层，藏楼/摘要洗不到）----
+
+    function adrCdApplyFloat(text) {
+        try {
+            var c = ctx();
+            if (typeof c.setExtensionPrompt !== "function") return false;
+            var EPT = c.extensionPromptTypes || c.extension_prompt_types || {};
+            var pos = EPT.IN_CHAT != null ? EPT.IN_CHAT : 1;
+            var EPR = c.extensionPromptRoles || c.extension_prompt_roles || {};
+            var role = EPR.SYSTEM != null ? EPR.SYSTEM : 0;
+            c.setExtensionPrompt(ADR_CD_EP_KEY, String(text || ""), pos, adrCdDepth(), false, role);
+            return true;
+        } catch (e) { return false; }
+    }
+
+    function adrCdRestoreFloat(reason) {
+        try {
+            if (!adrCdActive()) { adrCdApplyFloat(""); adrCdSyncChatControls(); return; }
+            var state = adrCdChatState();
+            if (state.paused) { adrCdApplyFloat(""); adrCdSyncChatControls(); return; }
+            adrCdApplyFloat(state.floatText || "");
+            adrCdSyncChatControls();
+        } catch (e) {}
+    }
+
+    // ---- 择池：DS 只看池名，不看卡面（§2）----
+
+    function adrCdTruncate(s, max) {
+        s = String(s || "");
+        return s.length > max ? s.slice(0, max) + "…" : s;
+    }
+
+    async function adrCdPickPoolViaDS(pools, state) {
+        var st = settings();
+        var endpoint = st.cdApiEndpoint || "";
+        var key = st.cdApiKey || "";
+        var model = st.cdModel || "deepseek-chat";
+        if (!endpoint) throw new Error("未填写择池 API 地址");
+        var url = chatUrl(endpoint);
+        if (!url) throw new Error("择池 API 地址无效");
+
+        var menu = pools.map(function (p) { return p.name; });
+        var recentPools = (state.history || []).slice(-3).map(function (h) { return h && h.pool; }).filter(Boolean);
+
+        // 岗位说明书（§2.3 硬约束）
+        var sys = "你是抽卡助手的选池器。你只能看到卡池名单，看不到任何卡面内容。"
+            + "你的唯一任务：根据当前剧情氛围，从名单中选出此刻最适合投放一张事件卡的卡池。"
+            + "只准回复名单中的一个卡池名，一字不差；不加标点、不加解释、不加任何其他文字。多一个字视为无效。";
+
+        var parts = [];
+        var precise = "";
+        try { precise = buildPreciseContext(); } catch (ePc) {}
+        if (precise) parts.push(adrCdTruncate(precise, 4000)); // 借红霞的灶，取小档（§2.2）
+        var recent = "";
+        try { recent = await recentContentBlocks(6); } catch (eRc) {}
+        if (recent) parts.push("【最近正文（节选）】\n" + adrCdTruncate(recent, 4000));
+        parts.push("【卡池名单】\n" + menu.join("\n"));
+        if (recentPools.length) parts.push("【最近 3 张已投卡来自的卡池】\n" + recentPools.join("、"));
+        parts.push("请从【卡池名单】中回复一个卡池名。");
+
+        var aborterCd = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var timeoutId = null;
+        var didTimeout = false;
+        if (aborterCd) {
+            timeoutId = setTimeout(function () {
+                didTimeout = true;
+                try { aborterCd.abort(); } catch (eA) {}
+            }, ADR_CD_PICK_TIMEOUT_MS);
+        }
+
+        var headers = { "Content-Type": "application/json" };
+        if (key) headers.Authorization = "Bearer " + key;
+        var opts = {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: "system", content: sys },
+                    { role: "user", content: parts.join("\n\n") }
+                ],
+                temperature: 0.4,
+                max_tokens: 30,
+                stream: false
+            })
+        };
+        if (aborterCd) opts.signal = aborterCd.signal;
+
+        var raw;
+        try {
+            var res = await fetch(url, opts);
+            raw = await res.text();
+            if (!res.ok) throw new Error("择池 API " + res.status + "：" + String(raw || "").slice(0, 160));
+        } catch (eFetch) {
+            if (didTimeout && eFetch && eFetch.name === "AbortError") throw new Error("择池超时（" + (ADR_CD_PICK_TIMEOUT_MS / 1000) + "s）");
+            throw eFetch;
+        } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+
+        var data;
+        try { data = JSON.parse(raw); } catch (eJson) { throw new Error("择池返回非 JSON"); }
+        var out = parseResponse(data);
+        var pick = adrCdSanitizePickResponse(out, menu);
+        if (!pick) throw new Error("点池答复无效：" + adrCdTruncate(out, 40));
+        return pick;
+    }
+
+    // ---- 抽卡主流程：两段抽（先卡池均等、再池内均匀＋冷却）----
+
+    function adrCdDrawBlind(pools, state, excludePool) {
+        var cand = pools;
+        if (excludePool) {
+            var others = pools.filter(function (p) { return p.name !== excludePool; });
+            if (others.length) cand = others;
+        }
+        if (!cand.length) return null;
+        var pool = cand[Math.floor(Math.random() * cand.length)];
+        var card = adrCdPickFromPool(pool.cards, state.recent, adrCdCooldown());
+        return card ? { pool: pool.name, card: card } : null;
+    }
+
+    async function adrCdPerformDraw(opts) {
+        opts = opts || {};
+        var st = settings();
+        var state = adrCdChatState();
+        var libName = adrCdActiveLibName(state);
+        var pools = adrCdFilterPools(adrCdParseLibraryText(adrCdLibraries()[libName] || ""), !!st.cdNsfwEnabled);
+        if (!pools.length) return { ok: false, reason: "卡库为空或全部卡池被剔除" };
+
+        var result = null;
+        var usedMode = "盲抽";
+
+        if (st.cdMode === "pick" && !opts.preview) {
+            var t0 = Date.now();
+            try {
+                var pick = await adrCdPickPoolViaDS(pools, state);
+                console.log("[抽卡小能手] DS 点池：" + pick + "（耗时 " + (Date.now() - t0) + "ms）");
+                var streakN = (state.streak && state.streak.pool === pick) ? state.streak.n + 1 : 1;
+                if (streakN >= 3) {
+                    // §2.5 防惯性：同一卡池被连点第 3 次 → 机器强制从其余卡池盲抽
+                    console.log("[抽卡小能手] 卡池「" + pick + "」被连点第 3 次，强制从其余卡池盲抽");
+                    state.streak = { pool: "", n: 0 };
+                    usedMode = "择池·防惯性盲抽";
+                    result = adrCdDrawBlind(pools, state, pick);
+                } else {
+                    state.streak = { pool: pick, n: streakN };
+                    var poolObj = null;
+                    for (var i = 0; i < pools.length; i++) { if (pools[i].name === pick) { poolObj = pools[i]; break; } }
+                    if (poolObj) {
+                        var cardP = adrCdPickFromPool(poolObj.cards, state.recent, adrCdCooldown());
+                        if (cardP) { result = { pool: pick, card: cardP }; usedMode = "择池"; }
+                    }
+                }
+            } catch (ePick) {
+                // §2.4 降级铁律：解析失败 / 超时 / 报错 → 当场改盲抽，抽卡器永不停摆
+                console.warn("[抽卡小能手] 择池降级盲抽：" + (ePick && ePick.message ? ePick.message : ePick));
+                usedMode = "择池降级盲抽";
+            }
+        }
+
+        if (!result) result = adrCdDrawBlind(pools, state, "");
+        if (!result || !result.card) return { ok: false, reason: "无可抽卡面" };
+
+        if (opts.preview) {
+            // 试抽一张：仅预览，不入投卡史、不注入、不动冷却（§5）
+            return { ok: true, pool: result.pool, card: result.card, mode: "试抽（盲抽）", preview: true };
+        }
+
+        var floor = Number.isFinite(Number(opts.count)) ? Number(opts.count) : adrDAssistantRoundCount();
+        state.recent = (state.recent || []).concat([result.card]).slice(-ADR_CD_RECENT_MAX);
+        state.history = (state.history || []).concat([{
+            pool: result.pool,
+            card: adrCdTruncate(result.card, 200),
+            floor: floor,
+            mode: usedMode,
+            t: Date.now()
+        }]).slice(-ADR_CD_HISTORY_MAX);
+        state.lastDrawAt = floor;
+        state.lib = libName;
+        state.floatText = adrCdBuildEnvelope(st.cdEnvelope, result.card);
+        adrCdSaveChatState(state);
+        adrCdApplyFloat(state.floatText);
+        console.log("[抽卡小能手] 投卡", { 模式: usedMode, 卡池: result.pool, 卡面: result.card, 触发楼层: floor });
+        adrCdUpdateStatusLine();
+        return { ok: true, pool: result.pool, card: result.card, mode: usedMode };
+    }
+
+    // ---- 自动触发：借导演的全量计数与 chatKey 纪律 ----
+
+    var adrCdFirstPassiveDone = {};
+    var adrCdDrawRunning = false;
+
+    async function adrCdAutoCheck(count, reason, inStartupGrace) {
+        if (!adrCdActive() || adrCdDrawRunning) return;
+        var state = adrCdChatState();
+        if (state.paused) { adrCdUpdateStatusLine(); return; }
+        var n = adrCdN();
+        var base = Number(state.lastDrawAt);
+
+        if (!Number.isFinite(base) || base < 0) {
+            // 首次启用：对齐基准线，不补投（沿"基准线 N 楼起"判例）
+            state.lastDrawAt = count;
+            adrCdSaveChatState(state);
+            console.log("[抽卡小能手] 首次对齐基准线：" + count);
+            adrCdUpdateStatusLine();
+            return;
+        }
+
+        if (count - base < n) { adrCdUpdateStatusLine(); return; }
+
+        // 首拍安全网：刷新/换聊后的首次被动检查若 gap 离谱（超出 N 达 20 条以上），只对齐不投
+        var gapDirty = (count - base - n) >= 20;
+        var fpKey = adrDChatKey() + "::cd";
+        if (adrDIsPassiveAutoCheck(reason) && gapDirty && (inStartupGrace || !adrCdFirstPassiveDone[fpKey])) {
+            adrCdFirstPassiveDone[fpKey] = true;
+            state.lastDrawAt = count;
+            adrCdSaveChatState(state);
+            console.warn("[抽卡小能手] 发现脏基准线，只对齐不投卡", { count: count, base: base, n: n, reason: reason || "" });
+            adrCdUpdateStatusLine();
+            return;
+        }
+
+        adrCdDrawRunning = true;
+        try {
+            var r = await adrCdPerformDraw({ auto: true, count: count });
+            if (!r || !r.ok) {
+                // 失败保拍（沿 v1.9.23 判例）：基准线不推进，下次检查自然重试
+                console.warn("[抽卡小能手] 本拍未投出（" + ((r && r.reason) || "未知") + "）；基准线保留，稍后重试");
+                adrCdUpdateStatusLine();
+            }
+        } catch (eDraw) {
+            console.warn("[抽卡小能手] 投卡失败", eDraw);
+        }
+        adrCdDrawRunning = false;
+    }
+
+    // ---- 统筹采买：投卡史（§4.2）----
+
+    function adrCdHistoryBlock() {
+        try {
+            var state = adrCdChatState();
+            var list = (state.history || []).slice(-ADR_CD_HISTORY_MAX);
+            if (!list.length) return "";
+            var lines = list.map(function (h) {
+                return "· 第 " + (Number.isFinite(Number(h.floor)) ? h.floor : "?") + " 楼｜卡池：" + (h.pool || "?")
+                    + "｜模式：" + (h.mode || "?") + "｜卡面：" + (h.card || "");
+            });
+            return "【投卡史｜抽卡小能手最近投放的场外事件卡】\n" + lines.join("\n")
+                + "\n统筹须知：以上事件卡均已注入戏中。收线时请将其纳入兑现盘点；派人时给无专名的卡选角——把\"某人/口信/来客\"铸成场上真实存在的具体角色。";
+        } catch (e) { return ""; }
+    }
+
+    // ---- 状态行与面板字段同步 ----
+
+    function adrCdSetTextAll(id, text, color) {
+        try {
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#" + id)).forEach(function (el) {
+                el.textContent = String(text || "");
+                if (color) el.style.color = color;
+            });
+        } catch (e) {}
+    }
+
+    function adrCdUpdateStatusLine() {
+        try {
+            var st = settings();
+            var text;
+            if (!adrDMasterEnabled()) text = "总开关已关闭 · 抽卡小能手随组休息";
+            else if (!st.cdEnabled) text = "抽卡小能手未启用";
+            else {
+                var state = adrCdChatState();
+                var lib = adrCdActiveLibName(state);
+                var mode = st.cdMode === "pick" ? "择池" : "盲抽";
+                var n = adrCdN();
+                var count = adrDAssistantRoundCount();
+                var base = Number(state.lastDrawAt);
+                var left = (Number.isFinite(base) && base >= 0) ? Math.max(0, n - (count - base)) : n;
+                var last = "";
+                var h = (state.history || []).slice(-1)[0];
+                if (h) last = " · 最近一张：" + (h.pool || "?") + "｜" + adrCdTruncate(String(h.card || ""), 6);
+                text = lib + " · " + mode + (state.paused ? " · 已暂停投卡" : " · 距下张还有 " + left + " 楼") + last;
+            }
+            adrCdSetTextAll("adr044-cd-status-line", text);
+        } catch (e) {}
+    }
+
+    function adrCdSyncChatControls() {
+        try {
+            var state = adrCdChatState();
+            adrDSetAllById("adr044-cd-paused", "", state.paused === true);
+            adrCdRefreshLibSelects(adrCdActiveLibName(state));
+            adrCdRefreshEditor();
+            adrCdUpdateStatusLine();
+        } catch (e) {}
+    }
+
+    function adrCdRefreshLibSelects(selectedName) {
+        try {
+            var libs = adrCdLibraries();
+            var names = Object.keys(libs);
+            var html = names.map(function (nm) {
+                return '<option value="' + esc(nm) + '"' + (nm === selectedName ? " selected" : "") + '>' + esc(nm) + '</option>';
+            }).join("");
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-lib-select")).forEach(function (sel) {
+                sel.innerHTML = html;
+                sel.value = selectedName;
+            });
+        } catch (e) {}
+    }
+
+    function adrCdRefreshEditor() {
+        try {
+            var state = adrCdChatState();
+            var libName = adrCdActiveLibName(state);
+            adrDSetAllById("adr044-cd-lib-editor", adrCdLibraries()[libName] || "");
+            adrDSetAllById("adr044-cd-lib-name", libName);
+        } catch (e) {}
+    }
+
+    function adrCdRefreshPanelFields() {
+        try {
+            var st = settings();
+            adrDSetAllById("adr044-cd-enabled", "", !!st.cdEnabled);
+            adrDSetAllById("adr044-cd-n", String(adrCdN()));
+            adrCdSetTextAll("adr044-cd-n-val", String(adrCdN()));
+            adrDSetAllById("adr044-cd-mode", st.cdMode === "pick" ? "pick" : "blind");
+            adrDSetAllById("adr044-cd-nsfw", "", !!st.cdNsfwEnabled);
+            adrDSetAllById("adr044-cd-depth", String(adrCdDepth()));
+            adrDSetAllById("adr044-cd-cooldown", String(adrCdCooldown()));
+            adrDSetAllById("adr044-cd-envelope", st.cdEnvelope || ADR_CD_DEFAULT_ENVELOPE);
+            adrDSetAllById("adr044-cd-endpoint", st.cdApiEndpoint || "");
+            adrDSetAllById("adr044-cd-key", st.cdApiKey || "");
+            adrDSetAllById("adr044-cd-model", st.cdModel || "deepseek-chat");
+            adrCdSyncChatControls();
+        } catch (e) {}
+    }
+
+    // ---- 按钮动作 ----
+
+    async function adrCdPreviewDraw() {
+        try {
+            adrCdSetTextAll("adr044-cd-preview-out", "抽取中…", "#8ed99d");
+            var r = await adrCdPerformDraw({ preview: true });
+            if (r && r.ok) {
+                adrCdSetTextAll("adr044-cd-preview-out", "【" + r.pool + "】" + r.card + "（仅预览，不入投卡史、不注入）", "#d6b177");
+            } else {
+                adrCdSetTextAll("adr044-cd-preview-out", "试抽失败：" + ((r && r.reason) || "未知"), "#d4726a");
+            }
+        } catch (e) {
+            adrCdSetTextAll("adr044-cd-preview-out", "试抽失败：" + (e && e.message ? e.message : e), "#d4726a");
+        }
+    }
+
+    function adrCdSaveLibraryFromEditor() {
+        try {
+            var nameEl = qForm("adr044-cd-lib-name");
+            var edEl = qForm("adr044-cd-lib-editor");
+            var name = nameEl ? String(nameEl.value || "").trim() : "";
+            if (!name) { adrCdSetTextAll("adr044-cd-lib-status", "请先填写卡库名", "#d4726a"); return; }
+            var libs = adrCdLibraries();
+            libs[name] = edEl ? String(edEl.value || "") : "";
+            save("cdLibraries", libs);
+            saveNow();
+            var state = adrCdChatState();
+            state.lib = name;
+            adrCdSaveChatState(state);
+            adrCdRefreshLibSelects(name);
+            adrCdSetTextAll("adr044-cd-lib-status", "卡库「" + name + "」已保存并选用 ✓", "#8ed99d");
+            adrCdUpdateStatusLine();
+        } catch (e) {
+            adrCdSetTextAll("adr044-cd-lib-status", "保存失败：" + (e && e.message ? e.message : e), "#d4726a");
+        }
+    }
+
+    function adrCdDeleteCurrentLibrary() {
+        try {
+            var state = adrCdChatState();
+            var name = adrCdActiveLibName(state);
+            var libs = adrCdLibraries();
+            delete libs[name];
+            save("cdLibraries", libs);
+            saveNow();
+            var next = adrCdActiveLibName(adrCdChatState());
+            state.lib = next;
+            adrCdSaveChatState(state);
+            adrCdRefreshLibSelects(next);
+            adrCdRefreshEditor();
+            adrCdSetTextAll("adr044-cd-lib-status", "卡库「" + name + "」已删除，当前使用「" + next + "」", "#d6b177");
+            adrCdUpdateStatusLine();
+        } catch (e) {}
+    }
+
+    function adrCdRequestDeleteLibrary(btn) {
+        try {
+            adrDTwoStepConfirm(
+                "cd-lib-delete",
+                btn || qForm("adr044-cd-lib-delete"),
+                "再点一次确认删除",
+                "将删除当前选中的整副卡库（不可恢复，建议先导出）",
+                function (t) { adrCdSetTextAll("adr044-cd-lib-status", t, "#d6b177"); },
+                function () { adrCdDeleteCurrentLibrary(); }
+            );
+        } catch (e) {
+            // 兜底：两步确认组件不可用时退回原生 confirm
+            try { if (rootWin().confirm("确认删除当前卡库？建议先导出。")) adrCdDeleteCurrentLibrary(); } catch (e2) {}
+        }
+    }
+
+    function adrCdExportLibrary() {
+        try {
+            var state = adrCdChatState();
+            var name = adrCdActiveLibName(state);
+            var text = adrCdLibraries()[name] || "";
+            var d = rootDoc();
+            var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            var a = d.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = name + ".txt";
+            (d.body || d.documentElement).appendChild(a);
+            a.click();
+            setTimeout(function () {
+                try { URL.revokeObjectURL(a.href); } catch (e1) {}
+                try { if (a.parentNode) a.parentNode.removeChild(a); } catch (e2) {}
+            }, 1200);
+            adrCdSetTextAll("adr044-cd-lib-status", "卡库「" + name + "」已导出为 .txt ✓", "#8ed99d");
+        } catch (e) {
+            adrCdSetTextAll("adr044-cd-lib-status", "导出失败：" + (e && e.message ? e.message : e), "#d4726a");
+        }
+    }
+
+    function adrCdTriggerImport() {
+        var f = qForm("adr044-cd-import-file");
+        if (f) { try { f.value = ""; } catch (e0) {} f.click(); }
+    }
+
+    function adrCdHandleImportFile(fileInput) {
+        try {
+            var file = fileInput && fileInput.files && fileInput.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function () {
+                try {
+                    var text = String(reader.result || "");
+                    var nameEl = qForm("adr044-cd-lib-name");
+                    var name = nameEl ? String(nameEl.value || "").trim() : "";
+                    if (!name) name = String(file.name || "导入卡库").replace(/\.(txt|md)$/i, "").trim() || "导入卡库";
+                    var libs = adrCdLibraries();
+                    libs[name] = text;
+                    save("cdLibraries", libs);
+                    saveNow();
+                    var state = adrCdChatState();
+                    state.lib = name;
+                    adrCdSaveChatState(state);
+                    adrCdRefreshLibSelects(name);
+                    adrCdRefreshEditor();
+                    adrCdSetTextAll("adr044-cd-lib-status", "已导入卡库「" + name + "」并选用 ✓（" + adrCdParseLibraryText(text).length + " 个卡池）", "#8ed99d");
+                    adrCdUpdateStatusLine();
+                } catch (eIn) {
+                    adrCdSetTextAll("adr044-cd-lib-status", "导入失败：" + (eIn && eIn.message ? eIn.message : eIn), "#d4726a");
+                }
+            };
+            reader.onerror = function () { adrCdSetTextAll("adr044-cd-lib-status", "导入失败：文件读取错误", "#d4726a"); };
+            reader.readAsText(file);
+        } catch (e) {}
+    }
+
+    function adrCdSetPaused(flag) {
+        try {
+            var state = adrCdChatState();
+            state.paused = !!flag;
+            adrCdSaveChatState(state);
+            if (state.paused) adrCdApplyFloat("");
+            else if (adrCdActive()) adrCdApplyFloat(state.floatText || "");
+            adrCdUpdateStatusLine();
+        } catch (e) {}
+    }
+
+    function adrCdHandleButtonId(id, btn) {
+        if (id === "adr044-tab-cd") { switchTab("cd"); return true; }
+        if (id === "adr044-cd-preview-draw") { adrCdPreviewDraw(); return true; }
+        if (id === "adr044-cd-lib-save") { adrCdSaveLibraryFromEditor(); return true; }
+        if (id === "adr044-cd-lib-delete") { adrCdRequestDeleteLibrary(btn); return true; }
+        if (id === "adr044-cd-export") { adrCdExportLibrary(); return true; }
+        if (id === "adr044-cd-import") { adrCdTriggerImport(); return true; }
+        return false;
+    }
+
+    // ---- 控件绑定（幂等；由 bindDirect 统一带起）----
+
+    var adrCdEditorDebounce = null;
+
+    function adrCdBindControls() {
+        try {
+            function each(id, fn) {
+                Array.prototype.slice.call(rootDoc().querySelectorAll("#" + id)).forEach(function (el) {
+                    if (!el || el.__adrCdBound) return;
+                    el.__adrCdBound = true;
+                    fn(el);
+                });
+            }
+
+            each("adr044-cd-enabled", function (el) {
+                el.addEventListener("change", function () {
+                    save("cdEnabled", !!el.checked);
+                    saveNow();
+                    if (el.checked) adrCdRestoreFloat("toggle-cd-on");
+                    else adrCdApplyFloat("");
+                    adrCdUpdateStatusLine();
+                });
+            });
+
+            each("adr044-cd-n", function (el) {
+                el.addEventListener("input", function () {
+                    save("cdN", Number(el.value) || 5);
+                    adrCdSetTextAll("adr044-cd-n-val", String(adrCdN()));
+                    adrCdUpdateStatusLine();
+                });
+                el.addEventListener("change", function () { saveNow(); });
+            });
+
+            each("adr044-cd-mode", function (el) {
+                el.addEventListener("change", function () {
+                    save("cdMode", el.value === "pick" ? "pick" : "blind");
+                    saveNow();
+                    adrCdUpdateStatusLine();
+                });
+            });
+
+            each("adr044-cd-paused", function (el) {
+                el.addEventListener("change", function () { adrCdSetPaused(!!el.checked); });
+            });
+
+            each("adr044-cd-nsfw", function (el) {
+                el.addEventListener("change", function () {
+                    save("cdNsfwEnabled", !!el.checked);
+                    saveNow();
+                });
+            });
+
+            each("adr044-cd-depth", function (el) {
+                el.addEventListener("change", function () {
+                    save("cdDepth", Number(el.value));
+                    saveNow();
+                    adrCdRestoreFloat("depth-change"); // 换深度后立即以新深度重挂当前卡
+                });
+            });
+
+            each("adr044-cd-cooldown", function (el) {
+                el.addEventListener("change", function () { save("cdCooldown", Number(el.value)); saveNow(); });
+            });
+
+            each("adr044-cd-envelope", function (el) {
+                el.addEventListener("change", function () { save("cdEnvelope", String(el.value || "")); saveNow(); });
+            });
+
+            each("adr044-cd-endpoint", function (el) {
+                el.addEventListener("change", function () { save("cdApiEndpoint", String(el.value || "").trim()); saveNow(); });
+            });
+            each("adr044-cd-key", function (el) {
+                el.addEventListener("change", function () { save("cdApiKey", String(el.value || "").trim()); saveNow(); });
+            });
+            each("adr044-cd-model", function (el) {
+                el.addEventListener("change", function () { save("cdModel", String(el.value || "").trim()); saveNow(); });
+            });
+
+            each("adr044-cd-lib-select", function (el) {
+                el.addEventListener("change", function () {
+                    var state = adrCdChatState();
+                    state.lib = String(el.value || "");
+                    adrCdSaveChatState(state);
+                    adrCdRefreshEditor();
+                    adrCdUpdateStatusLine();
+                });
+            });
+
+            each("adr044-cd-lib-editor", function (el) {
+                el.addEventListener("input", function () {
+                    // 即改即生效（§3.2）：600ms 防抖写回当前卡库
+                    if (adrCdEditorDebounce) clearTimeout(adrCdEditorDebounce);
+                    adrCdEditorDebounce = setTimeout(function () {
+                        try {
+                            var state = adrCdChatState();
+                            var name = adrCdActiveLibName(state);
+                            var libs = adrCdLibraries();
+                            libs[name] = String(el.value || "");
+                            save("cdLibraries", libs);
+                        } catch (eEd) {}
+                    }, 600);
+                });
+                el.addEventListener("change", function () { saveNow(); });
+            });
+
+            each("adr044-cd-import-file", function (el) {
+                el.addEventListener("change", function () { adrCdHandleImportFile(el); });
+            });
+        } catch (e) {
+            try { console.warn("[抽卡小能手] 控件绑定失败", e); } catch (e2) {}
+        }
+    }
+
+    // ---- 面板页（抽屉版 adr044 / 浮窗版 adr048 共用一套 id）----
+
+    function adrCdPageInnerHTML(secOpen, secClose, checkClass, actionsClass) {
+        var st = settings();
+        var noteClass = checkClass === "adr048-check" ? "adr048-note" : "adr044-note";
+        return secOpen("抽卡小能手")
+            + '<div class="' + noteClass + '">每 N 楼向模型耳边投一张"发生了一半的事"。机器全瞎，聪明预付在卡里；卡常驻至下一张替换，不占楼层。</div>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-enabled"' + (st.cdEnabled ? " checked" : "") + '> 启用抽卡小能手</label>'
+            + '<div class="adr044-cd-status-line" id="adr044-cd-status-line">状态加载中…</div>'
+            + '<label>投卡间隔 N（每 N 个助手正文轮次投一张）：<b id="adr044-cd-n-val">' + esc(String(adrCdN())) + '</b> 楼</label>'
+            + '<input type="range" id="adr044-cd-n" min="1" max="20" step="1" value="' + esc(String(adrCdN())) + '">'
+            + '<label>抽卡模式</label>'
+            + '<select id="adr044-cd-mode">'
+            + opt(st.cdMode === "pick" ? "pick" : "blind", "blind", "盲抽（零 API · 天马行空档）")
+            + opt(st.cdMode === "pick" ? "pick" : "blind", "pick", "择池（DS 只看池名点池，池内仍盲抽）")
+            + '</select>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-paused"> 暂停投卡（按本聊天记忆；关键场景不打扰，暂停期间耳机静音）</label>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-nsfw"' + (st.cdNsfwEnabled ? " checked" : "") + '> 启用 nsfw 卡池（默认关；关闭时抽卡与择池菜单双侧剔除）</label>'
+            + '<div class="' + actionsClass + '"><button id="adr044-cd-preview-draw" type="button">试抽一张（仅预览）</button></div>'
+            + '<div class="adr044-cd-preview-out" id="adr044-cd-preview-out"></div>'
+            + secClose()
+
+            + secOpen("卡库仓储")
+            + '<label>本聊天使用的卡库（换聊记忆）</label>'
+            + '<select id="adr044-cd-lib-select"></select>'
+            + '<input type="text" id="adr044-cd-lib-name" placeholder="卡库名（保存 / 导入的落点）">'
+            + '<div class="adr044-template-mini-actions">'
+            + '<button type="button" id="adr044-cd-lib-save">保存卡库</button>'
+            + '<button type="button" id="adr044-cd-lib-delete">删除卡库</button>'
+            + '</div>'
+            + '<div class="' + actionsClass + '"><button id="adr044-cd-import" type="button">导入 .txt/.md</button><button id="adr044-cd-export" type="button">导出当前卡库</button></div>'
+            + '<input type="file" id="adr044-cd-import-file" class="adr044-cd-import-file" accept=".txt,.md,text/plain,text/markdown">'
+            + '<div class="adr044-template-status" id="adr044-cd-lib-status">## 开一门卡池，一行一张卡；// 开头是注释；即改即生效。</div>'
+            + '<textarea id="adr044-cd-lib-editor" rows="10" placeholder="## 卡池名&#10;一行一张卡…"></textarea>'
+            + secClose()
+
+            + secOpen("高级 · 择池 API 与信封", true)
+            + '<label>注入深度（从最新消息往回数，默认 2）</label><input type="number" id="adr044-cd-depth" min="0" max="4" value="' + esc(String(adrCdDepth())) + '">'
+            + '<label>冷却区（最近 M 张不复用，默认 8）</label><input type="number" id="adr044-cd-cooldown" min="0" max="99" value="' + esc(String(adrCdCooldown())) + '">'
+            + '<label>信封模板（{卡面} 会被替换为抽中的卡）</label>'
+            + '<textarea id="adr044-cd-envelope" rows="3">' + esc(st.cdEnvelope || ADR_CD_DEFAULT_ENVELOPE) + '</textarea>'
+            + '<label>择池 API 地址（独立于导演，推荐 DeepSeek）</label><input type="text" id="adr044-cd-endpoint" value="' + esc(st.cdApiEndpoint || "") + '" placeholder="https://api.deepseek.com">'
+            + '<label>择池 API 密钥</label><input type="password" id="adr044-cd-key" value="' + esc(st.cdApiKey || "") + '" placeholder="sk-...">'
+            + '<label>择池模型</label><input type="text" id="adr044-cd-model" value="' + esc(st.cdModel || "deepseek-chat") + '" placeholder="deepseek-chat">'
+            + '<div class="' + noteClass + '">💰 择池模式每次到点会调用一次点池（只发池名菜单与小档上下文），按所选服务商计费，费用极低；任何异常当场降级盲抽，不停摆。试抽按钮恒为盲抽，不产生费用。</div>'
+            + secClose()
+
+            + secOpen("卡面家法", true)
+            + '<div class="' + noteClass + '" style="white-space:pre-wrap">' + esc(ADR_CD_HELP_TEXT) + '</div>'
+            + secClose();
+    }
+
+    function adrCdPageHTML() {
+        var st = settings();
+        function secOpen(title, closed) {
+            return '<details' + (closed ? '' : ' open') + '><summary>' + title + '</summary>';
+        }
+        function secClose() { return '</details>'; }
+        return '<div class="adr044-page" id="adr044-page-cd"' + (st.activeTab === "cd" ? '' : ' style="display:none"') + '>'
+            + adrCdPageInnerHTML(secOpen, secClose, "adr044-check", "adr044-actions")
+            + '</div>';
+    }
+
+    function adrCd048PageHTML() {
+        var st = settings();
+        function secOpen(title) {
+            return '<div class="adr048-section"><div class="adr048-summary">' + title + '</div>';
+        }
+        function secClose() { return '</div>'; }
+        return '<div class="adr048-page" id="adr048-page-cd"' + (st.activeTab === "cd" ? '' : ' style="display:none"') + '>'
+            + adrCdPageInnerHTML(secOpen, secClose, "adr048-check", "adr048-actions")
+            + '</div>';
+    }
+
+    // ================= 抽卡剧情小能手 模块结束 =================
+
     function opt(cur, val, label) {
         return '<option value="' + val + '"' + (String(cur) === String(val) ? " selected" : "") + '>' + label + '</option>';
     }
@@ -2147,7 +3107,7 @@
     function pageHTML(type) {
         var st = settings();
         var p = prefixOf(type);
-        var title = type === "plot" ? "剧情导演" : "情感导演";
+        var title = type === "plot" ? "统筹" : "情感导演";
         var autoKey = type === "plot" ? "autoInjectPlot" : "autoInjectEmotion";
 
         return '<div class="adr044-page" id="adr044-page-' + type + '"' + (st.activeTab === type ? '' : ' style="display:none"') + '>'
@@ -2168,7 +3128,7 @@
             + '<select id="adr044-' + type + '-model-select"><option value="' + esc(st[p + "Model"] || "") + '">' + (st[p + "Model"] ? esc(st[p + "Model"]) + "（当前）" : "加载后选择模型") + '</option></select>'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-load-models" type="button">加载模型</button><button id="adr044-' + type + '-save" type="button">保存当前使用</button></div>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-inject-' + type + '"' + (st[autoKey] ? " checked" : "") + '> 生成后自动注入当前聊天</label>'
-            + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用剧情导演自动触发" : "启用情感导演自动触发") + '</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用统筹例行巡逻（默认关 · 长间隔）" : "启用情感导演自动触发") + '</label>'
             + '<label>自动触发间隔</label>'
             + '<select id="adr044-auto-trigger-range-' + type + '">'
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "10", "每 10 个助手正文轮次")
@@ -2211,7 +3171,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.9.34</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.10.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -2227,7 +3187,7 @@
             + '</select>'
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
-            + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和剧情导演">' + esc(st.supplementMemory || "") + '</textarea>'
+            + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
             + '<div class="adr044-actions"><button id="adr044-probe-context" type="button" onclick="window.ADR044_probeContext&&window.ADR044_probeContext();return false;">检测上下文</button><button id="adr044-probe-content" type="button" onclick="window.ADR044_probeContent&&window.ADR044_probeContent();return false;">测试 &lt;content&gt; 提取</button></div>'
             + '<div class="adr044-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
             + '<label>注入方式</label><select id="adr044-inject-mode">'
@@ -2243,12 +3203,14 @@
             + '</details>'
 
             + '<div class="adr044-tabs">'
-            + '<button id="adr044-tab-emotion" type="button" class="' + (st.activeTab === "plot" ? "" : "active") + '">情感导演</button>'
-            + '<button id="adr044-tab-plot" type="button" class="' + (st.activeTab === "plot" ? "active" : "") + '">剧情导演</button>'
+            + '<button id="adr044-tab-emotion" type="button" class="' + (st.activeTab === "plot" || st.activeTab === "cd" ? "" : "active") + '">情感导演</button>'
+            + '<button id="adr044-tab-plot" type="button" class="' + (st.activeTab === "plot" ? "active" : "") + '">统筹</button>'
+            + '<button id="adr044-tab-cd" type="button" class="' + (st.activeTab === "cd" ? "active" : "") + '">🎴 抽卡</button>'
             + '</div>'
 
             + pageHTML("emotion")
             + pageHTML("plot")
+            + adrCdPageHTML()
             + '</div>'
             + '</div></div></div>';
     }
@@ -2279,7 +3241,7 @@
     }
 
     function switchTab(type) {
-        type = type === "plot" ? "plot" : "emotion";
+        type = (type === "plot" || type === "cd") ? type : "emotion";
         save("activeTab", type);
 
         try {
@@ -2295,12 +3257,20 @@
                 el.style.display = type === "plot" ? "" : "none";
             });
 
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-page-cd, #adr048-page-cd")).forEach(function (el) {
+                el.style.display = type === "cd" ? "" : "none";
+            });
+
             Array.prototype.slice.call(d.querySelectorAll("#adr044-tab-emotion")).forEach(function (el) {
                 el.classList.toggle("active", type === "emotion");
             });
 
             Array.prototype.slice.call(d.querySelectorAll("#adr044-tab-plot")).forEach(function (el) {
                 el.classList.toggle("active", type === "plot");
+            });
+
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-tab-cd")).forEach(function (el) {
+                el.classList.toggle("active", type === "cd");
             });
 
             adrDRefreshAllFieldsFromSettings();
@@ -2353,6 +3323,7 @@
                 adrDSetAllById("adr044-auto-trigger-range-" + type, st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"] || (type === "plot" ? "10" : "20"));
                 adrDSetAllById("adr044-auto-trigger-custom-" + type, st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "");
             });
+            try { adrCdRefreshPanelFields(); } catch (eCdRefresh) {}
             adrDRefreshMasterToggleUI();
             adrDUpdateAutoCounters();
         } catch (e) {
@@ -2422,7 +3393,7 @@
                 { name: "默认情感导演", text: adrDDefaultTemplateText("emotion") || "你是 RP 情感导演。请阅读最近的聊天内容和用户补充信息，只分析情感曲线与人写正文。" }
             ],
             plot: [
-                { name: "默认剧情导演", text: adrDDefaultTemplateText("plot") || "你是 RP 编剧顾问。请阅读角色卡、世界书、记忆与最近聊天内容，分析剧情节奏、事件张力、伏笔管理与场景调度，给出下一阶段的剧情推进方向。你不写正文，只做剧情导航。" }
+                { name: "默认统筹", text: adrDDefaultTemplateText("plot") || "你是 RP 编剧顾问。请阅读角色卡、世界书、记忆与最近聊天内容，分析剧情节奏、事件张力、伏笔管理与场景调度，给出下一阶段的剧情推进方向。你不写正文，只做剧情导航。" }
             ]
         };
     }
@@ -3269,6 +4240,7 @@
 
     function bindDirect() {
         try {
+            try { adrCdBindControls(); } catch (eCdBind) {} // v1.10.0：抽卡控件随每次重绑一起带起（幂等）
             if (!rootWin().adrDStableAutoSaveBound) {
                 rootWin().adrDStableAutoSaveBound = true;
                 rootDoc().addEventListener("input", function (ev) {
@@ -3300,6 +4272,12 @@
 
         ids["adr044-tab-emotion"] = function () { switchTab("emotion"); };
         ids["adr044-tab-plot"] = function () { switchTab("plot"); };
+        ids["adr044-tab-cd"] = function () { switchTab("cd"); };
+        ids["adr044-cd-preview-draw"] = function () { adrCdPreviewDraw(); };
+        ids["adr044-cd-lib-save"] = function () { adrCdSaveLibraryFromEditor(); };
+        ids["adr044-cd-lib-delete"] = function () { adrCdRequestDeleteLibrary(qForm("adr044-cd-lib-delete")); };
+        ids["adr044-cd-export"] = function () { adrCdExportLibrary(); };
+        ids["adr044-cd-import"] = function () { adrCdTriggerImport(); };
         ids["adr044-probe-context"] = function () { runContextProbe(); };
         ids["adr044-probe-content"] = function () { runContentProbe(); };
         ids["adr044-preview-precise"] = function () { runPrecisePreview(); };
@@ -3588,7 +4566,7 @@
     function adr048PageHTML(type) {
         var st = settings();
         var p = prefixOf(type);
-        var title = type === "plot" ? "剧情导演" : "情感导演";
+        var title = type === "plot" ? "统筹" : "情感导演";
         var autoKey = type === "plot" ? "autoInjectPlot" : "autoInjectEmotion";
 
         return '<div class="adr048-page" id="adr048-page-' + type + '"' + (st.activeTab === type ? '' : ' style="display:none"') + '>'
@@ -3609,7 +4587,7 @@
             + '<select id="adr044-' + type + '-model-select"><option value="' + esc(st[p + "Model"] || "") + '">' + (st[p + "Model"] ? esc(st[p + "Model"]) + "（当前）" : "加载后选择模型") + '</option></select>'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-load-models" type="button">加载模型</button><button id="adr044-' + type + '-save" type="button">保存当前使用</button></div>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-inject-' + type + '"' + (st[autoKey] ? " checked" : "") + '> 生成后自动注入当前聊天</label>'
-            + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用剧情导演自动触发" : "启用情感导演自动触发") + '</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用统筹例行巡逻（默认关 · 长间隔）" : "启用情感导演自动触发") + '</label>'
             + '<label>自动触发间隔</label>'
             + '<select id="adr044-auto-trigger-range-' + type + '">'
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "10", "每 10 个助手正文轮次")
@@ -3671,7 +4649,7 @@
             + '</select>'
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
-            + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和剧情导演">' + esc(st.supplementMemory || "") + '</textarea>'
+            + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
             + '<div class="adr048-actions"><button id="adr044-probe-context" type="button">检测上下文</button><button id="adr044-probe-content" type="button">测试 &lt;content&gt; 提取</button></div>'
             + '<div class="adr048-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
             + '<label>注入方式</label><select id="adr044-inject-mode">'
@@ -3687,12 +4665,14 @@
             + '</div>'
 
             + '<div class="adr048-tabs">'
-            + '<button id="adr044-tab-emotion" type="button" class="' + (st.activeTab === "plot" ? "" : "active") + '">情感导演</button>'
-            + '<button id="adr044-tab-plot" type="button" class="' + (st.activeTab === "plot" ? "active" : "") + '">剧情导演</button>'
+            + '<button id="adr044-tab-emotion" type="button" class="' + (st.activeTab === "plot" || st.activeTab === "cd" ? "" : "active") + '">情感导演</button>'
+            + '<button id="adr044-tab-plot" type="button" class="' + (st.activeTab === "plot" ? "active" : "") + '">统筹</button>'
+            + '<button id="adr044-tab-cd" type="button" class="' + (st.activeTab === "cd" ? "active" : "") + '">🎴 抽卡</button>'
             + '</div>'
 
             + adr048PageHTML("emotion")
             + adr048PageHTML("plot")
+            + adrCd048PageHTML()
             + '</div>'
             + '</div>'
             + '</div>';
@@ -4708,7 +5688,7 @@
         try {
             var st = settings();
             var enabled = type === "plot" ? !!st.autoTriggerPlot : !!st.autoTriggerEmotion;
-            var label = type === "plot" ? "剧情导演" : "情感导演";
+            var label = type === "plot" ? "统筹" : "情感导演";
             var count = adrDAssistantRoundCount();
             var n = autoTriggerRange(type);
 
@@ -4764,6 +5744,7 @@
             adrDSetCounterText("emotion", adrDAutoCounterText("emotion"));
             adrDSetCounterText("plot", adrDAutoCounterText("plot"));
         } catch (e) {}
+        try { adrCdUpdateStatusLine(); } catch (eCd) {}
     }
 
 
@@ -4871,7 +5852,7 @@
                 adrDUpdateAutoCounters();
                 return;
             }
-            if (!st.autoTriggerEmotion && !st.autoTriggerPlot) {
+            if (!st.autoTriggerEmotion && !st.autoTriggerPlot && !adrCdActive()) {
                 adrDUpdateAutoCounters();
                 return;
             }
@@ -4892,6 +5873,9 @@
             var inStartupGrace = adrDInStartupAutoGrace();
             // v1.0.5.6.8.3.9：启动 grace 不再作为“总开关”吞掉自动触发。
             // 真正需要静默对齐的，只应是 gap 离谱的脏 baseline；正常 gap >= N 必须继续触发。
+
+            // v1.10.0：先投卡后导演——统筹随后盘账能看见最新一张投卡。抽卡失败不影响导演。
+            try { await adrCdAutoCheck(count, reason, inStartupGrace); } catch (eCd) { try { console.warn("[抽卡小能手] 自动检查失败", eCd); } catch (eCd2) {} }
 
             var nEmotion = autoTriggerRange("emotion");
             var nPlot = autoTriggerRange("plot");
@@ -5103,10 +6087,12 @@
 
 
     function adrDTypeFromButtonId(id) {
-        if (!id) return settings().activeTab || "emotion";
+        // v1.10.0：activeTab 可能是 "cd"，导演类型分发只认 emotion/plot。
+        var fallback = settings().activeTab === "plot" ? "plot" : "emotion";
+        if (!id) return fallback;
         if (id.indexOf("adr044-plot-") === 0 || id.indexOf("-plot") >= 0) return "plot";
         if (id.indexOf("adr044-emotion-") === 0 || id.indexOf("-emotion") >= 0) return "emotion";
-        return settings().activeTab || "emotion";
+        return fallback;
     }
 
     function adrDHandleAnyButtonId(id, btn) {
@@ -5121,6 +6107,11 @@
             if (id === "adr044-tab-plot") {
                 switchTab("plot");
                 return true;
+            }
+
+            // v1.10.0：抽卡小能手按钮全部注册进兜底表（v1.9.27 血案判例：不注册会被 450ms 防抖吞掉）。
+            if (id === "adr044-tab-cd" || id.indexOf("adr044-cd-") === 0) {
+                if (adrCdHandleButtonId(id, btn)) return true;
             }
 
             if (id === "adr044-probe-context") {
