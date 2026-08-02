@@ -1563,25 +1563,64 @@
     transform: scale(.98) !important;
 }
 
-/* ===== v1.10.0 抽卡剧情小能手（酒黑×霞橘×暮金） ===== */
+/* ===== v1.11.0 抽卡剧情小能手（酒黑×霞橘×暮金） ===== */
 .adr044-cd-status-line {
     font-size: 12px;
-    line-height: 1.5;
-    padding: 6px 8px;
+    line-height: 1.55;
+    padding: 7px 9px;
     margin: 6px 0;
     border: 1px solid rgba(214, 177, 119, .35);
     border-radius: 6px;
     color: #d6b177;
-    background: rgba(30, 20, 16, .25);
-    word-break: break-all;
+    background: rgba(30, 20, 16, .28);
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: pointer;
+    max-height: 3.4em;
+    overflow: hidden;
+    position: relative;
 }
+
+.adr044-cd-status-line::after {
+    content: "▾";
+    position: absolute;
+    right: 7px;
+    bottom: 2px;
+    opacity: .55;
+    font-size: 11px;
+}
+
+.adr044-cd-status-line.adr044-cd-status-expanded {
+    max-height: none;
+    overflow: visible;
+}
+
+.adr044-cd-status-line.adr044-cd-status-expanded::after { content: "▴"; }
 
 .adr044-cd-preview-out {
     font-size: 12px;
-    line-height: 1.5;
+    line-height: 1.55;
     margin: 6px 0;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: break-word;
+}
+
+.adr044-cd-preview-out:empty { display: none; }
+
+.adr044-cd-slot-row {
+    margin: 7px 0 10px;
+    padding: 7px 8px;
+    border: 1px solid rgba(214, 177, 119, .22);
+    border-radius: 6px;
+    background: rgba(30, 20, 16, .18);
+}
+
+.adr044-cd-slot-head { margin-bottom: 4px !important; }
+
+.adr044-cd-slot-count {
+    font-size: 11px;
+    opacity: .65;
+    margin-left: 4px;
 }
 
 #adr044-drawer input[type="range"],
@@ -1592,6 +1631,4 @@
     accent-color: #d6b177;
 }
 
-.adr044-cd-import-file {
-    display: none !important;
-}
+.adr044-cd-import-file { display: none !important; }
