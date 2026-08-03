@@ -1,7 +1,7 @@
 
 /*
  * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
- * v1.11.1 抽卡三仓库：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
+ * v1.11.2 抽卡三仓库：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -2811,13 +2811,27 @@
         } catch (e) {}
     }
 
-    // options 没变就绝不重写 DOM——这是 iOS 下拉能被点开的前提
+    // 选项签名：HTML 生成与后续刷新共用同一套算法。
+    // v1.11.2：签名必须随 HTML 一起写进 data-optsig，否则首次刷新会重写一次 DOM，
+    // 那一次重写若撞上原生下拉弹出，第一次选择就被吞掉（表现为"要点两次"）。
+    function adrCdOptSig(kind, names, value) {
+        return kind + "|" + (names || []).join("\u0001") + "|" + String(value || "");
+    }
+
+    // options 没变就绝不重写 DOM——这是下拉能被一次点开的前提
     function adrCdFillSelect(el, optionsHtml, value, signature) {
         try {
             if (!el) return;
-            if (el.__adrCdOptSig !== signature) {
+            var cur = el.__adrCdOptSig;
+            if (cur === undefined) {
+                // 首次接触：认 HTML 里带来的签名，不做无谓重写
+                cur = el.getAttribute ? el.getAttribute("data-optsig") : null;
+                if (cur != null) el.__adrCdOptSig = cur;
+            }
+            if (cur !== signature) {
                 el.innerHTML = optionsHtml;
                 el.__adrCdOptSig = signature;
+                try { if (el.setAttribute) el.setAttribute("data-optsig", signature); } catch (eA) {}
             }
             if (el.value !== value) el.value = value;
         } catch (e) {}
@@ -2877,7 +2891,7 @@
                     + names.map(function (nm) {
                         return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
                     }).join("");
-                var sig = "slot|" + names.join("\u0001") + "|" + sel;
+                var sig = adrCdOptSig("slot-" + slot, names, sel);
                 Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-slot-" + slot)).forEach(function (el) {
                     if (adrCdIsBusyEl(el)) return;
                     adrCdFillSelect(el, html, sel, sig);
@@ -2902,7 +2916,7 @@
             var html = names.map(function (nm) {
                 return '<option value="' + esc(nm) + '"' + (nm === selectedName ? " selected" : "") + '>' + esc(nm) + '</option>';
             }).join("");
-            var sigEdit = "edit|" + names.join("\u0001");
+            var sigEdit = adrCdOptSig("edit", names, selectedName);
             Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-edit-select")).forEach(function (el) {
                 if (adrCdIsBusyEl(el)) return;
                 adrCdFillSelect(el, html, selectedName, sigEdit);
@@ -3260,6 +3274,11 @@
                 el.addEventListener("blur", function () {
                     setTimeout(function () { el.__adrCdTyping = false; }, 400);
                 });
+                // v1.11.2：手指按下就上锁。原生下拉是在按下那一刻弹出的，
+                // 等到 change 再上锁已经晚了半拍，中间的刷新会把选择器掐掉。
+                ["pointerdown", "touchstart", "mousedown"].forEach(function (evt) {
+                    el.addEventListener(evt, function () { adrCdTouch(el); }, { passive: true });
+                });
             }
 
             each("adr044-cd-enabled", function (el) {
@@ -3430,8 +3449,17 @@
             + '<input type="checkbox" id="adr044-cd-slot-on-' + slot + '"' + (state.slotOn[slot] ? " checked" : "") + '> '
             + ADR_CD_SLOT_FULL[slot]
             + ' <span class="adr044-cd-slot-count" id="adr044-cd-slot-count-' + slot + '"></span></label>'
-            + '<select id="adr044-cd-slot-' + slot + '">' + optionsHtml + '</select>'
+            + '<select id="adr044-cd-slot-' + slot + '" data-optsig="' + esc(adrCdOptSig("slot-" + slot, names, sel)) + '">' + optionsHtml + '</select>'
             + '</div>';
+    }
+
+    function adrCdEditSelectHTML() {
+        var names = adrCdLibNames();
+        var sel = names[0] || "";
+        var opts = names.map(function (nm) {
+            return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
+        }).join("");
+        return '<select id="adr044-cd-edit-select" data-optsig="' + esc(adrCdOptSig("edit", names, sel)) + '">' + opts + '</select>';
     }
 
     function adrCdPageInnerHTML(secOpen, secClose, checkClass, actionsClass) {
@@ -3464,7 +3492,7 @@
 
             + secOpen("编辑卡库")
             + '<label>正在编辑</label>'
-            + '<select id="adr044-cd-edit-select"></select>'
+            + adrCdEditSelectHTML()
             + '<input type="text" id="adr044-cd-lib-name" placeholder="卡库名（保存＝新建或更新；重命名＝改当前这副）">'
             + '<div class="adr044-template-mini-actions">'
             + '<button type="button" id="adr044-cd-lib-save">保存</button>'
@@ -3612,7 +3640,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.11.1</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.11.2</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
