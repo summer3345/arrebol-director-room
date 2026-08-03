@@ -1,7 +1,7 @@
 
 /*
  * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
- * v1.11.2 抽卡三仓库：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
+ * v1.12.0 卡的生命周期：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -70,6 +70,12 @@
         cdSlotDefaults: null,
         cdSlotOnDefaults: null,
         cdEnvelope: "",
+        cdEnvelopeFaded: "",
+        // v1.12 卡的生命周期
+        cdEnvelopes: null,          // 信封预设仓库（懒初始化，避免 DEFAULTS 对象引用共享）
+        cdEnvelopeCurrent: "标准",
+        cdHalfLife: true,           // 半衰期：挂过 N/2 楼自动降级为背景
+        cdAutoDone: false,          // 到半衰期时问一次 DS「兑现没」，默认关（要花钱）
         cdApiEndpoint: "",
         cdApiKey: "",
         cdModel: "deepseek-chat"
@@ -2194,6 +2200,24 @@
     var ADR_CD_SLOT_FULL = { story: "专属剧情库", common: "通用库", nsfw: "NSFW 库" };
 
     var ADR_CD_DEFAULT_ENVELOPE = "【场外事实】以下事件已然发生。织入正文；不得复述原文；不得在单楼内全部兑现：{卡面}";
+    // v1.12：后半程信封。卡挂过半衰期后自动换成这段——已经落地的事不该再逼着推进。
+    var ADR_CD_DEFAULT_ENVELOPE_FADED = "【已发生的背景】此事已经发生过。可以被提及或延续余波，但不必再推进它：{卡面}";
+
+    // 出厂三套信封预设：不同模型吃不同话术
+    var ADR_CD_FACTORY_ENVELOPES = {
+        "标准": {
+            active: ADR_CD_DEFAULT_ENVELOPE,
+            faded: ADR_CD_DEFAULT_ENVELOPE_FADED
+        },
+        "强硬": {
+            active: "【剧情变量】以下事件必须发生。转化为剧情巧妙织入正文，**绝对不得复述原句**；不得在单楼内全部兑现：{卡面}",
+            faded: "【已发生的背景】此事已经发生过，**不要再重复描写**。可以被提及或延续余波，但不必再推进它：{卡面}"
+        },
+        "轻柔": {
+            active: "（场外，正在发生的一件事，你可以选择让它进入这一幕，也可以让它先在背景里发酵：{卡面}）",
+            faded: "（这件事已经发生过了，余波还在：{卡面}）"
+        }
+    };
 
     var ADR_CD_FACTORY_LIB = [
         "## 意外",
@@ -2367,6 +2391,44 @@
 
     function adrCdLibNames() { return Object.keys(adrCdLibraries()); }
 
+    function adrCdEnvelopes() {
+        var st = settings();
+        if (!st.cdEnvelopes || typeof st.cdEnvelopes !== "object" || Array.isArray(st.cdEnvelopes)) {
+            st.cdEnvelopes = {};
+        }
+        if (!Object.keys(st.cdEnvelopes).length) {
+            Object.keys(ADR_CD_FACTORY_ENVELOPES).forEach(function (k) {
+                st.cdEnvelopes[k] = {
+                    active: ADR_CD_FACTORY_ENVELOPES[k].active,
+                    faded: ADR_CD_FACTORY_ENVELOPES[k].faded
+                };
+            });
+        }
+        return st.cdEnvelopes;
+    }
+
+    function adrCdEnvelopeNames() { return Object.keys(adrCdEnvelopes()); }
+
+    function adrCdCurrentEnvelopeName() {
+        var st = settings();
+        var all = adrCdEnvelopes();
+        var cur = String(st.cdEnvelopeCurrent || "");
+        if (cur && all[cur]) return cur;
+        return adrCdEnvelopeNames()[0] || "标准";
+    }
+
+    // 当前生效的两段模板。面板上手改的 cdEnvelope/cdEnvelopeFaded 优先于预设。
+    function adrCdEnvelopePair() {
+        var st = settings();
+        var pair = adrCdEnvelopes()[adrCdCurrentEnvelopeName()] || {};
+        return {
+            active: String(st.cdEnvelope || "").trim() || pair.active || ADR_CD_DEFAULT_ENVELOPE,
+            faded: String(st.cdEnvelopeFaded || "").trim() || pair.faded || ADR_CD_DEFAULT_ENVELOPE_FADED
+        };
+    }
+
+    function adrCdHalfLifeFloors() { return Math.max(1, Math.ceil(adrCdN() / 2)); }
+
     // 账号级槽默认值：新聊天开局继承这一份
     function adrCdSlotDefaults() {
         var st = settings();
@@ -2423,7 +2485,10 @@
             streak: o.streak && typeof o.streak === "object"
                 ? { pool: String(o.streak.pool || ""), n: Math.max(0, Number(o.streak.n) || 0) }
                 : { pool: "", n: 0 },
-            floatText: typeof o.floatText === "string" ? o.floatText : ""
+            floatText: typeof o.floatText === "string" ? o.floatText : "",
+            // v1.12：留原始卡面，才能在半衰期换信封；stage 记录这张卡走到哪一步了
+            floatCard: typeof o.floatCard === "string" ? o.floatCard : "",
+            floatStage: (o.floatStage === "faded" || o.floatStage === "done") ? o.floatStage : "active"
         };
     }
 
@@ -2524,7 +2589,15 @@
         try {
             if (!adrCdActive()) { adrCdApplyFloat(""); adrCdSyncChatControls(); return; }
             var state = adrCdChatState();
-            adrCdApplyFloat(state.paused ? "" : (state.floatText || ""));
+            var text = state.floatText || "";
+            // v1.12：按当前阶段重建，改过信封模板后也能立刻生效
+            if (state.floatCard && state.floatStage !== "done") {
+                var pair = adrCdEnvelopePair();
+                text = adrCdBuildEnvelope(state.floatStage === "faded" ? pair.faded : pair.active, state.floatCard);
+            } else if (state.floatStage === "done") {
+                text = "";
+            }
+            adrCdApplyFloat(state.paused ? "" : text);
             adrCdSyncChatControls();
         } catch (e) {}
     }
@@ -2691,10 +2764,13 @@
             card: adrCdTruncate(result.card, 200),
             floor: floor,
             mode: usedMode,
-            t: Date.now()
+            t: Date.now(),
+            status: "live" // live 挂载中 / done 已兑现 / faded 已退为背景
         }]).slice(-ADR_CD_HISTORY_MAX);
         state.lastDrawAt = floor;
-        state.floatText = adrCdBuildEnvelope(st.cdEnvelope, result.card);
+        state.floatCard = result.card;
+        state.floatStage = "active";
+        state.floatText = adrCdBuildEnvelope(adrCdEnvelopePair().active, result.card);
         adrCdSaveChatState(state);
         adrCdApplyFloat(state.floatText);
         console.log("[抽卡小能手] 投卡", { 模式: usedMode, 卡池: result.pool, 卡面: result.card, 触发楼层: floor });
@@ -2721,7 +2797,12 @@
             return;
         }
 
-        if (count - base < n) { adrCdUpdateStatusLine(); return; }
+        if (count - base < n) {
+            // 还没到投卡点，但可能到了这张卡的半衰期
+            await adrCdAdvanceLifecycle(count, state);
+            adrCdUpdateStatusLine();
+            return;
+        }
 
         var gapDirty = (count - base - n) >= 20;
         var fpKey = adrDChatKey() + "::cd";
@@ -2745,6 +2826,123 @@
             console.warn("[抽卡小能手] 投卡失败", eDraw);
         }
         adrCdDrawRunning = false;
+    }
+
+    // ---- v1.12 卡的生命周期 ----
+
+    // 问 DS 一句「兑现没」。答复只认"是"/"否"，多一个字作废；任何异常按未兑现处理。
+    async function adrCdAskFulfilled(card) {
+        var st = settings();
+        if (!st.cdApiEndpoint) throw new Error("未填写 API 地址");
+        var url = chatUrl(st.cdApiEndpoint);
+        if (!url) throw new Error("API 地址无效");
+        var sys = "你是剧情兑现检查员。你会看到一件已经投放给作者的\"待发生事件\"，以及最近的正文。"
+            + "判断这件事是否已经在正文里发生或被写出来了。只回答\"是\"或\"否\"，不加标点、不加解释。多一个字视为无效。";
+        var recent = "";
+        try { recent = await recentContentBlocks(4); } catch (eR) {}
+        var body = "【待发生事件】\n" + String(card || "")
+            + "\n\n【最近正文】\n" + adrCdTruncate(recent, 3000)
+            + "\n\n这件事已经发生了吗？只回答 是 或 否。";
+
+        var ab = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var tid = null, timedOut = false;
+        if (ab) tid = setTimeout(function () { timedOut = true; try { ab.abort(); } catch (e) {} }, ADR_CD_PICK_TIMEOUT_MS);
+        var headers = { "Content-Type": "application/json" };
+        if (st.cdApiKey) headers.Authorization = "Bearer " + st.cdApiKey;
+        var opts = {
+            method: "POST", headers: headers,
+            body: JSON.stringify({
+                model: st.cdModel || "deepseek-chat",
+                messages: [{ role: "system", content: sys }, { role: "user", content: body }],
+                temperature: 0, max_tokens: 10, stream: false
+            })
+        };
+        if (ab) opts.signal = ab.signal;
+        var raw;
+        try {
+            var res = await fetch(url, opts);
+            raw = await res.text();
+            if (!res.ok) throw new Error("兑现检查 API " + res.status);
+        } catch (eF) {
+            if (timedOut) throw new Error("兑现检查超时");
+            throw eF;
+        } finally { if (tid) clearTimeout(tid); }
+        var data;
+        try { data = JSON.parse(raw); } catch (eJ) { throw new Error("兑现检查返回非 JSON"); }
+        var out = adrCdSanitizePickResponse(parseResponse(data), ["是", "否"]);
+        if (!out) throw new Error("兑现检查答复无效");
+        return out === "是";
+    }
+
+    function adrCdMarkTopHistory(status) {
+        try {
+            var state = adrCdChatState();
+            var list = state.history || [];
+            if (list.length) list[list.length - 1].status = status;
+            return state;
+        } catch (e) { return null; }
+    }
+
+    // 结案：从耳边撤下，但不推进基准线——下一张仍按原节奏来，中间那几楼留白让剧情喘口气
+    function adrCdCloseCard(reason, silent) {
+        try {
+            var state = adrCdChatState();
+            if (!state.floatCard || state.floatStage === "done") {
+                if (!silent) adrCdSetTextAll("adr044-cd-life-status", "当前耳边没有挂着的卡", "#d6b177");
+                return false;
+            }
+            var list = state.history || [];
+            if (list.length) list[list.length - 1].status = "done";
+            state.floatStage = "done";
+            state.floatText = "";
+            adrCdSaveChatState(state);
+            adrCdApplyFloat("");
+            console.log("[抽卡小能手] 卡已结案（" + (reason || "手动") + "）：" + adrCdTruncate(state.floatCard, 30));
+            if (!silent) adrCdSetTextAll("adr044-cd-life-status", "已结案，这张卡从耳边撤下 ✓　下一张仍按原节奏来", "#8ed99d");
+            adrCdUpdateStatusLine();
+            adrCdRefreshLifePanel();
+            return true;
+        } catch (e) { return false; }
+    }
+
+    // 半衰期：挂过 N/2 楼后，先问一次是否兑现（若开启），未兑现则降级为背景
+    async function adrCdAdvanceLifecycle(count, state) {
+        try {
+            var st = settings();
+            if (!st.cdHalfLife) return;
+            if (!state.floatCard || state.floatStage !== "active") return;
+            var age = count - Number(state.lastDrawAt);
+            if (!Number.isFinite(age) || age < adrCdHalfLifeFloors()) return;
+
+            if (st.cdAutoDone) {
+                try {
+                    var done = await adrCdAskFulfilled(state.floatCard);
+                    if (done) {
+                        console.log("[抽卡小能手] DS 判定已兑现，自动结案");
+                        adrCdCloseCard("DS 自动判定", true);
+                        return;
+                    }
+                    console.log("[抽卡小能手] DS 判定尚未兑现，降级为背景");
+                } catch (eAsk) {
+                    // 判不了就按未兑现处理，安全降级，绝不误撤
+                    console.warn("[抽卡小能手] 兑现检查失败，按未兑现降级：" + (eAsk && eAsk.message ? eAsk.message : eAsk));
+                }
+            }
+
+            var fresh = adrCdChatState();
+            if (!fresh.floatCard || fresh.floatStage !== "active") return;
+            fresh.floatStage = "faded";
+            fresh.floatText = adrCdBuildEnvelope(adrCdEnvelopePair().faded, fresh.floatCard);
+            var list = fresh.history || [];
+            if (list.length && list[list.length - 1].status === "live") list[list.length - 1].status = "faded";
+            adrCdSaveChatState(fresh);
+            if (!fresh.paused) adrCdApplyFloat(fresh.floatText);
+            console.log("[抽卡小能手] 卡已过半衰期，降级为背景：" + adrCdTruncate(fresh.floatCard, 30));
+            adrCdUpdateStatusLine();
+            adrCdRefreshLifePanel();
+        } catch (e) {
+            try { console.warn("[抽卡小能手] 生命周期推进失败", e); } catch (e2) {}
+        }
     }
 
     // ---- 统筹采买：投卡史 ----
@@ -2939,6 +3137,7 @@
             var state = adrCdChatState();
             adrCdSetCheckedSafe("adr044-cd-paused", state.paused === true);
             adrCdRefreshSlotSelects();
+            adrCdRefreshLifePanel();
             adrCdUpdateStatusLine();
         } catch (e) {}
     }
@@ -2952,13 +3151,139 @@
             adrCdSetValueSafe("adr044-cd-mode", st.cdMode === "pick" ? "pick" : "blind");
             adrCdSetValueSafe("adr044-cd-depth", String(adrCdDepth()));
             adrCdSetValueSafe("adr044-cd-cooldown", String(adrCdCooldown()));
-            adrCdSetValueSafe("adr044-cd-envelope", st.cdEnvelope || ADR_CD_DEFAULT_ENVELOPE);
+            var envPair = adrCdEnvelopePair();
+            adrCdSetValueSafe("adr044-cd-envelope", envPair.active);
+            adrCdSetValueSafe("adr044-cd-envelope-faded", envPair.faded);
+            adrCdSetValueSafe("adr044-cd-env-name", adrCdCurrentEnvelopeName());
+            adrCdSetCheckedSafe("adr044-cd-halflife", !!st.cdHalfLife);
+            adrCdSetCheckedSafe("adr044-cd-autodone", !!st.cdAutoDone);
+            adrCdRefreshEnvSelect(adrCdCurrentEnvelopeName());
+            adrCdRefreshLifePanel();
             adrCdSetValueSafe("adr044-cd-endpoint", st.cdApiEndpoint || "");
             adrCdSetValueSafe("adr044-cd-key", st.cdApiKey || "");
             adrCdSetValueSafe("adr044-cd-model", st.cdModel || "");
             try { adrDRefreshApiProfileSelects("cd"); } catch (eP) {}
             adrCdLoadEditor(undefined);
             adrCdSyncChatControls();
+        } catch (e) {}
+    }
+
+    // ---- v1.12 生命周期面板 ----
+
+    var ADR_CD_STAGE_LABEL = { active: "必须发生", faded: "已退为背景", done: "已结案" };
+
+    function adrCdRefreshLifePanel() {
+        try {
+            var state = adrCdChatState();
+            var txt;
+            if (!state.floatCard) {
+                txt = "耳边暂无卡片。";
+            } else if (state.floatStage === "done") {
+                txt = "已结案（耳边已空）：" + state.floatCard;
+            } else {
+                var age = adrDAssistantRoundCount() - Number(state.lastDrawAt);
+                if (!Number.isFinite(age) || age < 0) age = 0;
+                var half = adrCdHalfLifeFloors();
+                var stage = ADR_CD_STAGE_LABEL[state.floatStage] || state.floatStage;
+                txt = "【" + stage + "】挂了 " + age + " 楼"
+                    + (state.floatStage === "active" ? "（再过 " + Math.max(0, half - age) + " 楼转为背景）" : "")
+                    + "\n" + state.floatCard;
+            }
+            adrCdSetTextAll("adr044-cd-life-card", txt);
+
+            var list = (state.history || []).slice().reverse();
+            var lines = list.map(function (h, i) {
+                var mark = h.status === "done" ? "✓ 已兑现" : (h.status === "faded" ? "· 已退为背景" : "● 挂载中");
+                return mark + "　第 " + (Number.isFinite(Number(h.floor)) ? h.floor : "?") + " 楼｜"
+                    + (h.pool || "?") + "\n　　" + adrCdTruncate(String(h.card || ""), 40);
+            });
+            adrCdSetTextAll("adr044-cd-life-history", lines.length ? lines.join("\n") : "还没投过卡。");
+        } catch (e) {}
+    }
+
+    function adrCdEnvStatus(t, c) { adrCdSetTextAll("adr044-cd-env-status", t, c || "#d6b177"); }
+
+    function adrCdApplyEnvelopePreset(name) {
+        try {
+            var all = adrCdEnvelopes();
+            var pair = all[name];
+            if (!pair) return;
+            save("cdEnvelopeCurrent", name);
+            // 切预设＝以预设为准，清掉手改覆盖，避免"改过一次就永远盖住预设"
+            save("cdEnvelope", "");
+            save("cdEnvelopeFaded", "");
+            adrCdSaveSoon();
+            adrCdSetValueSafe("adr044-cd-envelope", pair.active || "");
+            adrCdSetValueSafe("adr044-cd-envelope-faded", pair.faded || "");
+            adrCdSetValueSafe("adr044-cd-env-name", name);
+            adrCdRestoreFloat("envelope-switch");
+            adrCdEnvStatus("已切换到信封「" + name + "」✓", "#8ed99d");
+        } catch (e) {}
+    }
+
+    function adrCdSaveEnvelopePreset() {
+        try {
+            var nameEl = qForm("adr044-cd-env-name");
+            var name = nameEl ? String(nameEl.value || "").trim() : "";
+            if (!name) { adrCdEnvStatus("请先填写信封预设名", "#d4726a"); return; }
+            var a = qForm("adr044-cd-envelope");
+            var f = qForm("adr044-cd-envelope-faded");
+            var all = adrCdEnvelopes();
+            var existed = all[name] !== undefined;
+            all[name] = {
+                active: a ? String(a.value || "") : ADR_CD_DEFAULT_ENVELOPE,
+                faded: f ? String(f.value || "") : ADR_CD_DEFAULT_ENVELOPE_FADED
+            };
+            save("cdEnvelopes", all);
+            save("cdEnvelopeCurrent", name);
+            save("cdEnvelope", "");
+            save("cdEnvelopeFaded", "");
+            saveNow();
+            adrCdRefreshEnvSelect(name);
+            adrCdRestoreFloat("envelope-save");
+            adrCdEnvStatus("信封「" + name + "」" + (existed ? "已更新" : "已新建") + " ✓", "#8ed99d");
+        } catch (e) {
+            adrCdEnvStatus("保存失败：" + (e && e.message ? e.message : e), "#d4726a");
+        }
+    }
+
+    function adrCdDeleteEnvelopePreset() {
+        try {
+            var name = adrCdCurrentEnvelopeName();
+            var all = adrCdEnvelopes();
+            if (Object.keys(all).length <= 1) { adrCdEnvStatus("至少留一套信封", "#d4726a"); return; }
+            delete all[name];
+            save("cdEnvelopes", all);
+            var next = Object.keys(all)[0];
+            save("cdEnvelopeCurrent", next);
+            saveNow();
+            adrCdRefreshEnvSelect(next);
+            adrCdApplyEnvelopePreset(next);
+            adrCdEnvStatus("信封「" + name + "」已删除，当前用「" + next + "」", "#d6b177");
+        } catch (e) {}
+    }
+
+    function adrCdEnvSelectHTML() {
+        var names = adrCdEnvelopeNames();
+        var sel = adrCdCurrentEnvelopeName();
+        var opts = names.map(function (nm) {
+            return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
+        }).join("");
+        return '<select id="adr044-cd-env-select" data-optsig="' + esc(adrCdOptSig("env", names, sel)) + '">' + opts + '</select>';
+    }
+
+    function adrCdRefreshEnvSelect(selectedName) {
+        try {
+            var names = adrCdEnvelopeNames();
+            if (!selectedName || names.indexOf(selectedName) < 0) selectedName = adrCdCurrentEnvelopeName();
+            var html = names.map(function (nm) {
+                return '<option value="' + esc(nm) + '"' + (nm === selectedName ? " selected" : "") + '>' + esc(nm) + '</option>';
+            }).join("");
+            var sig = adrCdOptSig("env", names, selectedName);
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-env-select")).forEach(function (el) {
+                if (adrCdIsBusyEl(el)) return;
+                adrCdFillSelect(el, html, selectedName, sig);
+            });
         } catch (e) {}
     }
 
@@ -2988,8 +3313,12 @@
             var fl = adrCdCurrentFloatLength();
             lines.push("耳机通道：" + (fl < 0 ? "读不到（旧版酒馆）" : (fl > 0 ? "已挂载 " + fl + " 字" : "空（未投卡或已暂停）")));
             lines.push("模式：" + (st.cdMode === "pick" ? "择池" : "盲抽") + "　注入深度：" + adrCdDepth() + "　冷却：" + adrCdCooldown());
+            lines.push("卡的阶段：" + (state.floatCard ? (ADR_CD_STAGE_LABEL[state.floatStage] || state.floatStage) : "耳边无卡")
+                + "　半衰期：" + (st.cdHalfLife ? adrCdHalfLifeFloors() + " 楼" : "关闭")
+                + "　DS 兑现判定：" + (st.cdAutoDone ? "开" : "关"));
+            lines.push("信封预设：" + adrCdCurrentEnvelopeName() + (String(st.cdEnvelope || "").trim() ? "（已被手改覆盖）" : ""));
             var h = (state.history || []).slice(-1)[0];
-            lines.push("最近一张：" + (h ? (h.pool + "｜" + h.card + "（第 " + h.floor + " 楼 · " + h.mode + "）") : "无"));
+            lines.push("最近一张：" + (h ? (h.pool + "｜" + h.card + "（第 " + h.floor + " 楼 · " + h.mode + " · " + (h.status || "live") + "）") : "无"));
         } catch (e) {
             lines.push("自检出错：" + (e && e.message ? e.message : e));
         }
@@ -3208,6 +3537,9 @@
         if (id === "adr044-tab-cd") { switchTab("cd"); return true; }
         if (id === "adr044-cd-preview-draw") { adrCdPreviewDraw(); return true; }
         if (id === "adr044-cd-selfcheck") { adrCdSelfCheck(); return true; }
+        if (id === "adr044-cd-close-card") { adrCdCloseCard("手动", false); return true; }
+        if (id === "adr044-cd-env-save") { adrCdSaveEnvelopePreset(); return true; }
+        if (id === "adr044-cd-env-delete") { adrCdDeleteEnvelopePreset(); return true; }
         if (id === "adr044-cd-status-line") { adrCdToggleStatusExpand(); return true; }
         if (id === "adr044-cd-lib-save") { adrCdSaveLibraryFromEditor(); return true; }
         if (id === "adr044-cd-lib-rename") { adrCdRenameLibrary(); return true; }
@@ -3364,7 +3696,43 @@
             });
             each("adr044-cd-envelope", function (el) {
                 guard(el);
-                el.addEventListener("change", function () { save("cdEnvelope", String(el.value || "")); saveNow(); });
+                el.addEventListener("change", function () {
+                    save("cdEnvelope", String(el.value || ""));
+                    saveNow();
+                    adrCdRestoreFloat("envelope-edit");
+                    adrCdEnvStatus("已改用手写信封（切换预设可还原）", "#d6b177");
+                });
+            });
+            each("adr044-cd-envelope-faded", function (el) {
+                guard(el);
+                el.addEventListener("change", function () {
+                    save("cdEnvelopeFaded", String(el.value || ""));
+                    saveNow();
+                    adrCdRestoreFloat("envelope-faded-edit");
+                });
+            });
+            each("adr044-cd-env-name", function (el) { guard(el); });
+            each("adr044-cd-env-select", function (el) {
+                guard(el);
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    adrCdApplyEnvelopePreset(String(el.value || ""));
+                });
+            });
+            each("adr044-cd-halflife", function (el) {
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    save("cdHalfLife", !!el.checked);
+                    adrCdSaveSoon();
+                    adrCdRefreshLifePanel();
+                });
+            });
+            each("adr044-cd-autodone", function (el) {
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    save("cdAutoDone", !!el.checked);
+                    adrCdSaveSoon();
+                });
             });
             each("adr044-cd-endpoint", function (el) {
                 guard(el);
@@ -3483,6 +3851,16 @@
             + '<div class="adr044-template-status" id="adr044-cd-pause-status"></div>'
             + secClose()
 
+            + secOpen("耳边这张卡")
+            + '<div class="adr044-cd-life-card" id="adr044-cd-life-card">耳边暂无卡片。</div>'
+            + '<div class="' + actionsClass + '"><button id="adr044-cd-close-card" type="button">✓ 这张已兑现，撤下</button></div>'
+            + '<div class="adr044-template-status" id="adr044-cd-life-status">读到卡里的事已经落地了，点一下撤下它。下一张仍按原节奏来，中间那几楼留白，让剧情喘口气。</div>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-halflife"' + (st.cdHalfLife ? " checked" : "") + '> 半衰期：挂过一半楼数后自动退为背景（不再逼着推进）</label>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-autodone"' + (st.cdAutoDone ? " checked" : "") + '> 到半衰期时问一次 DS「兑现没」，答是就自动撤下（每张多一次调用，需填写择池 API）</label>'
+            + '<label>投卡史</label>'
+            + '<div class="adr044-cd-life-history" id="adr044-cd-life-history">还没投过卡。</div>'
+            + secClose()
+
             + secOpen("三个仓库")
             + '<div class="' + noteClass + '">启用哪几格，就在哪几格之间均等掷——仓库数即权重。专属库配角色卡，通用库打底，NSFW 库单独一格。换聊天各记各的。</div>'
             + adrCdSlotRowHTML("story", checkClass)
@@ -3535,8 +3913,18 @@
             + secOpen("高级 · 注入与信封", true)
             + '<label>注入深度（从最新消息往回数，默认 2）</label><input type="number" id="adr044-cd-depth" min="0" max="4" value="' + esc(String(adrCdDepth())) + '">'
             + '<label>冷却区（最近 M 张不复用，默认 8）</label><input type="number" id="adr044-cd-cooldown" min="0" max="99" value="' + esc(String(adrCdCooldown())) + '">'
-            + '<label>信封模板（{卡面} 会被替换为抽中的卡）</label>'
-            + '<textarea id="adr044-cd-envelope" rows="3">' + esc(st.cdEnvelope || ADR_CD_DEFAULT_ENVELOPE) + '</textarea>'
+            + '<label>信封预设（不同模型吃不同话术）</label>'
+            + adrCdEnvSelectHTML()
+            + '<input type="text" id="adr044-cd-env-name" value="' + esc(adrCdCurrentEnvelopeName()) + '" placeholder="预设名">'
+            + '<div class="adr044-template-mini-actions">'
+            + '<button type="button" id="adr044-cd-env-save">保存</button>'
+            + '<button type="button" id="adr044-cd-env-delete">删除</button>'
+            + '</div>'
+            + '<div class="adr044-template-status" id="adr044-cd-env-status">下拉切换立即生效；改了下面的文本再点保存，会写进当前这套预设。</div>'
+            + '<label>前半程 · 必须发生（{卡面} 会被替换为抽中的卡）</label>'
+            + '<textarea id="adr044-cd-envelope" rows="3">' + esc(adrCdEnvelopePair().active) + '</textarea>'
+            + '<label>后半程 · 已发生的背景（过了半衰期自动换成这段）</label>'
+            + '<textarea id="adr044-cd-envelope-faded" rows="3">' + esc(adrCdEnvelopePair().faded) + '</textarea>'
             + secClose()
 
             + secOpen("卡面家法", true)
@@ -3640,7 +4028,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.11.2</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.12.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -4752,6 +5140,9 @@
         ids["adr044-api-profile-delete-cd"] = function () { adrDRequestDeleteCurrentApiProfile("cd"); };
         ids["adr044-cd-lib-rename"] = function () { adrCdRenameLibrary(); };
         ids["adr044-cd-selfcheck"] = function () { adrCdSelfCheck(); };
+        ids["adr044-cd-close-card"] = function () { adrCdCloseCard("手动", false); };
+        ids["adr044-cd-env-save"] = function () { adrCdSaveEnvelopePreset(); };
+        ids["adr044-cd-env-delete"] = function () { adrCdDeleteEnvelopePreset(); };
         ids["adr044-cd-load-models"] = function () { loadModels("cd"); };
         ids["adr044-cd-test"] = function () { adrCdTestConnection(); };
         ids["adr044-cd-save"] = function () { syncType("cd"); status("cd", "已保存当前使用的择池 API ✓", "#8ed99d"); };
