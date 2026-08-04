@@ -5,6 +5,7 @@
  * v1.13.0 放养模式：手动放养自动归队——一键撕下当前导演稿，轮换照常走，到下个换稿点自动生成归队；双导演各自独立放养（施工：波哥 Claude Fable 5）
  * v1.13.1 DS 视野随节奏走：兑现判定回看范围挂钩半衰期、择池挂钩投卡间隔，不再钉死 4/6 轮；下限不缩水，上限 12 轮/8000 字（提议：ripple；施工：波哥 Claude Fable 5）
  * v1.13.2 口径免疫：计数改为数楼不数字，预设正则开关不再扳动导演节奏；离谱差值静默对齐由一次性改为常任守卫（报告：MoMo；施工：波哥 Claude Fable 5）
+ * v1.14.0 改头换面第一刀：分析按钮二合一（补充指令空=普通分析）；进阶开关与校对诊断分层入抽屉且开合有记忆；一键横幅瘦身；圆/方开关形状语法；右缘留缝防误触（产品：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -1610,7 +1611,7 @@
                 adrDNgState.notified = true;
                 adrDPopupMessage(
                     "这条戏 NG " + rerolls + " 次了",
-                    "同一楼已连续重 roll " + rerolls + " 次，可能是方向没对上。要不要请统筹会诊？打开面板在统筹页点「直接分析」，或填补充指令后点「补充指令分析」。"
+                    "同一楼已连续重 roll " + rerolls + " 次，可能是方向没对上。要不要请统筹会诊？打开面板在统筹页点「分析」，想给方向就先填补充指令。"
                 );
                 try { console.log("[Arrebol D] NG detected", mesKey, "rerolls=", rerolls, "from=", fromWhere); } catch (eNgLog) {}
             }
@@ -4176,7 +4177,7 @@
             + '</select>'
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
             + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
-            + '<div class="adr044-note adr044-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，请点「直接分析」；若要附加要求，请填写补充指令后点「补充指令分析」。</div>'
+            + '<div class="adr044-note adr044-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，点「分析」即可，想附加要求就先填补充指令。</div>'
             + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
             + '</details>'
 
@@ -4196,9 +4197,9 @@
             + '<details open><summary>' + title + '结果</summary>'
             + '<div id="adr044-' + type + '-status">请先本地测试，或直接分析。</div>'
             + '<textarea id="adr044-' + type + '-preview" rows="8" placeholder="生成结果显示在这里">' + esc(st[p + "Preview"] || "") + '</textarea>'
-            + '<label>补充指令</label><input type="text" id="adr044-' + type + '-extra" placeholder="只影响本次补充指令分析">'
-            + '<div class="adr044-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">直接分析</button></div>'
-            + '<div class="adr044-actions"><button id="adr044-' + type + '-reroll" type="button">补充指令分析</button><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
+            + '<label>补充指令（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
+            + '<div class="adr044-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
+            + '<div class="adr044-actions"><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</details>'
             + '</div>';
@@ -4208,7 +4209,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.2</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -4225,18 +4226,22 @@
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
-            + '<div class="adr044-actions"><button id="adr044-probe-context" type="button" onclick="window.ADR044_probeContext&&window.ADR044_probeContext();return false;">检测上下文</button><button id="adr044-probe-content" type="button" onclick="window.ADR044_probeContent&&window.ADR044_probeContent();return false;">测试 &lt;content&gt; 提取</button></div>'
-            + '<div class="adr044-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
             + '<label>注入方式</label><select id="adr044-inject-mode">'
             + opt(st.injectMode, "visible", "可见文本注入（直接显示）")
             + opt(st.injectMode, "folded", "纯文本标记注入（推荐外挂正则）")
             + '</select>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+            + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
             + '<label class="adr044-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层，藏楼/摘要洗不掉）</label>'
             + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行情况</label>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
+            + '</details>'
+            + adrxDrawerStart("shared-diag", "🔧 校对与诊断（排查问题时才用）", false)
+            + '<div class="adr044-actions"><button id="adr044-probe-context" type="button" onclick="window.ADR044_probeContext&&window.ADR044_probeContext();return false;">检测上下文</button><button id="adr044-probe-content" type="button" onclick="window.ADR044_probeContent&&window.ADR044_probeContent();return false;">测试 &lt;content&gt; 提取</button></div>'
+            + '<div class="adr044-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
+            + '</details>'
             + '</details>'
 
             + '<div class="adr044-tabs">'
@@ -5256,11 +5261,13 @@
             "direct-analysis-" + type,
             btn || qForm("adr044-" + type + "-generate"),
             "确认分析？",
-            "再点一次开始直接分析",
+            "再点一次开始分析（补充指令空着就是普通分析）",
             function (msg) { status(type, msg, "#d6a26a"); },
             function () {
                 syncAll();
-                run(type, "");
+                // v1.14.0：按钮合并。分析自动携带补充指令框内容，空=普通分析，有字=带观点分析。
+                var extraEl = qForm("adr044-" + type + "-extra");
+                run(type, extraEl && extraEl.value ? String(extraEl.value) : "");
             }
         );
     }
@@ -5654,7 +5661,7 @@
             + '</select>'
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
             + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
-            + '<div class="adr048-note adr048-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，请点「直接分析」；若要附加要求，请填写补充指令后点「补充指令分析」。</div>'
+            + '<div class="adr048-note adr048-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，点「分析」即可，想附加要求就先填补充指令。</div>'
             + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
             + '</div>'
 
@@ -5674,12 +5681,52 @@
             + '<div class="adr048-section"><div class="adr048-summary">' + title + '结果</div>'
             + '<div id="adr044-' + type + '-status" class="adr048-status">请先本地测试，或直接分析。</div>'
             + '<textarea id="adr044-' + type + '-preview" rows="8" placeholder="生成结果显示在这里">' + esc(st[p + "Preview"] || "") + '</textarea>'
-            + '<label>补充指令</label><input type="text" id="adr044-' + type + '-extra" placeholder="只影响本次补充指令分析">'
-            + '<div class="adr048-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">直接分析</button></div>'
-            + '<div class="adr048-actions"><button id="adr044-' + type + '-reroll" type="button">补充指令分析</button><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
+            + '<label>补充指令（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
+            + '<div class="adr048-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
+            + '<div class="adr048-actions"><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</div>'
             + '</div>';
+    }
+
+    // ================= v1.14.0 改头换面第一刀：分层收纳 =================
+    // 原则（ripple 拍板）：无脑层圆开关常驻，可选层方开关入抽屉，诊断层沉底；
+    // 抽屉开合状态记忆，别每次打开都弹一脸。所有元素 ID 原封不动，绑定零接触。
+    var ADRX_DRAWER_KEY = "arrebol_d_ui_drawer_state_v1";
+
+    function adrxDrawerStates() {
+        try { return adrDReadJsonLS(ADRX_DRAWER_KEY); } catch (e) { return {}; }
+    }
+
+    function adrxDrawerOpenAttr(id, defOpen) {
+        try {
+            var s = adrxDrawerStates();
+            if (s && Object.prototype.hasOwnProperty.call(s, id)) return s[id] ? " open" : "";
+        } catch (e) {}
+        return defOpen ? " open" : "";
+    }
+
+    function adrxDrawerStart(id, label, defOpen) {
+        return '<details class="adrx-drawer" data-drawer-id="' + id + '"' + adrxDrawerOpenAttr(id, defOpen) + '><summary>' + label + '</summary>';
+    }
+
+    function adrxInstallDrawerMemory() {
+        try {
+            var d = rootDoc();
+            if (!d || d.__adrxDrawerMemoryInstalled) return;
+            d.__adrxDrawerMemoryInstalled = true;
+            d.addEventListener("toggle", function (ev) {
+                try {
+                    var t = ev.target;
+                    if (!t || !t.classList || !t.classList.contains("adrx-drawer")) return;
+                    var id = t.getAttribute("data-drawer-id");
+                    if (!id) return;
+                    var s = adrxDrawerStates();
+                    s[id] = !!t.open;
+                    adrDWriteJsonLS(ADRX_DRAWER_KEY, s);
+                } catch (e) {}
+            }, true);
+        } catch (e) {}
     }
 
     function adr048PanelHTML() {
@@ -5693,7 +5740,7 @@
             + '</div>'
             + '<div id="adr048-popup-body">'
             + '<button type="button" id="adr044-master-toggle" data-master-on="' + (st.masterEnabled !== false ? '1' : '0') + '">' + adrDMasterToggleLabel() + '</button>'
-            + '<div class="adr048-note">小红霞已就绪。自动触发、手动导演、纯文本注入与本地设置保存均已启用。<br>由 ripple & GPT & Claude 收尾维护。</div>'
+            + '<div class="adr048-note adrx-blurb">小红霞已就绪。自动触发、手动导演、纯文本注入与本地设置保存均已启用。由 ripple & GPT & Claude 收尾维护。</div>'
 
             + '<div class="adr048-section"><div class="adr048-summary">共享设置</div>'
             + '<label>复盘范围</label><select id="adr044-range">'
@@ -5706,18 +5753,24 @@
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
-            + '<div class="adr048-actions"><button id="adr044-probe-context" type="button">检测上下文</button><button id="adr044-probe-content" type="button">测试 &lt;content&gt; 提取</button></div>'
-            + '<div class="adr048-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
             + '<label>注入方式</label><select id="adr044-inject-mode">'
             + opt(st.injectMode, "visible", "可见文本注入（直接显示）")
             + opt(st.injectMode, "folded", "纯文本标记注入（推荐外挂正则）")
             + '</select>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+
+            + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
             + '<label class="adr048-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层）</label>'
             + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行</label>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
+            + '</details>'
+
+            + adrxDrawerStart("shared-diag", "🔧 校对与诊断（排查问题时才用）", false)
+            + '<div class="adr048-actions"><button id="adr044-probe-context" type="button">检测上下文</button><button id="adr044-probe-content" type="button">测试 &lt;content&gt; 提取</button></div>'
+            + '<div class="adr048-actions"><button id="adr044-preview-precise" type="button">预览精准读取</button></div>'
+            + '</details>'
             + '</div>'
 
             + '<div class="adr048-tabs">'
@@ -7349,6 +7402,7 @@
             setTimeout(adrDBindCompactTemplateControls, 120);
             setTimeout(adrDBindApiProfileControls, 120);
             adr048EnsureFabLater();
+            adrxInstallDrawerMemory();
             adrDInstallAutoTriggerWatchers();
             adrDQueueFullAssistantRoundCountRefresh("init");
             adrDUpdateAutoCounters();

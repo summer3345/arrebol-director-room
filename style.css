@@ -1661,3 +1661,95 @@
     max-height: 12em;
     overflow-y: auto;
 }
+
+/* ============================================================
+   v1.14.0 改头换面第一刀 · UI-only
+   原则（ripple 拍板）：无脑层圆开关，可选层方开关，诊断层沉底；
+   横幅瘦身；右缘留缝防 iOS 侧滑误触。
+   ============================================================ */
+
+/* 一键横幅瘦身：从大板砖变细胶囊 */
+#adr044-master-toggle {
+    padding: 7px 12px !important;
+    margin: 0 0 6px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: .2px !important;
+}
+
+/* 就绪说明降噪成一行小字 */
+.adrx-blurb {
+    font-size: 10.5px !important;
+    line-height: 1.45 !important;
+    opacity: .55 !important;
+    margin: 0 0 10px !important;
+}
+
+/* 分层抽屉外观 */
+.adrx-drawer {
+    margin: 10px 0 2px !important;
+    border: 1px solid rgba(230, 150, 120, .16) !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, .02) !important;
+    padding: 0 !important;
+}
+.adrx-drawer > summary {
+    cursor: pointer !important;
+    list-style: none !important;
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: rgba(240, 214, 200, .62) !important;
+    user-select: none !important;
+}
+.adrx-drawer > summary::-webkit-details-marker { display: none !important; }
+.adrx-drawer > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 6px;
+    transition: transform .15s ease;
+    color: rgba(230, 150, 120, .55);
+}
+.adrx-drawer[open] > summary::before { transform: rotate(90deg); }
+.adrx-drawer[open] > summary {
+    border-bottom: 1px dashed rgba(230, 150, 120, .14) !important;
+}
+.adrx-drawer > *:not(summary) {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+}
+.adrx-drawer > *:last-child { margin-bottom: 10px !important; }
+
+/* 形状语法：无脑层=圆，抽屉里（可选层）=方 */
+#adr048-popup-shell .adr048-check input[type="checkbox"],
+#adr044-drawer .adr044-check input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
+    border-radius: 50% !important;
+    border: 1.5px solid rgba(230, 150, 120, .55) !important;
+    background: transparent !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    transition: background .15s ease, border-color .15s ease !important;
+}
+#adr048-popup-shell .adr048-check input[type="checkbox"]:checked,
+#adr044-drawer .adr044-check input[type="checkbox"]:checked {
+    border-color: rgba(240, 170, 130, .9) !important;
+    background:
+        radial-gradient(circle at center, rgba(255, 244, 235, .95) 0 3px, transparent 3.6px),
+        linear-gradient(135deg, rgba(226, 122, 95, .95), rgba(190, 84, 88, .95)) !important;
+}
+.adrx-drawer .adr048-check input[type="checkbox"],
+.adrx-drawer .adr044-check input[type="checkbox"] {
+    border-radius: 5px !important;
+}
+
+/* 右缘留缝：iOS 侧滑返回是雷区，右边多留一指缝 */
+#adr048-popup-shell {
+    left: 10px !important;
+    right: 20px !important;
+}
