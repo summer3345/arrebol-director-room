@@ -2,6 +2,7 @@
 /*
  * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
  * v1.12.0 卡的生命周期：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
+ * v1.13.0 放养模式：手动放养自动归队——一键撕下当前导演稿，轮换照常走，到下个换稿点自动生成归队；双导演各自独立放养（施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -1415,6 +1416,165 @@
         } catch (e) {}
     }
 
+    // ================= v1.13.0 放养模式：手动放养 · 自动归队 =================
+    // 点一下撕掉本类型当前贴耳稿（正文块，浮动稿同类型时一并撤下）。
+    // 轮换计数照常走、基准线体系零接触、放养期间零生成；
+    // 到下一个换稿点自动触发正常生成并挂上，放养自动结束。
+    // 铁律：不读写 auto state，不动 baseline；归队唯一判据 = 该类型任意一次成功注入。
+
+    var ADR_D_GRAZE_KEY = "arrebol_d_graze_v1";
+
+    function adrDGrazeStoreKey(type) {
+        return adrDChatKey() + "::" + (type === "plot" ? "plot" : "emotion");
+    }
+
+    function adrDGrazeActive(type) {
+        try {
+            if (!adrDChatKeyReady || !adrDChatKeyReady()) return false;
+            var all = adrDReadJsonLS(ADR_D_GRAZE_KEY);
+            var item = all[adrDGrazeStoreKey(type)];
+            return !!(item && item.on);
+        } catch (e) { return false; }
+    }
+
+    function adrDGrazeSet(type, on) {
+        try {
+            if (!adrDChatKeyReady || !adrDChatKeyReady()) return false;
+            var all = adrDReadJsonLS(ADR_D_GRAZE_KEY);
+            var k = adrDGrazeStoreKey(type);
+            if (on) all[k] = { on: true, t: Date.now(), floor: adrDAssistantRoundCount() };
+            else if (all[k]) delete all[k];
+            adrDWriteJsonLS(ADR_D_GRAZE_KEY, all);
+            return true;
+        } catch (e) { return false; }
+    }
+
+    function adrDGrazeClearOnInjection(type) {
+        // 归队唯一入口：本类型稿子真正挂上（自动触发 / 手动注入皆算）。
+        try {
+            if (adrDGrazeActive(type)) {
+                adrDGrazeSet(type, false);
+                try { adrDToast((type === "plot" ? "统筹" : "情感导演") + "已归队，新稿已挂上"); } catch (eT) {}
+            }
+        } catch (e) {}
+    }
+
+    function adrDStripDirectorInjectionEverywhere(type) {
+        // 全楼层扫一遍，只撕本类型的块；另一类型原地保留。
+        // 复用注入函数已验证的清理模式（HTML 注释标记 / 带类型纯文本标记）。
+        // 刻意不带 ≤1.9.26 的 $ 锚定旧可见头正则：全楼扫描下它可能吞掉标记后的真实正文。
+        var changed = 0;
+        try {
+            var c = ctx();
+            var chat = c.chat;
+            if (!chat || !chat.length) return changed;
+
+            var t = type === "plot" ? "plot" : "emotion";
+            var startMark = "<!-- ARREBOL_D_START:" + t + " -->";
+            var endMark = "<!-- ARREBOL_D_END:" + t + " -->";
+            var startMark2 = "<!-- ARREBOL_D_START:" + t;
+            var endMark2 = "ARREBOL_D_END:" + t + " -->";
+            var reTypedOwn = new RegExp("\\n?arrebol_d(?:_visible)?:" + t + "###[\\s\\S]*?###", "g");
+
+            for (var i = 0; i < chat.length; i++) {
+                var m = chat[i];
+                if (!m || m.is_user === true) continue;
+                var mes = String(m.mes || "");
+                if (!mes) continue;
+                var before = mes;
+
+                var startAt = mes.indexOf(startMark);
+                while (startAt >= 0) {
+                    var endAt = mes.indexOf(endMark, startAt);
+                    if (endAt < 0) break;
+                    mes = mes.slice(0, startAt).trimEnd() + mes.slice(endAt + endMark.length);
+                    startAt = mes.indexOf(startMark);
+                }
+                var startAt2 = mes.indexOf(startMark2);
+                while (startAt2 >= 0) {
+                    var endAt2 = mes.indexOf(endMark2, startAt2);
+                    if (endAt2 < 0) break;
+                    mes = mes.slice(0, startAt2).trimEnd() + mes.slice(endAt2 + endMark2.length);
+                    startAt2 = mes.indexOf(startMark2);
+                }
+                mes = mes.replace(reTypedOwn, "");
+
+                if (mes !== before) {
+                    chat[i].mes = mes.trimEnd();
+                    changed++;
+                }
+            }
+        } catch (e) {
+            try { console.error("[Arrebol D] graze strip failed", e); } catch (e2) {}
+        }
+        return changed;
+    }
+
+    function adrDGrazeClearFloatIfType(type) {
+        // 常驻浮动稿是全聊天单槽；只有当前挂的是本类型时才撤，另一类型的浮动稿不动。
+        try {
+            var all = adrDReadJsonLS(ADR_D_FLOAT_KEY);
+            var k = adrDChatKey();
+            var item = all[k];
+            if (item && item.type === (type === "plot" ? "plot" : "emotion")) {
+                delete all[k];
+                adrDWriteJsonLS(ADR_D_FLOAT_KEY, all);
+                adrDApplyFloatPrompt("");
+                return true;
+            }
+        } catch (e) {}
+        return false;
+    }
+
+    async function adrDStartGraze(type) {
+        type = type === "plot" ? "plot" : "emotion";
+        var title = type === "plot" ? "统筹" : "情感导演";
+        try {
+            if (!adrDMasterEnabled()) {
+                status(type, "总开关已关闭，导演本来就不在岗", "#d6a26a");
+                return false;
+            }
+            if (!adrDChatKeyReady || !adrDChatKeyReady()) {
+                status(type, "聊天还在加载，稍等几秒再放养", "#d6a26a");
+                return false;
+            }
+            if (adrDGrazeActive(type)) {
+                status(type, title + "已在放养中，到下个换稿点自动归队", "#d6a26a");
+                return false;
+            }
+
+            var changed = adrDStripDirectorInjectionEverywhere(type);
+            var floatCleared = adrDGrazeClearFloatIfType(type);
+            adrDGrazeSet(type, true);
+
+            if (changed > 0 || floatCleared) {
+                try { await adrDSaveThenRedrawAfterInject(); } catch (eSave) { try { console.warn("[Arrebol D] graze save failed", eSave); } catch (eW) {} }
+            }
+
+            try { adrDUpdateAutoCounters(); } catch (eC) {}
+            status(type, title + "已放养 ✓ 当前稿已撤下，到下个换稿点自动归队", "#8ed99d");
+            try { console.log("[Arrebol D] graze started", type, "strippedFloors=", changed, "floatCleared=", floatCleared); } catch (eLog) {}
+            try { adrDToast(title + "放养中：轮换照常走，到点自动归队"); } catch (eT) {}
+            return true;
+        } catch (e) {
+            try { console.error("[Arrebol D] graze start failed", e); } catch (e2) {}
+            try { status(type, "放养失败：" + (e && e.message ? e.message : e), "#d4726a"); } catch (e3) {}
+            return false;
+        }
+    }
+
+    function adrDRequestGraze(type, btn) {
+        type = type === "plot" ? "plot" : "emotion";
+        return adrDTwoStepConfirm(
+            "graze-" + type,
+            btn || qForm("adr044-" + type + "-graze"),
+            "确定放养？",
+            "再点一次确认放养（撤下当前稿，到下个换稿点自动归队）",
+            function (msg) { status(type, msg, "#d6a26a"); },
+            function () { adrDStartGraze(type); }
+        );
+    }
+
     // ---- NG 检测：同一正文楼重 roll 达阈值提示请导演；纯旁观者，只提示不触发 ----
     var adrDNgState = { mesKey: "", notified: false };
 
@@ -1688,6 +1848,7 @@
             chat[idx].mes = mes.trimEnd() + add;
             try { adrDDirectorLogPush(type, text); } catch (eLog34) {}
             try { adrDUpdateFloatFromInjection(type, text); } catch (eFloat34) {}
+            try { adrDGrazeClearOnInjection(type); } catch (eGraze) {} // v1.13.0：稿子挂上即归队
             return true;
         } catch (e) {
             console.error("[Arrebol D] inject write failed", e);
@@ -4019,7 +4180,7 @@
             + '<label>补充指令</label><input type="text" id="adr044-' + type + '-extra" placeholder="只影响本次补充指令分析">'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">直接分析</button></div>'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-reroll" type="button">补充指令分析</button><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
-            + '<div class="adr044-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button></div>'
+            + '<div class="adr044-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</details>'
             + '</div>';
     }
@@ -4028,7 +4189,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.12.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -5173,6 +5334,9 @@
             ids["adr044-" + type + "-inject"] = function () {
                 adrDRequestManualInject(type);
             };
+            ids["adr044-" + type + "-graze"] = function () {
+                adrDRequestGraze(type, qForm("adr044-" + type + "-graze"));
+            };
         });
 
         Object.keys(ids).forEach(function (id) {
@@ -5494,7 +5658,7 @@
             + '<label>补充指令</label><input type="text" id="adr044-' + type + '-extra" placeholder="只影响本次补充指令分析">'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">直接分析</button></div>'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-reroll" type="button">补充指令分析</button><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
-            + '<div class="adr048-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button></div>'
+            + '<div class="adr048-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</div>'
             + '</div>';
     }
@@ -6552,7 +6716,9 @@
             + '<span class="arb-ct-nums"><b>' + esc(passed) + '</b><i>/' + esc(info.n) + '</i></span>'
             + '</div>'
             + '<div class="arb-ct-bar"><i style="width:' + pct + '%"></i></div>'
-            + '<div class="arb-ct-line">还差 <b>' + esc(info.left) + '</b> 条触发 · 基准线 <b>' + esc(info.base) + '</b> 楼起</div>'
+            + (info.graze
+                ? '<div class="arb-ct-line">放养中 · 距下次接管还有 <b>' + esc(info.left) + '</b> 楼 · 基准线 <b>' + esc(info.base) + '</b> 楼起</div>'
+                : '<div class="arb-ct-line">还差 <b>' + esc(info.left) + '</b> 条触发 · 基准线 <b>' + esc(info.base) + '</b> 楼起</div>')
             + '<div class="arb-ct-tech">' + esc(info.tech || "") + '</div>'
             + '</div>';
     }
@@ -6569,11 +6735,15 @@
                 return { state: "off", label: label, msg: "总开关已关闭 · 一键启动后从当前进度重新计数" };
             }
 
+            var grazing = adrDGrazeActive(type);
+
             if (!enabled) {
+                if (grazing) return { state: "off", label: label, tag: "放养中", msg: "自动触发未开启，无换稿点可归队；点「直接分析」或「手动注入」即归队" };
                 return { state: "off", label: label, msg: "自动触发未开启" };
             }
 
             if (!Number.isFinite(n) || n <= 0) {
+                if (grazing) return { state: "off", label: label, tag: "放养中", msg: "自动触发间隔未设置，无换稿点可归队；点「直接分析」或「手动注入」即归队" };
                 return { state: "off", label: label, msg: "自动触发间隔未设置" };
             }
 
@@ -6593,7 +6763,7 @@
                 var peekPassed = Math.max(0, count - peekBase);
                 var peekLeft = Math.max(0, n - peekPassed);
                 var peekMode = peek && peek.mode ? String(peek.mode) : (adrDCurrentCountMode ? adrDCurrentCountMode() : "startup-readonly");
-                return { state: "ok", label: label, tag: "启动保护", passed: peekPassed, n: n, left: peekLeft, base: peekBase, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + peekMode };
+                return { state: "ok", label: label, tag: grazing ? "放养中 · 启动保护" : "启动保护", graze: grazing, passed: peekPassed, n: n, left: peekLeft, base: peekBase, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + peekMode };
             }
 
             var state = adrDGetAutoState(type, count);
@@ -6606,7 +6776,7 @@
             var passed = Math.max(0, count - base);
             var left = Math.max(0, n - passed);
             var modeText = state && state.mode ? String(state.mode) : (adrDCurrentCountMode ? adrDCurrentCountMode() : "unknown");
-            return { state: "ok", label: label, passed: passed, n: n, left: left, base: base, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + modeText };
+            return { state: "ok", label: label, tag: grazing ? "放养中" : "", graze: grazing, passed: passed, n: n, left: left, base: base, tech: "本聊天共 " + count + " 条回复 · 视野 " + adrDCountSourceLabel() + " · " + modeText };
         } catch (e) {
             return "自动触发计数：读取失败";
         }
@@ -7065,6 +7235,12 @@
 
             if (id === "adr044-" + type + "-inject") {
                 adrDRequestManualInject(type, btn);
+                return true;
+            }
+
+            // v1.13.0：放养按钮同样必须进兜底表，否则被 450ms 防抖吞掉。
+            if (id === "adr044-" + type + "-graze") {
+                adrDRequestGraze(type, btn);
                 return true;
             }
 
