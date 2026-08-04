@@ -1753,3 +1753,15 @@
     left: 10px !important;
     right: 20px !important;
 }
+
+/* v1.14.2 命中区收身：label 不再拉满整行，点击区只包住圆圈+文字本体；
+   顺带钉死横排不换行，治圆圈与文字上下错位。 */
+#adr048-popup-shell .adr048-check,
+#adr044-drawer .adr044-check {
+    display: inline-flex !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    padding-right: 4px !important;
+}
