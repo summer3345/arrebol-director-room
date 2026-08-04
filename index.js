@@ -32,6 +32,7 @@
         autoInjectPlot: true,
         injectMode: "visible",
         showFloatingWindow: true,
+        dawnTheme: false,           // v1.14.4 开灯：浮窗朝霞浅色皮，默认关（暗河红霞）
         showAutoTriggerPopup: true,
         directorLogEnabled: true,
         ngDetectEnabled: true,
@@ -4211,7 +4212,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.3</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.4</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -5738,6 +5739,7 @@
             + '<div id="adr048-popup-shell">'
             + '<div id="adr048-popup-head">'
             + '<div class="adr048-head-txt"><div class="adr048-title">🎬 Arrebol <span class="adr048-title-d">D</span><span class="adr048-title-cn">暗河红霞导演系统</span></div><div id="adr048-popup-sub">小红霞在线 · ripple &amp; GPT &amp; Claude</div></div>'
+            + '<button type="button" id="adr048-theme-toggle" title="开灯 / 关灯">' + (st.dawnTheme === true ? "☀️" : "🌙") + '</button>'
             + '<button type="button" id="adr048-popup-close">×</button>'
             + '</div>'
             + '<div id="adr048-popup-body">'
@@ -5887,6 +5889,7 @@
                 adr048SetImportant(body, "min-height", "260px");
             }
 
+            adr048ApplyPanelTheme();
             adr048BindPopupPanel();
             bindDirect();
             adrDRestorePanelRuntimeState();
@@ -5917,9 +5920,59 @@
         } catch (e) {}
     }
 
+    // v1.14.4 开灯：浮窗双主题应用器。仅换皮不动逻辑；
+    // 打开浮窗与点灯时各调一次，把 open 流程里的内联 !important 深色按主题重刷，
+    // 其余配色交给 style.css 的 [data-arb-theme="dawn"] 级联。
+    function adr048ApplyPanelTheme() {
+        try {
+            var d = rootDoc();
+            var p = d.querySelector("#adr048-popup-panel");
+            if (!p) return;
+            var dawn = settings().dawnTheme === true;
+            p.setAttribute("data-arb-theme", dawn ? "dawn" : "dusk");
+
+            if (p.getAttribute("data-open") === "1") {
+                adr048SetImportant(p, "background", dawn ? "rgba(228,207,224,.40)" : "rgba(0,0,0,.25)");
+            }
+
+            var shell = d.querySelector("#adr048-popup-shell");
+            if (shell) {
+                adr048SetImportant(shell, "background", dawn
+                    ? "linear-gradient(172deg, #FDF6F9 0%, #F8F1F8 44%, #F2EDF8 100%)"
+                    : "rgba(31,31,35,.98)");
+                adr048SetImportant(shell, "color", dawn ? "#4E3A52" : "#f2f2f2");
+                adr048SetImportant(shell, "border", dawn
+                    ? "1px solid rgba(156,127,190,.30)"
+                    : "1px solid rgba(255,255,255,.18)");
+                adr048SetImportant(shell, "box-shadow", dawn
+                    ? "0 18px 48px rgba(120,86,128,.20), 0 0 0 1px rgba(255,255,255,.55)"
+                    : "0 14px 42px rgba(0,0,0,.48)");
+            }
+
+            var tg = d.querySelector("#adr048-theme-toggle");
+            if (tg) tg.textContent = dawn ? "☀️" : "🌙";
+        } catch (e) {}
+    }
+
     function adr048BindPopupPanel() {
         try {
             var d = rootDoc();
+
+            var themeBtn = d.querySelector("#adr048-theme-toggle");
+            if (themeBtn && !themeBtn.__adr048Bound) {
+                themeBtn.__adr048Bound = true;
+                var adr048FlipTheme = function (ev) {
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+                    try {
+                        save("dawnTheme", settings().dawnTheme !== true);
+                        saveNow();
+                        adr048ApplyPanelTheme();
+                    } catch (e2) {}
+                };
+                themeBtn.addEventListener("click", adr048FlipTheme, true);
+                themeBtn.addEventListener("touchend", adr048FlipTheme, true);
+            }
+
             var close = d.querySelector("#adr048-popup-close");
             if (close && !close.__adr048Bound) {
                 close.__adr048Bound = true;
