@@ -3,6 +3,7 @@
  * Arrebol D 暗河红霞导演系统 v1.10.0｜ripple & GPT & Claude
  * v1.12.0 卡的生命周期：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
  * v1.13.0 放养模式：手动放养自动归队——一键撕下当前导演稿，轮换照常走，到下个换稿点自动生成归队；双导演各自独立放养（施工：波哥 Claude Fable 5）
+ * v1.13.1 DS 视野随节奏走：兑现判定回看范围挂钩半衰期、择池挂钩投卡间隔，不再钉死 4/6 轮；下限不缩水，上限 12 轮/8000 字（提议：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -2791,8 +2792,9 @@
         try { precise = buildPreciseContext(); } catch (ePc) {}
         if (precise) parts.push(adrCdTruncate(precise, 4000));
         var recent = "";
-        try { recent = await recentContentBlocks(6); } catch (eRc) {}
-        if (recent) parts.push("【最近正文（节选）】\n" + adrCdTruncate(recent, 4000));
+        var pickRounds = adrCdPickReadRounds();
+        try { recent = await recentContentBlocks(pickRounds); } catch (eRc) {}
+        if (recent) parts.push("【最近正文（节选）】\n" + adrCdTruncate(recent, adrCdReadCharCap(pickRounds)));
         parts.push("【卡池名单】\n" + menu.join("\n"));
         if (recentPools.length) parts.push("【最近 3 张已投卡来自的卡池】\n" + recentPools.join("、"));
         parts.push("请从【卡池名单】中回复一个卡池名。");
@@ -2991,6 +2993,21 @@
 
     // ---- v1.12 卡的生命周期 ----
 
+    // v1.13.1：DS 视野随节奏走，不再钉死。
+    // 兑现判定跟半衰期（卡挂了多少楼就回看多少楼），择池跟投卡间隔（上张卡以来的正文都算数）。
+    // 下限保持旧默认（4/6 轮）不缩水，上限封 12 轮 / 8000 字防开销与延迟跑飞。
+    function adrCdAskReadRounds() {
+        return Math.max(4, Math.min(12, adrCdHalfLifeFloors() + 2));
+    }
+
+    function adrCdPickReadRounds() {
+        return Math.max(6, Math.min(12, adrCdN() + 2));
+    }
+
+    function adrCdReadCharCap(rounds) {
+        return Math.max(3000, Math.min(8000, rounds * 700));
+    }
+
     // 问 DS 一句「兑现没」。答复只认"是"/"否"，多一个字作废；任何异常按未兑现处理。
     async function adrCdAskFulfilled(card) {
         var st = settings();
@@ -3000,9 +3017,10 @@
         var sys = "你是剧情兑现检查员。你会看到一件已经投放给作者的\"待发生事件\"，以及最近的正文。"
             + "判断这件事是否已经在正文里发生或被写出来了。只回答\"是\"或\"否\"，不加标点、不加解释。多一个字视为无效。";
         var recent = "";
-        try { recent = await recentContentBlocks(4); } catch (eR) {}
+        var askRounds = adrCdAskReadRounds();
+        try { recent = await recentContentBlocks(askRounds); } catch (eR) {}
         var body = "【待发生事件】\n" + String(card || "")
-            + "\n\n【最近正文】\n" + adrCdTruncate(recent, 3000)
+            + "\n\n【最近正文】\n" + adrCdTruncate(recent, adrCdReadCharCap(askRounds))
             + "\n\n这件事已经发生了吗？只回答 是 或 否。";
 
         var ab = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -4189,7 +4207,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.1</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
