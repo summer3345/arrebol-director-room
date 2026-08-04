@@ -4,6 +4,7 @@
  * v1.12.0 卡的生命周期：专属／通用／NSFW 三格各自勾选，三段抽；择池 API 并入预设机器；刷新不再覆盖编辑区（施工：波哥 Claude Fable 5）
  * v1.13.0 放养模式：手动放养自动归队——一键撕下当前导演稿，轮换照常走，到下个换稿点自动生成归队；双导演各自独立放养（施工：波哥 Claude Fable 5）
  * v1.13.1 DS 视野随节奏走：兑现判定回看范围挂钩半衰期、择池挂钩投卡间隔，不再钉死 4/6 轮；下限不缩水，上限 12 轮/8000 字（提议：ripple；施工：波哥 Claude Fable 5）
+ * v1.13.2 口径免疫：计数改为数楼不数字，预设正则开关不再扳动导演节奏；离谱差值静默对齐由一次性改为常任守卫（报告：MoMo；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -4207,7 +4208,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.1</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.13.2</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -6256,8 +6257,7 @@
         for (var i = 0; i < chat.length; i++) {
             var m = chat[i];
             if (!m || m.is_system || m.is_user) continue;
-            var text = cleanMessage(m.mes || "");
-            if (!text.trim()) continue;
+            // v1.13.2：与全量口径同拍——数楼不数字，渲染文本清空不影响节奏。
             n++;
         }
         return n;
@@ -6274,10 +6274,10 @@
         // 为了让“小幽灵/隐藏楼层”也进入真实角色回复数，只有“role=system 且无 name”才跳过。
         if (role === "system" && !m.name) return 0;
 
-        var raw = m.message;
-        if (raw == null) raw = m.mes;
-        var text = cleanMessage(raw || "");
-        return text.trim() ? 1 : 0;
+        // v1.13.2：数楼不数字。楼层存在即计数，不再看当前渲染文本是否为空——
+        // 预设正则/美化脚本随时可能把某些楼的展示文本清空或还原，开关一扳口径就横跳，
+        // 导演会把口径跳变误当"到点"。节奏跟着楼走，不跟着渲染走。
+        return 1;
     }
 
     async function adrDRefreshFullAssistantRoundCount(reason) {
@@ -6460,24 +6460,12 @@
     // v1.9.31：base 比当前全量总数高出这么多条以上，判定为历史版本的跨聊天污染，自动贴齐重记。
     // 小幅 count < base（swipe/重roll/删几楼）仍走 no-shrink 保护，不动 base。
     var ADR_D_BASE_OVERRUN_HEAL = 20;
-    // v1.0.5.6.8.3.3：刷新后首次被动判定安全网。
-    // 如果本次会话第一次被动 auto-check 发现 count-base 已经越过阈值，优先判定为脏 baseline，静默对齐，不抢跑注入。
-    var adrDFirstPassiveAutoCheckDone = {};
+    // v1.13.2：一次性首检守卫（adrDFirstPassiveAutoCheckDone 等）已由常任离谱差值守卫取代，遗物清除。
 
     function adrDIsPassiveAutoCheck(reason) {
         var r = String(reason || "");
         // 用户主动改开关/间隔/自定义间隔时，不吞掉其有意触发；其它事件/轮询/刷新均视为被动检查。
         if (/^(toggle|range|custom)-/.test(r)) return false;
-        return true;
-    }
-
-    function adrDFirstPassKey(type) {
-        return String(adrDChatKey ? adrDChatKey() : "chat") + "::" + String(type || "emotion");
-    }
-
-    function adrDIsReloadLikeAutoCheck(reason) {
-        // v1.9.0：运行期补洞。脏 gap 兜底前已有“离谱差值”与“每聊天每会话一次”守卫。
-        // 这里保持宽松 true，避免 SillyTavern 不同事件名导致脏 baseline 无法自愈。
         return true;
     }
 
@@ -6498,11 +6486,12 @@
         // 启动 grace 仍然可以兜脏 baseline，但不能一刀切吞正常触发。
         if (inStartupGrace) return true;
 
-        // 非 grace 时，只在真正换聊/载入的首次被动检查兜一次脏 baseline。
-        if (!adrDIsReloadLikeAutoCheck(reason)) return false;
-        var key = adrDFirstPassKey(type);
-        if (adrDFirstPassiveAutoCheckDone[key]) return false;
-        adrDFirstPassiveAutoCheckDone[key] = true;
+        // v1.13.2：离谱差值守卫从"每会话一次"改为常任。
+        // 活人聊天不可能在两次被动检查之间凭空多出 间隔+20 楼——每条消息都会触发检查、到点即触发，
+        // 差值到不了这么大。会到这么大的只有一种情况：count 口径被外部脚本/正则/隐藏楼层扳动了。
+        // 旧版一次性守卫用完后，每次口径上摆都被当成正常触发，表现为"每点一下开关导演就上岗一次"。
+        // API 断线期间攒下的补拍带 pending-retry 标记，放行不吞。
+        if (String(reason || "").indexOf("pending-retry") >= 0) return false;
         return true;
     }
 
