@@ -6,6 +6,7 @@
  * v1.13.1 DS 视野随节奏走：兑现判定回看范围挂钩半衰期、择池挂钩投卡间隔，不再钉死 4/6 轮；下限不缩水，上限 12 轮/8000 字（提议：ripple；施工：波哥 Claude Fable 5）
  * v1.13.2 口径免疫：计数改为数楼不数字，预设正则开关不再扳动导演节奏；离谱差值静默对齐由一次性改为常任守卫（报告：MoMo；施工：波哥 Claude Fable 5）
  * v1.14.0 改头换面第一刀：分析按钮二合一（补充指令空=普通分析）；进阶开关与校对诊断分层入抽屉且开合有记忆；一键横幅瘦身；圆/方开关形状语法；右缘留缝防误触（产品：ripple；施工：波哥 Claude Fable 5）
+ * v1.14.1 人话文案包：全部按钮与开关说明改直白话，逐条经 ripple 批签，一个不驳回（文案：波哥；批签：ripple）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -1889,10 +1890,10 @@
     function localTest(type) {
         syncAll();
         var r = activeRange();
-        var title = type === "plot" ? "剧情本地测试" : "情感本地测试";
+        var title = type === "plot" ? "统筹试运行预览" : "情感导演试运行预览";
         var text = "【" + title + "】\n按钮、读取聊天、写入结果框链路可用。\n\n【读取最近 " + r + " 轮】\n" + (recentChat(r).slice(0, 1200) || "（未读取到聊天内容）");
         setPreview(type, text);
-        status(type, "本地测试成功 ✓", "#8ed99d");
+        status(type, "试运行成功 ✓（没花钱，导演读到的内容见弹窗）", "#8ed99d");
         setButtons(type);
     }
 
@@ -4028,7 +4029,7 @@
             + opt(mode, "blind", "盲抽（零 API · 天马行空档）")
             + opt(mode, "pick", "择池（DS 只看池名点池，池内仍盲抽）")
             + '</select>'
-            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-paused"> 暂停投卡（按本聊天记忆；关键场景不打扰）</label>'
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-paused"> 暂停投卡（只停这个聊天；关键场景不打扰）</label>'
             + '<div class="adr044-template-status" id="adr044-cd-pause-status"></div>'
             + secClose()
 
@@ -4166,7 +4167,7 @@
             + '<select id="adr044-' + type + '-model-select"><option value="' + esc(st[p + "Model"] || "") + '">' + (st[p + "Model"] ? esc(st[p + "Model"]) + "（当前）" : "加载后选择模型") + '</option></select>'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-load-models" type="button">加载模型</button><button id="adr044-' + type + '-save" type="button">保存当前使用</button></div>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-inject-' + type + '"' + (st[autoKey] ? " checked" : "") + '> 生成后自动注入当前聊天</label>'
-            + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用统筹例行巡逻（默认关 · 长间隔）" : "启用情感导演自动触发") + '</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "让统筹定期来看一眼大局（默认关）" : "启用情感导演自动触发") + '</label>'
             + '<label>自动触发间隔</label>'
             + '<select id="adr044-auto-trigger-range-' + type + '">'
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "10", "每 10 个助手正文轮次")
@@ -4178,7 +4179,7 @@
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
             + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
             + '<div class="adr044-note adr044-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，点「分析」即可，想附加要求就先填补充指令。</div>'
-            + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
+            + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">重新对表（从现在起重数间隔）</button></div>'
             + '</details>'
 
             + '<details><summary>' + title + '预设</summary>'
@@ -4195,12 +4196,12 @@
             + '</details>'
 
             + '<details open><summary>' + title + '结果</summary>'
-            + '<div id="adr044-' + type + '-status">请先本地测试，或直接分析。</div>'
+            + '<div id="adr044-' + type + '-status">可先试运行看看导演会读到什么，或直接点「分析」。</div>'
             + '<textarea id="adr044-' + type + '-preview" rows="8" placeholder="生成结果显示在这里">' + esc(st[p + "Preview"] || "") + '</textarea>'
-            + '<label>补充指令（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
-            + '<div class="adr044-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
+            + '<label>想对导演说的话（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
+            + '<div class="adr044-actions"><button id="adr044-' + type + '-local" type="button">试运行（不花钱）</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
             + '<div class="adr044-actions"><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
-            + '<div class="adr044-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
+            + '<div class="adr044-actions"><button id="adr044-' + type + '-inject" type="button">把这份稿挂上</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</details>'
             + '</div>';
     }
@@ -4209,14 +4210,14 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.0</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.1</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
             + '<button type="button" id="adr044-master-toggle" data-master-on="' + (st.masterEnabled !== false ? '1' : '0') + '">' + adrDMasterToggleLabel() + '</button>'
 
             + '<details open><summary>共享设置</summary>'
-            + '<label>复盘范围</label><select id="adr044-range">'
+            + '<label>导演回看多少楼</label><select id="adr044-range">'
             + opt(st.range, "10", "最近 10 轮")
             + opt(st.range, "20", "最近 20 轮")
             + opt(st.range, "30", "最近 30 轮")
@@ -4226,16 +4227,16 @@
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
-            + '<label>注入方式</label><select id="adr044-inject-mode">'
-            + opt(st.injectMode, "visible", "可见文本注入（直接显示）")
-            + opt(st.injectMode, "folded", "纯文本标记注入（推荐外挂正则）")
+            + '<label>导演稿怎么放进聊天</label><select id="adr044-inject-mode">'
+            + opt(st.injectMode, "visible", "直接显示在楼里")
+            + opt(st.injectMode, "folded", "隐形标记（配合美化正则）")
             + '</select>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
-            + '<label class="adr044-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 导演上岗前先打个招呼</label>'
             + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
-            + '<label class="adr044-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层，藏楼/摘要洗不掉）</label>'
-            + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
-            + '<label class="adr044-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行情况</label>'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 贴耳模式：最新一份稿始终跟着对话走（藏楼/摘要洗不掉）</label>'
+            + '<label>贴耳位置：稿子塞在倒数第几条（默认 2，不懂别动）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
+            + '<label class="adr044-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得自己说过什么，不翻烧饼</label>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
             + '</details>'
             + adrxDrawerStart("shared-diag", "🔧 校对与诊断（排查问题时才用）", false)
@@ -4668,8 +4669,8 @@
         return adrDTwoStepConfirm(
             "calibrate-auto-" + type,
             btn || qForm("adr044-" + type + "-calibrate-auto"),
-            "确定校准？",
-            "再点一次确认校准当前进度",
+            "确定对表？",
+            "再点一次确认重新对表（从现在起重数间隔）",
             function (msg) { status(type, msg, "#d6a26a"); },
             function () { adrDCalibrateAutoBaseline(type); }
         );
@@ -5650,7 +5651,7 @@
             + '<select id="adr044-' + type + '-model-select"><option value="' + esc(st[p + "Model"] || "") + '">' + (st[p + "Model"] ? esc(st[p + "Model"]) + "（当前）" : "加载后选择模型") + '</option></select>'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-load-models" type="button">加载模型</button><button id="adr044-' + type + '-save" type="button">保存当前使用</button></div>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-inject-' + type + '"' + (st[autoKey] ? " checked" : "") + '> 生成后自动注入当前聊天</label>'
-            + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "启用统筹例行巡逻（默认关 · 长间隔）" : "启用情感导演自动触发") + '</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-auto-trigger-' + type + '"' + (st[type === "plot" ? "autoTriggerPlot" : "autoTriggerEmotion"] ? " checked" : "") + '> ' + (type === "plot" ? "让统筹定期来看一眼大局（默认关）" : "启用情感导演自动触发") + '</label>'
             + '<label>自动触发间隔</label>'
             + '<select id="adr044-auto-trigger-range-' + type + '">'
             + opt(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"], "10", "每 10 个助手正文轮次")
@@ -5662,7 +5663,7 @@
             + '<input type="number" id="adr044-auto-trigger-custom-' + type + '" placeholder="自定义自动触发轮次" value="' + esc(st[type === "plot" ? "autoTriggerPlotCustomRange" : "autoTriggerEmotionCustomRange"] || "") + '" style="display:' + (String(st[type === "plot" ? "autoTriggerPlotRange" : "autoTriggerEmotionRange"]) === "custom" ? "block" : "none") + '">'
             + '<div class="adr044-auto-counter" id="adr044-auto-counter-' + type + '">计数加载中…</div>'
             + '<div class="adr048-note adr048-auto-reroll-note">ℹ️ 触发层重 roll 不会自动再触发；如需基于新回复补导演建议，点「分析」即可，想附加要求就先填补充指令。</div>'
-            + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">校准当前进度</button></div>'
+            + '<div class="adr044-auto-calibrate-row"><button class="adr044-auto-calibrate" id="adr044-' + type + '-calibrate-auto" type="button">重新对表（从现在起重数间隔）</button></div>'
             + '</div>'
 
             + '<div class="adr048-section"><div class="adr048-summary">' + title + '预设</div>'
@@ -5679,12 +5680,12 @@
             + '</div>'
 
             + '<div class="adr048-section"><div class="adr048-summary">' + title + '结果</div>'
-            + '<div id="adr044-' + type + '-status" class="adr048-status">请先本地测试，或直接分析。</div>'
+            + '<div id="adr044-' + type + '-status" class="adr048-status">可先试运行看看导演会读到什么，或直接点「分析」。</div>'
             + '<textarea id="adr044-' + type + '-preview" rows="8" placeholder="生成结果显示在这里">' + esc(st[p + "Preview"] || "") + '</textarea>'
-            + '<label>补充指令（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
-            + '<div class="adr048-actions"><button id="adr044-' + type + '-local" type="button">本地测试</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
+            + '<label>想对导演说的话（选填）</label><input type="text" id="adr044-' + type + '-extra" placeholder="空着就是普通分析；填了导演会带着你的要求分析">'
+            + '<div class="adr048-actions"><button id="adr044-' + type + '-local" type="button">试运行（不花钱）</button><button id="adr044-' + type + '-generate" type="button">分析</button></div>'
             + '<div class="adr048-actions"><button id="adr044-' + type + '-stop" type="button" disabled>打断</button><button id="adr044-' + type + '-copy" type="button">复制</button></div>'
-            + '<div class="adr048-actions"><button id="adr044-' + type + '-inject" type="button">手动注入当前聊天</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
+            + '<div class="adr048-actions"><button id="adr044-' + type + '-inject" type="button">把这份稿挂上</button><button id="adr044-' + type + '-graze" type="button">放养</button></div>'
             + '</div>'
             + '</div>';
     }
@@ -5743,7 +5744,7 @@
             + '<div class="adr048-note adrx-blurb">小红霞已就绪。自动触发、手动导演、纯文本注入与本地设置保存均已启用。由 ripple & GPT & Claude 收尾维护。</div>'
 
             + '<div class="adr048-section"><div class="adr048-summary">共享设置</div>'
-            + '<label>复盘范围</label><select id="adr044-range">'
+            + '<label>导演回看多少楼</label><select id="adr044-range">'
             + opt(st.range, "10", "最近 10 轮")
             + opt(st.range, "20", "最近 20 轮")
             + opt(st.range, "30", "最近 30 轮")
@@ -5753,17 +5754,17 @@
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
-            + '<label>注入方式</label><select id="adr044-inject-mode">'
-            + opt(st.injectMode, "visible", "可见文本注入（直接显示）")
-            + opt(st.injectMode, "folded", "纯文本标记注入（推荐外挂正则）")
+            + '<label>导演稿怎么放进聊天</label><select id="adr044-inject-mode">'
+            + opt(st.injectMode, "visible", "直接显示在楼里")
+            + opt(st.injectMode, "folded", "隐形标记（配合美化正则）")
             + '</select>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
-            + '<label class="adr048-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 自动分析前显示提示</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 导演上岗前先打个招呼</label>'
 
             + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
-            + '<label class="adr048-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 跟随注入：最新指导常驻模型耳边（不占楼层）</label>'
-            + '<label>跟随深度（从最新消息往回数第几条，默认 2）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
-            + '<label class="adr048-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得此前指导并评估执行</label>'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 贴耳模式：最新一份稿始终跟着对话走（不占楼层）</label>'
+            + '<label>贴耳位置：稿子塞在倒数第几条（默认 2，不懂别动）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
+            + '<label class="adr048-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得自己说过什么，不翻烧饼</label>'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-ng-detect"' + (st.ngDetectEnabled !== false ? " checked" : "") + '> NG 检测：同一楼重 roll ' + ADR_D_NG_THRESHOLD + ' 次提示请导演</label>'
             + '</details>'
 
@@ -6714,14 +6715,14 @@
         try {
             type = type === "plot" ? "plot" : "emotion";
             if (!adrDChatKeyReady()) {
-                status(type, "聊天还在加载，稍等几秒再校准", "#d6a26a");
+                status(type, "聊天还在加载，稍等几秒再对表", "#d6a26a");
                 adrDUpdateAutoCounters();
                 return false;
             }
 
             var count = await adrDRefreshFullAssistantRoundCount("manual-calibrate:" + type);
             if (!adrDCountReady()) {
-                status(type, "全量历史还没读完，稍等几秒再校准", "#d6a26a");
+                status(type, "全量历史还没读完，稍等几秒再对表", "#d6a26a");
                 adrDUpdateAutoCounters();
                 return false;
             }
