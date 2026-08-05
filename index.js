@@ -4212,7 +4212,7 @@
         var st = settings();
 
         return '<div id="adr044-drawer"><div class="inline-drawer">'
-            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.4</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
+            + '<div class="inline-drawer-toggle inline-drawer-header"><b>🎬 Arrebol D 暗河红霞导演系统 v1.14.5</b><div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div></div>'
             + '<div class="inline-drawer-content">'
             + '<div class="adr044-box">'
             + '<div class="adr044-note">小红霞在线｜ripple & GPT & Claude</div>'
@@ -7090,8 +7090,13 @@
 
             if (!toRun.length) return;
 
-            var isPendingRetryCheck = String(reason || "").indexOf("pending-retry") >= 0;
-            if (!isPendingRetryCheck && settings().showAutoTriggerPopup !== false) adrDAutoTriggerPopup(toRun, count);
+            // v1.14.5 补丁B：补拍静音的判定，从"是谁叫醒的"改为"这一拍真的失败过没有"。
+            // 旧逻辑把轮询捡回的首次触发也当成补拍，导致导演正常跑、正常注入，却不打招呼。
+            var isSilentRetry = toRun.length > 0 && toRun.every(function (itRetry) {
+                var rRetry = adrDAutoRetryByBeat[itRetry && itRetry.beatKey];
+                return !!(rRetry && Number(rRetry.fails) > 0);
+            });
+            if (!isSilentRetry && settings().showAutoTriggerPopup !== false) adrDAutoTriggerPopup(toRun, count);
             adrDAutoTriggerRunning = true;
             for (var i = 0; i < toRun.length; i++) {
                 var item = toRun[i];
@@ -7438,12 +7443,48 @@
         }
     }
 
+    // v1.14.5 补丁C：抽屉与浮窗共用同一套 id，两份表单会各自漂移。
+    // 作者已在 adrDRefreshAllFieldsFromSettings 里用 adrDSetAllById 一次写全部同名节点；
+    // 这里只是让同一件事实时发生：谁被改了，就把同名的另一份也拨成一样。
+    // 纯 UI 镜像——不读设置、不写设置、不发请求、不碰用户正在操作的那个节点。
+    function adrDInstallTwinMirror() {
+        try {
+            var d = rootDoc();
+            if (!d || d.__adrDTwinMirrorInstalled) return;
+            d.__adrDTwinMirrorInstalled = true;
+
+            d.addEventListener("change", function (evTwin) {
+                try {
+                    var el = evTwin && evTwin.target;
+                    if (!el || !el.id || el.id.indexOf("adr044-") !== 0) return;
+
+                    var nodes = d.querySelectorAll("#" + el.id);
+                    if (!nodes || nodes.length < 2) return;
+
+                    Array.prototype.forEach.call(nodes, function (n) {
+                        if (!n || n === el) return;
+                        if (n.type === "checkbox" || n.type === "radio") {
+                            if (n.checked !== el.checked) n.checked = el.checked;
+                            return;
+                        }
+                        if (typeof n.value !== "string" || n.value === el.value) return;
+                        // 下拉框可能两边选项不同步：设不上就原样退回，绝不把对面清空。
+                        var oldVal = n.value;
+                        n.value = el.value;
+                        if (n.value !== el.value) n.value = oldVal;
+                    });
+                } catch (eTwinInner) {}
+            }, true);
+        } catch (eTwin) {}
+    }
+
     function init() {
         if (initialized) return;
         initialized = true;
 
         try {
             settings();
+            adrDInstallTwinMirror();
             mountDrawer();
             installProbeGlobals();
             installProbeDelegation();
