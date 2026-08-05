@@ -2132,3 +2132,22 @@
     outline: 2px solid rgba(200, 111, 147, .8) !important;
     outline-offset: 2px !important;
 }
+
+
+/* ============================================================
+   v1.14.5 双勾修复 · UI-only
+   v1.9.2 给 popup 内全体 checkbox 加了 ::after 文字勾（行 742）；
+   v1.14.3 改用内嵌 SVG 勾（行 1771）但没删旧的。
+   结果：.adr048-check / .adr044-check 里的勾同时画两遍，
+   两层差几像素对不齐，看着发糊发重。
+   这里只杀掉带包裹类那一批的文字勾（它们都有 SVG），
+   无包裹类的 checkbox 只有 ::after，一个不动。
+   特异度 (1,3,2) > 旧规则 (1,2,2)，不依赖源码顺序。
+   ============================================================ */
+#adr048-popup-shell .adr048-check input[type="checkbox"]:checked::after,
+#adr044-drawer .adr044-check input[type="checkbox"]:checked::after,
+.adrx-drawer .adr048-check input[type="checkbox"]:checked::after,
+.adrx-drawer .adr044-check input[type="checkbox"]:checked::after {
+    content: none !important;
+    display: none !important;
+}
