@@ -53,6 +53,7 @@
         range: "30",
         customRange: 0,
         supplementMemory: "",
+        contentTagNames: "content",
 
         emotionApiEndpoint: "",
         emotionApiKey: "",
@@ -623,6 +624,9 @@
         var memory = qForm("adr044-memory");
         if (memory) save("supplementMemory", memory.value || "");
 
+        var ctags = qForm("adr044-content-tags");
+        if (ctags) save("contentTagNames", String(ctags.value || "").trim() || "content");
+
         var mode = qForm("adr044-inject-mode");
         if (mode) save("injectMode", mode.value || "visible");
 
@@ -912,6 +916,32 @@
         return parts.join("\n\n");
     }
 
+    /* v1.16.0 正文标签开口子：正文用什么标签是预设层的决定，插件只管结构。
+       设置里可逗号分隔多个名字；消毒 + 正则转义，反向引用保证开闭配对，乱填不炸。 */
+    function adrDContentTagNames() {
+        var raw = "";
+        try { raw = String(settings().contentTagNames || ""); } catch (e) {}
+        var names = raw.split(",").map(function (sName) {
+            return sName.trim().replace(/[<>\/"'`\s]/g, "");
+        }).filter(function (sName) { return !!sName; });
+        if (!names.length) names = ["content"];
+        return names;
+    }
+
+    function adrDContentTagRegex() {
+        var names = adrDContentTagNames().filter(function (sName) { return sName !== "*"; });
+        if (!names.length) names = ["content"];
+        names = names.map(function (sName) {
+            return sName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        });
+        return new RegExp("<(" + names.join("|") + ")(?=[\\s/>])[^>]*>([\\s\\S]*?)<\\/\\1>", "gi"); // \b 不认汉字边界，改显式前瞻
+    }
+
+    /* v1.16.1 无标签兜底：标签名里含 * 时，没匹配到标签的助手楼整层当正文读。 */
+    function adrDContentTagWholeFloorEnabled() {
+        return adrDContentTagNames().indexOf("*") !== -1;
+    }
+
     async function recentContentBlocks(rounds) {
         var chat;
         try {
@@ -942,11 +972,17 @@
             text = cleanMessage(text);
 
             var blocks = [];
-            var re = /<content\b[^>]*>([\s\S]*?)<\/content>/gi;
+            var re = adrDContentTagRegex();
             var match;
             while ((match = re.exec(text)) !== null) {
-                var v = (match[1] || "").trim();
+                var v = (match[2] || "").trim();
                 if (v) blocks.push(v);
+            }
+
+// v1.16.1 无标签兔底：含 * 时，没匹配到标签的助手楼整层当正文（已 cleanMessage，截 2500 字）。
+            if (!blocks.length && !isUser && adrDContentTagWholeFloorEnabled()) {
+                var whole = text.trim();
+                if (whole) blocks.push(whole.length > 2500 ? whole.slice(0, 2500) + "…" : whole);
             }
 
             // 用户消息通常没有 <content>，保留用户原文作为必要上下文，但限制长度。
@@ -1048,7 +1084,7 @@
         }
 
         var recent = await recentContentBlocks(r);
-        out += "【最近 " + r + " 轮正文｜精准读取】\n" + (recent || "（未提取到 <content> 正文；用户消息会作为上下文保留）") + "\n\n";
+        out += "【最近 " + r + " 轮正文｜精准读取】\n" + (recent || "（未提取到正文标签内容；用户消息会作为上下文保留）") + "\n\n";
 
         if (type === "plot") {
             out += "请根据以上内容输出统筹调度。只输出分析结果，不要复述分析过程，不要写正文。";
@@ -2219,10 +2255,10 @@
         text = cleanMessage(text);
 
         var blocks = [];
-        var re = /<content\b[^>]*>([\s\S]*?)<\/content>/gi;
+        var re = adrDContentTagRegex();
         var m;
         while ((m = re.exec(text)) !== null) {
-            var v = (m[1] || "").trim();
+            var v = (m[2] || "").trim();
             if (v) blocks.push(v);
         }
 
@@ -4252,6 +4288,8 @@
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-floating-window"' + (st.showFloatingWindow ? " checked" : "") + '> 显示小红霞浮窗</label>'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 导演上岗前先打个招呼</label>'
             + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
+            + '<label>正文标签名（默认 content，多个用英文逗号分隔；正文没有标签就填 *，整层楼当正文读）</label>'
+            + '<input type="text" id="adr044-content-tags" placeholder="content" value="' + esc(st.contentTagNames || "content") + '">' 
             + '<label class="adr044-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 贴耳模式：最新一份稿始终跟着对话走（藏楼/摘要洗不掉）</label>'
             + '<label>贴耳位置：稿子塞在倒数第几条（默认 2，不懂别动）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
             + '<label class="adr044-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得自己说过什么，不翻烧饼</label>'
@@ -4363,6 +4401,7 @@
             adrDSetAllById("adr044-range", st.range || "30");
             adrDSetAllById("adr044-custom", st.customRange || "");
             adrDSetAllById("adr044-memory", st.supplementMemory || "");
+            adrDSetAllById("adr044-content-tags", st.contentTagNames || "content");
             adrDSetAllById("adr044-inject-mode", st.injectMode || "visible");
             adrDSetAllById("adr044-show-floating-window", "", st.showFloatingWindow);
             adrDSetAllById("adr044-float-inject", "", st.floatInjectEnabled !== false);
@@ -5781,6 +5820,8 @@
             + '<label class="adr048-check"><input type="checkbox" id="adr044-show-auto-trigger-popup"' + (st.showAutoTriggerPopup !== false ? " checked" : "") + '> 导演上岗前先打个招呼</label>'
 
             + adrxDrawerStart("shared-adv", "⚙️ 进阶开关（默认已调好，一般不用动）", false)
+            + '<label>正文标签名（默认 content，多个用英文逗号分隔；正文没有标签就填 *，整层楼当正文读）</label>'
+            + '<input type="text" id="adr044-content-tags" placeholder="content" value="' + esc(st.contentTagNames || "content") + '">' 
             + '<label class="adr048-check"><input type="checkbox" id="adr044-float-inject"' + (st.floatInjectEnabled !== false ? " checked" : "") + '> 贴耳模式：最新一份稿始终跟着对话走（不占楼层）</label>'
             + '<label>贴耳位置：稿子塞在倒数第几条（默认 2，不懂别动）</label><input type="number" id="adr044-float-depth" min="0" max="99" value="' + esc(st.floatDepth != null ? st.floatDepth : 2) + '">'
             + '<label class="adr048-check"><input type="checkbox" id="adr044-director-log"' + (st.directorLogEnabled !== false ? " checked" : "") + '> 跟组模式：导演记得自己说过什么，不翻烧饼</label>'
@@ -7010,6 +7051,14 @@
         } catch (e) {}
     }
 
+    /* v1.16.0 生成中的楼数得着、读不着：升旗等它写完再开工，账实相符。 */
+    var adrDGenStreaming = false;
+    var adrDGenStreamingSince = 0;
+    function adrDMarkGenStreaming(on) {
+        adrDGenStreaming = !!on;
+        adrDGenStreamingSince = on ? Date.now() : 0;
+    }
+
     function adrDScheduleAutoTriggerCheck(reason) {
         try {
             if (adrDAutoTriggerTimer) clearTimeout(adrDAutoTriggerTimer);
@@ -7021,6 +7070,14 @@
 
     async function adrDCheckAutoTrigger(reason) {
         if (adrDAutoTriggerRunning || processing) return;
+
+        if (adrDGenStreaming) {
+            if (Date.now() - adrDGenStreamingSince < 180000) {
+                adrDScheduleAutoTriggerCheck("wait-generation");
+                return;
+            }
+            adrDMarkGenStreaming(false); // 保险丝：3 分钟没等到结束事件，强制降旗防死锁
+        }
 
         try {
             var st = settings();
@@ -7170,6 +7227,14 @@
             }
 
             ["MESSAGE_RECEIVED", "MESSAGE_SENT", "GENERATION_ENDED", "CHAT_CHANGED", "CHAT_LOADED"].forEach(on);
+
+            // v1.16.0：生成事件升降旗——旗子升着时自动检查推迟重约，等楼写完再开工。
+            if (es && typeof es.on === "function") {
+                if (types.GENERATION_STARTED) es.on(types.GENERATION_STARTED, function () { adrDMarkGenStreaming(true); });
+                ["GENERATION_ENDED", "GENERATION_STOPPED"].forEach(function (nmGen) {
+                    if (types[nmGen]) es.on(types[nmGen], function () { adrDMarkGenStreaming(false); });
+                });
+            }
 
             // v1.9.34：NG 检测走 swipe 事件（数组长度只随新生成增长，来回翻页不误计）；
             // 换聊天时恢复该聊天自己的浮动指导。
