@@ -1089,6 +1089,19 @@
         return "";
     }
 
+    /* v1.15.1 分析忙碌脉冲：导演分析进行中给胶囊浮标点灯（挂类，样式在 style.css） */
+    function adr048SetFabBusy(on) {
+        try {
+            var els = rootDoc().querySelectorAll("#adr048-fab");
+            for (var i = 0; i < els.length; i++) {
+                try {
+                    if (on) els[i].classList.add("adr048-analyzing");
+                    else els[i].classList.remove("adr048-analyzing");
+                } catch (e) {}
+            }
+        } catch (e) {}
+    }
+
     async function callAPI(type, extra) {
         var st = settings();
         var p = prefixOf(type);
@@ -1195,6 +1208,7 @@
 
         processing = true;
         setButtons(type);
+        adr048SetFabBusy(true);
         status(type, "正在分析…", "#8ed99d");
 
         var success = false;
@@ -1237,6 +1251,7 @@
 
         processing = false;
         aborter = null;
+        adr048SetFabBusy(false);
         setButtons(type);
 
         if (!success && failureKind !== "manual-abort" && failureKind !== "abort") {
@@ -1255,6 +1270,7 @@
         }
         processing = false;
         aborter = null;
+        adr048SetFabBusy(false);
         setButtons(type);
     }
 
@@ -6151,7 +6167,7 @@
             setImp("font-size", "13px");
             setImp("font-weight", "800");
             setImp("line-height", "32px");
-            setImp("box-shadow", "none");
+            btn.style.boxShadow = "none"; /* 不带 important：给脉冲动画让路 */
             setImp("filter", "drop-shadow(0 4px 10px rgba(64,77,98,.30))");
             setImp("cursor", "grab");
             setImp("pointer-events", "auto");

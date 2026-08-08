@@ -2151,3 +2151,18 @@
     content: none !important;
     display: none !important;
 }
+
+
+/* ============================================================
+   v1.15.1 胶囊浮标分析脉冲
+   导演分析进行中，光圈沿 999px 圆角贴胶囊呼吸。
+   取胭雾加深一度(#C9A0B4)——浅色顶栏上看得清，气质仍是红霞。
+   成功/失败/超时/手动打断皆由 JS 熄灯。
+   ============================================================ */
+#adr048-fab.adr048-analyzing {
+    animation: adr048-cap-pulse 1.5s ease-in-out infinite;
+}
+@keyframes adr048-cap-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 160, 180, .70); }
+    50%      { box-shadow: 0 0 0 9px rgba(201, 160, 180, 0); }
+}
