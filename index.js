@@ -6125,7 +6125,8 @@
             btn.id = "adr048-fab";
             btn.setAttribute("data-adr048-owned-fab", ADR048_FAB_INSTANCE_ID);
             btn.type = "button";
-            btn.textContent = "🎞️ARB";
+            /* 砚蓝入胭雾 · SVG 胶囊皮肤（按钮外壳透明，视觉全由 SVG 承担） */
+            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-label="ARB" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#404D62"/><stop offset="100%" stop-color="#DDBECA"/></linearGradient><linearGradient id="pkARB-river" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EBD0DB"/><stop offset="100%" stop-color="#404D62"/></linearGradient></defs><rect x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)"/><text x="60" y="22" text-anchor="middle" font-size="15.5" font-weight="700" fill="#F7ECF1" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="url(#pkARB-river)" stroke-width="2.4" stroke-linecap="round" opacity="0.9"/><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="#FFF3F7" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 96" opacity="0.95"><animate attributeName="stroke-dashoffset" values="101;0" dur="4.5s" repeatCount="indefinite"/></path></svg>';
             btn.title = "Arrebol D 小红霞";
             btn.setAttribute("aria-label", "Arrebol D 小红霞");
 
@@ -6135,22 +6136,23 @@
             setImp("display", "inline-flex");
             setImp("align-items", "center");
             setImp("justify-content", "center");
-            setImp("width", "78px");
+            setImp("width", "auto");
             setImp("height", "32px");
-            setImp("min-width", "78px");
+            setImp("min-width", "auto");
             setImp("min-height", "32px");
-            setImp("padding", "0 12px");
+            setImp("padding", "0");
             setImp("border-radius", "999px");
-            setImp("border", "1px solid rgba(255,255,255,.36)");
-            setImp("background", "rgba(255, 196, 218, .72)");
-            setImp("backdrop-filter", "blur(8px)");
-            setImp("-webkit-backdrop-filter", "blur(8px)");
+            setImp("border", "none");
+            setImp("background", "transparent");
+            setImp("backdrop-filter", "none");
+            setImp("-webkit-backdrop-filter", "none");
             setImp("color", "rgba(95, 42, 65, .88)");
             setImp("-webkit-text-fill-color", "rgba(95, 42, 65, .88)");
             setImp("font-size", "13px");
             setImp("font-weight", "800");
             setImp("line-height", "32px");
-            setImp("box-shadow", "0 4px 12px rgba(255, 122, 162, .13)");
+            setImp("box-shadow", "none");
+            setImp("filter", "drop-shadow(0 4px 10px rgba(64,77,98,.30))");
             setImp("cursor", "grab");
             setImp("pointer-events", "auto");
             setImp("user-select", "none");
