@@ -2166,3 +2166,24 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(201, 160, 180, .70); }
     50%      { box-shadow: 0 0 0 9px rgba(201, 160, 180, 0); }
 }
+
+
+/* ============================================================
+   v1.15.2 泊内可见的分析小灯
+   避风塘泊位 #extensionHarborDock 有 overflow:hidden（防窄屏溢出），
+   外扩光圈在泊内会被裁掉。故加一粒胶囊内侧的胭雾呼吸灯——
+   伪元素即 flex 子项、随文档流，裁不掉。
+   外扩光圈保留：自由漂浮时依然全圈呼吸。
+   ============================================================ */
+#adr048-fab.adr048-analyzing::after {
+    content: "";
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #C9A0B4;
+    box-shadow: 0 0 5px rgba(201, 160, 180, .85);
+    margin-left: 4px; align-self: center; flex: none;
+    animation: adr048-lamp-breathe 1.2s ease-in-out infinite;
+}
+@keyframes adr048-lamp-breathe {
+    0%, 100% { opacity: .35; }
+    50%      { opacity: 1; }
+}

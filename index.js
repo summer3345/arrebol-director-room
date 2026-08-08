@@ -6153,9 +6153,9 @@
             setImp("align-items", "center");
             setImp("justify-content", "center");
             setImp("width", "auto");
-            setImp("height", "32px");
+            setImp("height", "28px");
             setImp("min-width", "auto");
-            setImp("min-height", "32px");
+            setImp("min-height", "28px");
             setImp("padding", "0");
             setImp("border-radius", "999px");
             setImp("border", "none");
@@ -6166,7 +6166,7 @@
             setImp("-webkit-text-fill-color", "rgba(95, 42, 65, .88)");
             setImp("font-size", "13px");
             setImp("font-weight", "800");
-            setImp("line-height", "32px");
+            setImp("line-height", "28px");
             btn.style.boxShadow = "none"; /* 不带 important：给脉冲动画让路 */
             setImp("filter", "drop-shadow(0 4px 10px rgba(64,77,98,.30))");
             setImp("cursor", "grab");
