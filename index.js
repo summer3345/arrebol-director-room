@@ -7228,10 +7228,15 @@
 
             ["MESSAGE_RECEIVED", "MESSAGE_SENT", "GENERATION_ENDED", "CHAT_CHANGED", "CHAT_LOADED"].forEach(on);
 
-            // v1.16.0：生成事件升降旗——旗子升着时自动检查推迟重约，等楼写完再开工。
+            // v1.16.2：生成事件升降旗。酒馆的 dryRun（只组装提示词不真生成的试跑，如算 token）
+            // 也会发 GENERATION_STARTED，且永远等不到 ENDED——必须无视，否则旗子卡死、自动触发罢工。
+            // MESSAGE_RECEIVED 只在楼层完整落地后发射，作第二重降旗保险。
             if (es && typeof es.on === "function") {
-                if (types.GENERATION_STARTED) es.on(types.GENERATION_STARTED, function () { adrDMarkGenStreaming(true); });
-                ["GENERATION_ENDED", "GENERATION_STOPPED"].forEach(function (nmGen) {
+                if (types.GENERATION_STARTED) es.on(types.GENERATION_STARTED, function (genType, genParams, dryRun) {
+                    if (dryRun) return;
+                    adrDMarkGenStreaming(true);
+                });
+                ["GENERATION_ENDED", "GENERATION_STOPPED", "MESSAGE_RECEIVED"].forEach(function (nmGen) {
                     if (types[nmGen]) es.on(types[nmGen], function () { adrDMarkGenStreaming(false); });
                 });
             }
