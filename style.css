@@ -2229,3 +2229,13 @@
     color: #6E5222 !important;
     font-weight: 600;
 }
+
+/* ===== v1.18.0 归属制：未分箱库虚线芯片 ===== */
+.adr044-cd-chip.stray {
+    border-style: dashed;
+    opacity: .55;
+}
+#adr048-popup-panel[data-arb-theme="dawn"] .adr044-cd-chip.stray {
+    border-style: dashed !important;
+    opacity: .6 !important;
+}

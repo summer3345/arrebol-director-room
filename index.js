@@ -16,6 +16,9 @@
  *          改为账号级落盘+导入读存档不读 DOM+双面板镜像（报告：ripple；施工：波哥 Claude Fable 5）
  * v1.17.2 落点管保存：用户直觉是"选落点→保存＝挂载"，工具迎合直觉——保存未挂载的库时按落点自动挂进仓库并启用；
  *          已挂载的库保持原位不搬家；回执明说挂载去向（三连现场报告：ripple；施工：波哥 Claude Fable 5）
+ * v1.18.0 归属制：概念纠偏——"挂入"从"点亮启用"改为"放进箱子"。每副库有账号级永久归属，只出现在自家仓库格；
+ *          点亮/熄灭降级为"这局用不用"的聊天级开关，熄灭不流放；未分箱库虚线显示、点亮即认箱，落点保存/导入即入住/搬家；
+ *          老存档首次读取自动按当前点亮认箱（概念设计：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -2618,6 +2621,26 @@
 
     function adrCdLibNames() { return Object.keys(adrCdLibraries()); }
 
+    // v1.18.0 归属制：每副库有一个"家箱"（账号级、永久）。分了箱的库只出现在自家格子，
+    // 点亮/熄灭只管"这局用不用"，不再影响它住哪。未分箱的库三格可见，点亮即认箱。
+    function adrCdLibHomes() {
+        var st = settings();
+        if (!st.cdLibHomes || typeof st.cdLibHomes !== "object" || Array.isArray(st.cdLibHomes)) st.cdLibHomes = {};
+        return st.cdLibHomes;
+    }
+
+    function adrCdLibHome(name) {
+        var h = String(adrCdLibHomes()[name] || "");
+        return ADR_CD_SLOTS.indexOf(h) >= 0 ? h : "";
+    }
+
+    function adrCdSetLibHome(name, slot) {
+        var homes = adrCdLibHomes();
+        if (slot && ADR_CD_SLOTS.indexOf(slot) >= 0) homes[name] = slot;
+        else delete homes[name];
+        save("cdLibHomes", homes);
+    }
+
     function adrCdEnvelopes() {
         var st = settings();
         if (!st.cdEnvelopes || typeof st.cdEnvelopes !== "object" || Array.isArray(st.cdEnvelopes)) {
@@ -2716,8 +2739,7 @@
             slots.common = adrCdSlotArr(o.lib);
             slotOn.common = true;
         }
-        // v1.17.0 一库一槽：同一卡库若被历史数据挂进多个仓库，只保留最先出现的那个槽，
-        // 从结构上根治"挂进专属的库还在通用格子里当候选"。
+        // v1.17.0 一库一槽：同一卡库若被历史数据挂进多个仓库，只保留最先出现的那个槽。
         var claimed = {};
         ADR_CD_SLOTS.forEach(function (s) {
             slots[s] = slots[s].filter(function (nm) {
@@ -2726,6 +2748,17 @@
                 return true;
             });
         });
+        // v1.18.0 归属对账：点亮的库若还没分箱，此刻认箱（老存档自动迁移进归属制）；
+        // 若归属在别的箱，说明是历史串门数据，从本箱摘下。归属是账号级真相，点亮只是使用开关。
+        try {
+            ADR_CD_SLOTS.forEach(function (s) {
+                slots[s] = slots[s].filter(function (nm) {
+                    var home = adrCdLibHome(nm);
+                    if (!home) { adrCdSetLibHome(nm, s); return true; }
+                    return home === s;
+                });
+            });
+        } catch (eHome) {}
         return {
             lastDrawAt: Number.isFinite(Number(o.lastDrawAt)) ? Number(o.lastDrawAt) : -1,
             slots: slots,
@@ -3638,21 +3671,25 @@
             // v1.17.2：落点对保存同样生效。用户的自然直觉就是"选好落点→保存＝挂载"，
             // 工具应该迎合直觉而不是让人背规则。已挂在某槽的库保持原位，绝不搬家。
             var state = adrCdChatState();
-            var mounted = adrCdFindMountedSlot(state, name);
             var tail;
             var dest = adrCdImportSlot();
-            if (mounted) {
-                tail = "　（已挂载在" + ADR_CD_SLOT_FULL[mounted] + "，即改即生效）";
-            } else if (dest) {
+            var home = adrCdLibHome(name);
+            if (dest) {
+                var moved = home && home !== dest;
+                adrCdSetLibHome(name, dest);
                 var arrSave = adrCdSlotArr(state.slots[dest]);
                 if (arrSave.indexOf(name) < 0) arrSave.push(name);
                 state.slots[dest] = arrSave;
                 state.slotOn[dest] = true;
-                adrCdSaveChatState(state);
-                mounted = dest;
-                tail = "　已按落点挂进" + ADR_CD_SLOT_FULL[dest] + "并启用 ✓";
+                adrCdSaveChatState(state); // 归属对账会自动把旧箱里的点亮项摘下
+                tail = moved
+                    ? "　已从" + ADR_CD_SLOT_FULL[home] + "搬进" + ADR_CD_SLOT_FULL[dest] + "并点亮 ✓"
+                    : "　已放进" + ADR_CD_SLOT_FULL[dest] + "并点亮 ✓";
+            } else if (home) {
+                var inUse = adrCdSlotArr(state.slots[home]).indexOf(name) >= 0;
+                tail = "　（住在" + ADR_CD_SLOT_FULL[home] + "，" + (inUse ? "使用中，即改即生效" : "未点亮") + "）";
             } else {
-                tail = "　（落点是「只存进卡库」，要用它请在上面三个仓库里点亮）";
+                tail = "　（未分箱：三格里都可见，点亮或选个落点再保存即可入箱）";
             }
 
             saveNow();
@@ -3689,6 +3726,9 @@
                 defs[s] = adrCdSlotArr(defs[s]).map(function (nm) { return nm === oldName ? newName : nm; });
             });
             save("cdSlotDefaults", defs);
+            var homeRn = adrCdLibHome(oldName);
+            adrCdSetLibHome(oldName, "");
+            if (homeRn) adrCdSetLibHome(newName, homeRn); // 归属随新名迁移
             saveNow();
             adrCdRefreshEditSelect(newName);
             adrCdRefreshSlotSelects();
@@ -3706,6 +3746,7 @@
             var libs = adrCdLibraries();
             delete libs[name];
             save("cdLibraries", libs);
+            adrCdSetLibHome(name, ""); // 库没了，户口注销
             var state = adrCdChatState();
             var freed = [];
             ADR_CD_SLOTS.forEach(function (s) {
@@ -3810,13 +3851,14 @@
                     var slot = adrCdImportSlot();
                     var tail = "";
                     if (ADR_CD_SLOTS.indexOf(slot) >= 0) {
+                        adrCdSetLibHome(name, slot);
                         var state = adrCdChatState();
                         var arrImp = adrCdSlotArr(state.slots[slot]);
                         if (arrImp.indexOf(name) < 0) arrImp.push(name);
                         state.slots[slot] = arrImp;
                         state.slotOn[slot] = true;
                         adrCdSaveChatState(state);
-                        tail = "，已挂进" + ADR_CD_SLOT_FULL[slot] + "并启用";
+                        tail = "，已放进" + ADR_CD_SLOT_FULL[slot] + "并点亮";
                     }
                     saveNow();
                     adrCdLoadEditor(name);
@@ -3992,7 +4034,12 @@
                         var state = adrCdChatState();
                         var arr = adrCdSlotArr(state.slots[slot]);
                         var idx = arr.indexOf(nm);
-                        if (idx >= 0) arr.splice(idx, 1); else arr.push(nm);
+                        if (idx >= 0) {
+                            arr.splice(idx, 1); // 熄灭＝这局不用了；归属不动，它还住这个箱
+                        } else {
+                            arr.push(nm);
+                            if (!adrCdLibHome(nm)) adrCdSetLibHome(nm, slot); // 未分箱库点亮即认箱
+                        }
                         state.slots[slot] = arr;
                         if (arr.length) state.slotOn[slot] = true;
                         adrCdSaveChatState(state);
@@ -4148,25 +4195,27 @@
 
     // ---- 面板页（抽屉版 adr044 / 浮窗版 adr048 共用一套 id）----
 
-    // v1.17.0：仓库槽多选芯片。候选剔除已被别的槽挂走的库（一库一槽）。
+    // v1.18.0：芯片按归属显示。住本箱的库（亮=使用中，灰=在箱未用）+ 未分箱的库（虚线，点亮即认箱）。
+    // 住别人家箱子的库根本不出现——箱子的物理直觉：一件东西只在一个抽屉里。
     function adrCdSlotChipsHTML(slot, state) {
         var names = adrCdLibNames();
         var mine = adrCdSlotArr(state.slots[slot]);
-        var taken = {};
-        ADR_CD_SLOTS.forEach(function (s) {
-            if (s === slot) return;
-            adrCdSlotArr(state.slots[s]).forEach(function (nm) { taken[nm] = true; });
+        var shown = names.filter(function (nm) {
+            var home = adrCdLibHome(nm);
+            return !home || home === slot;
         });
-        var shown = names.filter(function (nm) { return !taken[nm]; });
-        if (!shown.length) return '<div class="adr044-cd-chip-empty">没有可挂的卡库（都被别的仓库挂走了）</div>';
+        if (!shown.length) return '<div class="adr044-cd-chip-empty">这个箱子还是空的：把落点指到这里保存/导入，或点亮一副未分箱（虚线）的库</div>';
         return shown.map(function (nm) {
             var on = mine.indexOf(nm) >= 0;
-            return '<button type="button" class="adr044-cd-chip' + (on ? " on" : "") + '" data-adrcd-lib="' + esc(nm) + '">' + esc(nm) + '</button>';
+            var stray = !adrCdLibHome(nm);
+            return '<button type="button" class="adr044-cd-chip' + (on ? " on" : "") + (stray ? " stray" : "") + '" data-adrcd-lib="' + esc(nm) + '"' + (stray ? ' title="未分箱：点亮即认这个箱为家"' : "") + '>' + esc(nm) + '</button>';
         }).join("");
     }
 
     function adrCdSlotChipsSig(slot, state) {
-        return adrCdOptSig("chips-" + slot, adrCdLibNames(), JSON.stringify(state.slots || {}));
+        var homes;
+        try { homes = JSON.stringify(adrCdLibHomes()); } catch (eH) { homes = ""; }
+        return adrCdOptSig("chips-" + slot, adrCdLibNames(), JSON.stringify(state.slots || {}) + "|" + homes);
     }
 
     function adrCdSlotRowHTML(slot, checkClass) {
@@ -4221,7 +4270,7 @@
             + secClose()
 
             + secOpen("三个仓库")
-            + '<div class="' + noteClass + '">启用哪几格，就在哪几格之间均等掷——仓库数即权重。专属库配角色卡，通用库打底，NSFW 库单独一格。换聊天各记各的。</div>'
+            + '<div class="' + noteClass + '">启用哪几格，就在哪几格之间均等掷——仓库数即权重。专属库配角色卡，通用库打底，NSFW 库单独一格。点亮=这局使用（换聊天各记各的）；库住哪个箱是永久的，灰芯片=在箱未用，虚线=未分箱。</div>'
             + adrCdSlotRowHTML("story", checkClass)
             + adrCdSlotRowHTML("common", checkClass)
             + adrCdSlotRowHTML("nsfw", checkClass)
