@@ -14,6 +14,8 @@
  *          挂进某槽的库从其余槽候选剔除；旧单库存档归一成数组无痛迁移，改名/删除/导入全链路同步（提议：ripple；施工：波哥 Claude Fable 5）
  * v1.17.1 导入落点补漏：落点下拉无持久化，iOS 文件选择往返重绘面板即复位，"导入并挂载"静默落空；
  *          改为账号级落盘+导入读存档不读 DOM+双面板镜像（报告：ripple；施工：波哥 Claude Fable 5）
+ * v1.17.2 落点管保存：用户直觉是"选落点→保存＝挂载"，工具迎合直觉——保存未挂载的库时按落点自动挂进仓库并启用；
+ *          已挂载的库保持原位不搬家；回执明说挂载去向（三连现场报告：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -3614,6 +3616,14 @@
         return el ? String(el.value || "") : "";
     }
 
+    // v1.17.2：查一副库当前挂在哪个槽（没挂返回 ""）
+    function adrCdFindMountedSlot(state, name) {
+        for (var i = 0; i < ADR_CD_SLOTS.length; i++) {
+            if (adrCdSlotArr(state.slots[ADR_CD_SLOTS[i]]).indexOf(name) >= 0) return ADR_CD_SLOTS[i];
+        }
+        return "";
+    }
+
     function adrCdSaveLibraryFromEditor() {
         try {
             var nameEl = qForm("adr044-cd-lib-name");
@@ -3624,10 +3634,32 @@
             var existed = libs[name] !== undefined;
             libs[name] = edEl ? String(edEl.value || "") : "";
             save("cdLibraries", libs);
+
+            // v1.17.2：落点对保存同样生效。用户的自然直觉就是"选好落点→保存＝挂载"，
+            // 工具应该迎合直觉而不是让人背规则。已挂在某槽的库保持原位，绝不搬家。
+            var state = adrCdChatState();
+            var mounted = adrCdFindMountedSlot(state, name);
+            var tail;
+            var dest = adrCdImportSlot();
+            if (mounted) {
+                tail = "　（已挂载在" + ADR_CD_SLOT_FULL[mounted] + "，即改即生效）";
+            } else if (dest) {
+                var arrSave = adrCdSlotArr(state.slots[dest]);
+                if (arrSave.indexOf(name) < 0) arrSave.push(name);
+                state.slots[dest] = arrSave;
+                state.slotOn[dest] = true;
+                adrCdSaveChatState(state);
+                mounted = dest;
+                tail = "　已按落点挂进" + ADR_CD_SLOT_FULL[dest] + "并启用 ✓";
+            } else {
+                tail = "　（落点是「只存进卡库」，要用它请在上面三个仓库里点亮）";
+            }
+
             saveNow();
             adrCdRefreshEditSelect(name);
             adrCdRefreshSlotSelects();
-            adrCdLibStatus("卡库「" + name + "」" + (existed ? "已更新" : "已新建") + " ✓　（要用它，请在上面三个仓库里选中）", "#8ed99d");
+            adrCdUpdateStatusLine();
+            adrCdLibStatus("卡库「" + name + "」" + (existed ? "已更新" : "已新建") + " ✓" + tail, "#8ed99d");
         } catch (e) {
             adrCdLibStatus("保存失败：" + (e && e.message ? e.message : e), "#d4726a");
         }
@@ -4204,7 +4236,7 @@
             + '<button type="button" id="adr044-cd-lib-rename">重命名</button>'
             + '<button type="button" id="adr044-cd-lib-delete">删除</button>'
             + '</div>'
-            + '<label>导入落点</label>'
+            + '<label>保存/导入落点（新库存好后自动挂进这里）</label>'
             + adrCdImportSlotSelectHTML()
             + '<div class="adr044-template-mini-actions">'
             + '<button type="button" id="adr044-cd-import">导入 .txt/.md</button>'
