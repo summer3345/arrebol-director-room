@@ -12,6 +12,8 @@
  *          MESSAGE_DELETED 事件直连+轮询缩水兜底旧酒馆，抽卡小能手基准线同步位移；partial 小读数保护原样保留（报告：ripple；施工：波哥 Claude Fable 5）
  * v1.17.0 三仓库多选+一库一槽：仓库槽从单选下拉改为点选芯片可挂多副；库文本拼接入池，三段抽/张数统计零改动吃到多库；
  *          挂进某槽的库从其余槽候选剔除；旧单库存档归一成数组无痛迁移，改名/删除/导入全链路同步（提议：ripple；施工：波哥 Claude Fable 5）
+ * v1.17.1 导入落点补漏：落点下拉无持久化，iOS 文件选择往返重绘面板即复位，"导入并挂载"静默落空；
+ *          改为账号级落盘+导入读存档不读 DOM+双面板镜像（报告：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -3363,6 +3365,7 @@
                 if (txt) adrCdParseLibraryText(txt).forEach(function (p) { cnt += p.cards.length; });
                 adrCdSetTextAll("adr044-cd-slot-count-" + slot, arr.length ? (cnt + " 张卡 · " + arr.length + " 副") : "未选");
             });
+            adrCdSetValueSafe("adr044-cd-import-slot", adrCdImportSlot());
         } catch (e) {}
     }
 
@@ -3738,6 +3741,23 @@
         if (f) { try { f.value = ""; } catch (e0) {} f.click(); }
     }
 
+    // v1.17.1：导入落点账号级持久化。iOS 跳文件 App 往返会重绘面板，
+    // 裸 DOM 下拉会被复位成默认值，导入挂载步骤当场落空；改为存档为准、DOM 只是回显。
+    function adrCdImportSlot() {
+        var v = String(settings().cdImportSlot || "");
+        return ADR_CD_SLOTS.indexOf(v) >= 0 ? v : "";
+    }
+
+    function adrCdImportSlotSelectHTML() {
+        var cur = adrCdImportSlot();
+        var opts = [["", "只存进卡库，不挂仓库"], ["story", "挂进专属剧情库"], ["common", "挂进通用库"], ["nsfw", "挂进 NSFW 库"]];
+        return '<select id="adr044-cd-import-slot">'
+            + opts.map(function (o) {
+                return '<option value="' + o[0] + '"' + (o[0] === cur ? " selected" : "") + '>' + o[1] + '</option>';
+            }).join("")
+            + '</select>';
+    }
+
     function adrCdHandleImportFile(fileInput) {
         try {
             var file = fileInput && fileInput.files && fileInput.files[0];
@@ -3754,9 +3774,8 @@
                     libs[name] = text;
                     save("cdLibraries", libs);
 
-                    // 导入落点：面板上选的那个仓库槽，直接挂上就能用
-                    var slotEl = qForm("adr044-cd-import-slot");
-                    var slot = slotEl ? String(slotEl.value || "") : "";
+                    // 导入落点：读账号级存档，不读 DOM——面板重绘/双面板不同步都影响不到它
+                    var slot = adrCdImportSlot();
                     var tail = "";
                     if (ADR_CD_SLOTS.indexOf(slot) >= 0) {
                         var state = adrCdChatState();
@@ -4076,7 +4095,14 @@
                 });
                 el.addEventListener("change", function () { saveNow(); });
             });
-            each("adr044-cd-import-slot", function (el) { guard(el); });
+            each("adr044-cd-import-slot", function (el) {
+                guard(el);
+                el.addEventListener("change", function () {
+                    adrCdTouch(el);
+                    save("cdImportSlot", String(el.value || ""));
+                    adrCdSaveSoon();
+                });
+            });
             each("adr044-cd-import-file", function (el) {
                 el.addEventListener("change", function () { adrCdHandleImportFile(el); });
             });
@@ -4179,12 +4205,7 @@
             + '<button type="button" id="adr044-cd-lib-delete">删除</button>'
             + '</div>'
             + '<label>导入落点</label>'
-            + '<select id="adr044-cd-import-slot">'
-            + '<option value="">只存进卡库，不挂仓库</option>'
-            + '<option value="story">挂进专属剧情库</option>'
-            + '<option value="common">挂进通用库</option>'
-            + '<option value="nsfw">挂进 NSFW 库</option>'
-            + '</select>'
+            + adrCdImportSlotSelectHTML()
             + '<div class="adr044-template-mini-actions">'
             + '<button type="button" id="adr044-cd-import">导入 .txt/.md</button>'
             + '<button type="button" id="adr044-cd-export">导出这副</button>'
