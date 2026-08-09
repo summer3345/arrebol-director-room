@@ -8,6 +8,8 @@
  * v1.14.0 改头换面第一刀：分析按钮二合一（补充指令空=普通分析）；进阶开关与校对诊断分层入抽屉且开合有记忆；一键横幅瘦身；圆/方开关形状语法；右缘留缝防误触（产品：ripple；施工：波哥 Claude Fable 5）
  * v1.14.1 人话文案包：全部按钮与开关说明改直白话，逐条经 ripple 批签，一个不驳回（文案：波哥；批签：ripple）
  * v1.14.2 命中区收身：开关 label 不再拉满整行，点击区只包住圆圈+文字，空白区不再误触（报告：ripple）
+ * v1.16.3 删楼不罚楼：no-shrink 铁律误伤真删除，删楼即进度清零且被双重罚楼；现真删除时基准线随差值平移、进度原地保住，
+ *          MESSAGE_DELETED 事件直连+轮询缩水兜底旧酒馆，抽卡小能手基准线同步位移；partial 小读数保护原样保留（报告：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -7211,6 +7213,80 @@
         try { adrDUpdateAutoCounters(); } catch (e2) {}
     }
 
+    // v1.16.3：删楼不罚楼。no-shrink 铁律只该防 partial 小读数，不该罚真删除。
+    // 真删楼有 MESSAGE_DELETED 事件背书（轮询缩水兜底旧酒馆）：count 掉多少，基准线跟着降多少，
+    // 已积累进度原地保住；partial 场景没有删除事件、轮询也不会在同会话内看到缩水，铁律照旧生效。
+    function adrCdShiftBaselineDown(delta, count) {
+        try {
+            var state = adrCdChatState();
+            var base = Number(state.lastDrawAt);
+            if (!Number.isFinite(base) || base < 0) return;
+            var nb = Math.min(Math.max(0, base - delta), Number(count));
+            if (nb === base) return;
+            state.lastDrawAt = nb;
+            adrCdSaveChatState(state);
+            try { console.log("[抽卡小能手] 删楼位移基准线", { from: base, to: nb, delta: delta }); } catch (eL) {}
+        } catch (e) {}
+    }
+
+    function adrDShiftBaselinesDown(delta, count, reason) {
+        try {
+            var all = adrDAutoStateAll();
+            var changed = false;
+            ["emotion", "plot"].forEach(function (type) {
+                var key = adrDAutoStateKey(type);
+                var item = all[key];
+                if (!item || typeof item !== "object" || !Number.isFinite(Number(item.base))) return;
+                var oldBase = Number(item.base);
+                var newBase = Math.min(Math.max(0, oldBase - delta), Number(count));
+                if (newBase === oldBase) return;
+                item.base = newBase;
+                item.updatedAt = Date.now();
+                item.deleteShifted = { from: oldBase, delta: delta, t: Date.now() };
+                all[key] = item;
+                changed = true;
+            });
+            if (changed) {
+                adrDSaveAutoStateAll(all);
+                try { console.log("[Arrebol D] 删楼位移基准线，进度保住不清零", { delta: delta, count: count, reason: reason || "" }); } catch (eLog) {}
+            }
+        } catch (e) {}
+        try { adrCdShiftBaselineDown(delta, count); } catch (eCd) {}
+    }
+
+    var adrDDeleteShiftBusy = false;
+    async function adrDHandlePossibleDeletion(reason) {
+        if (adrDDeleteShiftBusy) return;
+        adrDDeleteShiftBusy = true;
+        try {
+            var keyBefore = adrDChatKey ? adrDChatKey() : "";
+            var th = adrDGetTavernHelper();
+            var fullCapable = !!(th && typeof th.getChatMessages === "function");
+            var prevOk = adrDFullCountCache &&
+                adrDFullCountCache.chatKey === keyBefore &&
+                Number.isFinite(Number(adrDFullCountCache.count)) &&
+                (!fullCapable || adrDFullCountCache.source === "full");
+            var prev = prevOk ? Number(adrDFullCountCache.count) : NaN;
+
+            var now = await adrDRefreshFullAssistantRoundCount("delete:" + (reason || ""));
+
+            // 换了聊天/口径未就绪/没有可信旧读数，都不做位移，只当普通刷新。
+            if (!prevOk) return;
+            if ((adrDChatKey ? adrDChatKey() : "") !== keyBefore) return;
+            if (fullCapable && !adrDCountReady()) return;
+            if (!adrDChatKeyReady()) return;
+
+            var delta = prev - Number(now);
+            if (!Number.isFinite(delta) || delta <= 0) return;
+            adrDShiftBaselinesDown(delta, Number(now), reason);
+        } catch (e) {
+            try { console.warn("[Arrebol D] deletion shift failed", e); } catch (e2) {}
+        } finally {
+            adrDDeleteShiftBusy = false;
+            try { adrDUpdateAutoCounters(); } catch (eC) {}
+        }
+    }
+
     function adrDInstallAutoTriggerWatchers() {
         try {
             var c = ctx();
@@ -7243,6 +7319,13 @@
 
             // v1.9.34：NG 检测走 swipe 事件（数组长度只随新生成增长，来回翻页不误计）；
             // 换聊天时恢复该聊天自己的浮动指导。
+            // v1.16.3：删楼事件直连位移路径。600ms 等酒馆存盘落定再读全量。
+            if (es && typeof es.on === "function" && types.MESSAGE_DELETED) {
+                es.on(types.MESSAGE_DELETED, function () {
+                    setTimeout(function () { adrDHandlePossibleDeletion("event-message-deleted"); }, 600);
+                });
+            }
+
             if (es && typeof es.on === "function") {
                 if (types.MESSAGE_SWIPED) {
                     es.on(types.MESSAGE_SWIPED, function () { setTimeout(function () { adrDCheckNg("event"); }, 400); });
@@ -7261,7 +7344,8 @@
                     try {
                         // v1.9.31：轮询同时盯 chatKey。楼层数碰巧相同的两个聊天也要触发换聊刷新。
                         var keyPoll = adrDChatKey ? adrDChatKey() : "";
-                        if (rootWin().__arrebolDLastChatKeySeen !== keyPoll) {
+                        var keyChangedThisTick = rootWin().__arrebolDLastChatKeySeen !== keyPoll;
+                        if (keyChangedThisTick) {
                             rootWin().__arrebolDLastChatKeySeen = keyPoll;
                             adrDQueueFullAssistantRoundCountRefresh("poll-chat-key-change");
                             adrDScheduleAutoTriggerCheck("poll-chat-key-change");
@@ -7269,7 +7353,13 @@
                         }
                         var len = adrDCurrentMessageTailForPoll();
                         if (adrDLastChatLengthSeen >= 0 && len !== adrDLastChatLengthSeen) {
-                            adrDQueueFullAssistantRoundCountRefresh("poll-tail-change");
+                            // v1.16.3：同聊天内活会话看到楼数缩水，只可能是真删除
+                            //（partial 小读数只发生在重载后，lastSeen 会先归 -1）——走位移路径保进度。
+                            if (!keyChangedThisTick && len < adrDLastChatLengthSeen) {
+                                adrDHandlePossibleDeletion("poll-shrink");
+                            } else {
+                                adrDQueueFullAssistantRoundCountRefresh("poll-tail-change");
+                            }
                             adrDScheduleAutoTriggerCheck("poll-chat-length");
                         } else if (adrDShouldSchedulePendingAutoRetry()) {
                             adrDQueueFullAssistantRoundCountRefresh("poll-pending-retry");
