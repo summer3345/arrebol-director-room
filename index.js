@@ -10,6 +10,8 @@
  * v1.14.2 命中区收身：开关 label 不再拉满整行，点击区只包住圆圈+文字，空白区不再误触（报告：ripple）
  * v1.16.3 删楼不罚楼：no-shrink 铁律误伤真删除，删楼即进度清零且被双重罚楼；现真删除时基准线随差值平移、进度原地保住，
  *          MESSAGE_DELETED 事件直连+轮询缩水兜底旧酒馆，抽卡小能手基准线同步位移；partial 小读数保护原样保留（报告：ripple；施工：波哥 Claude Fable 5）
+ * v1.17.0 三仓库多选+一库一槽：仓库槽从单选下拉改为点选芯片可挂多副；库文本拼接入池，三段抽/张数统计零改动吃到多库；
+ *          挂进某槽的库从其余槽候选剔除；旧单库存档归一成数组无痛迁移，改名/删除/导入全链路同步（提议：ripple；施工：波哥 Claude Fable 5）
  * 抽屉内嵌稳定版：
  * - 情感导演 / 统筹 双页面
  * - 双 API / 双模型 / 双预设 / 双侧独立 API 档案
@@ -2678,6 +2680,20 @@
         return null;
     }
 
+    // v1.17.0：仓库槽多选。旧存档是单个字符串，一律归一成数组；不按逗号拆，库名里带逗号也不误伤。
+    function adrCdSlotArr(v) {
+        var arr = Array.isArray(v) ? v : (v == null || v === "" ? [] : [v]);
+        var out = [];
+        var seen = {};
+        arr.forEach(function (x) {
+            var nm = String(x || "").trim();
+            if (!nm || seen[nm]) return;
+            seen[nm] = true;
+            out.push(nm);
+        });
+        return out;
+    }
+
     function adrCdNormalizeChatState(raw) {
         var o = raw && typeof raw === "object" ? raw : {};
         var defSlots = adrCdSlotDefaults();
@@ -2687,15 +2703,25 @@
         var rawSlots = o.slots && typeof o.slots === "object" ? o.slots : null;
         var rawOn = o.slotOn && typeof o.slotOn === "object" ? o.slotOn : null;
         ADR_CD_SLOTS.forEach(function (s) {
-            if (rawSlots && typeof rawSlots[s] === "string") slots[s] = rawSlots[s];
-            else slots[s] = String(defSlots[s] || "");
+            if (rawSlots && (typeof rawSlots[s] === "string" || Array.isArray(rawSlots[s]))) slots[s] = adrCdSlotArr(rawSlots[s]);
+            else slots[s] = adrCdSlotArr(defSlots[s]);
             slotOn[s] = rawOn ? rawOn[s] === true : defOn[s] === true;
         });
         // v1.10 迁移：旧的单库字段 lib 落进通用槽
         if (!rawSlots && typeof o.lib === "string" && o.lib) {
-            slots.common = o.lib;
+            slots.common = adrCdSlotArr(o.lib);
             slotOn.common = true;
         }
+        // v1.17.0 一库一槽：同一卡库若被历史数据挂进多个仓库，只保留最先出现的那个槽，
+        // 从结构上根治"挂进专属的库还在通用格子里当候选"。
+        var claimed = {};
+        ADR_CD_SLOTS.forEach(function (s) {
+            slots[s] = slots[s].filter(function (nm) {
+                if (claimed[nm]) return false;
+                claimed[nm] = true;
+                return true;
+            });
+        });
         return {
             lastDrawAt: Number.isFinite(Number(o.lastDrawAt)) ? Number(o.lastDrawAt) : -1,
             slots: slots,
@@ -2754,12 +2780,16 @@
         return metaOk || keyReady;
     }
 
-    // 槽里选中的库名 → 库文本；库不存在时回退空
+    // 槽里选中的库名们 → 库文本拼接；池解析器吃拼接文本，多库的池自然全部入场
     function adrCdSlotText(state, slot) {
-        var name = state && state.slots ? String(state.slots[slot] || "") : "";
-        if (!name) return "";
+        var names = state && state.slots ? adrCdSlotArr(state.slots[slot]) : [];
+        if (!names.length) return "";
         var libs = adrCdLibraries();
-        return typeof libs[name] === "string" ? libs[name] : "";
+        var parts = [];
+        names.forEach(function (name) {
+            if (typeof libs[name] === "string" && libs[name].trim()) parts.push(libs[name]);
+        });
+        return parts.join("\n\n");
     }
 
     function adrCdEnabledSlotTexts(state) {
@@ -3320,23 +3350,18 @@
     function adrCdRefreshSlotSelects() {
         try {
             var state = adrCdChatState();
-            var names = adrCdLibNames();
             ADR_CD_SLOTS.forEach(function (slot) {
-                var sel = String(state.slots[slot] || "");
-                var html = '<option value="">（不使用）</option>'
-                    + names.map(function (nm) {
-                        return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
-                    }).join("");
-                var sig = adrCdOptSig("slot-" + slot, names, sel);
+                var arr = adrCdSlotArr(state.slots[slot]);
+                var html = adrCdSlotChipsHTML(slot, state);
+                var sig = adrCdSlotChipsSig(slot, state);
                 Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-cd-slot-" + slot)).forEach(function (el) {
-                    if (adrCdIsBusyEl(el)) return;
-                    adrCdFillSelect(el, html, sel, sig);
+                    adrCdFillSelect(el, html, "", sig);
                 });
                 adrCdSetCheckedSafe("adr044-cd-slot-on-" + slot, state.slotOn[slot]);
                 var cnt = 0;
                 var txt = adrCdSlotText(state, slot);
                 if (txt) adrCdParseLibraryText(txt).forEach(function (p) { cnt += p.cards.length; });
-                adrCdSetTextAll("adr044-cd-slot-count-" + slot, sel ? (cnt + " 张卡") : "未选");
+                adrCdSetTextAll("adr044-cd-slot-count-" + slot, arr.length ? (cnt + " 张卡 · " + arr.length + " 副") : "未选");
             });
         } catch (e) {}
     }
@@ -3537,7 +3562,7 @@
             try { keyReady = adrDChatKeyReady(); } catch (eK) {}
             lines.push("聊天档：" + (keyReady ? "已就绪" : "未就绪（换聊后稍等）") + "　服务器侧存档：" + (adrCdMetaRoot() ? "可用" : "不可用（仅本机备份）"));
             ADR_CD_SLOTS.forEach(function (s) {
-                var name = String(state.slots[s] || "");
+                var name = adrCdSlotArr(state.slots[s]).join("、");
                 var txt = adrCdSlotText(state, s);
                 var pools = txt ? adrCdParseLibraryText(txt) : [];
                 var cards = 0;
@@ -3620,10 +3645,14 @@
             save("cdLibraries", libs);
             // 三个仓库槽里引用了旧名的，跟着改名（聊天级 + 账号级默认）
             var state = adrCdChatState();
-            ADR_CD_SLOTS.forEach(function (s) { if (state.slots[s] === oldName) state.slots[s] = newName; });
+            ADR_CD_SLOTS.forEach(function (s) {
+                state.slots[s] = adrCdSlotArr(state.slots[s]).map(function (nm) { return nm === oldName ? newName : nm; });
+            });
             adrCdSaveChatState(state);
             var defs = adrCdSlotDefaults();
-            ADR_CD_SLOTS.forEach(function (s) { if (defs[s] === oldName) defs[s] = newName; });
+            ADR_CD_SLOTS.forEach(function (s) {
+                defs[s] = adrCdSlotArr(defs[s]).map(function (nm) { return nm === oldName ? newName : nm; });
+            });
             save("cdSlotDefaults", defs);
             saveNow();
             adrCdRefreshEditSelect(newName);
@@ -3645,7 +3674,13 @@
             var state = adrCdChatState();
             var freed = [];
             ADR_CD_SLOTS.forEach(function (s) {
-                if (state.slots[s] === name) { state.slots[s] = ""; freed.push(ADR_CD_SLOT_FULL[s]); }
+                var arrDel = adrCdSlotArr(state.slots[s]);
+                if (arrDel.indexOf(name) >= 0) {
+                    state.slots[s] = arrDel.filter(function (nm) { return nm !== name; });
+                    freed.push(ADR_CD_SLOT_FULL[s]);
+                } else {
+                    state.slots[s] = arrDel;
+                }
             });
             adrCdSaveChatState(state);
             saveNow();
@@ -3653,7 +3688,7 @@
             adrCdLoadEditor(rest[0] || "");
             adrCdRefreshSlotSelects();
             adrCdUpdateStatusLine();
-            var tail = freed.length ? "；" + freed.join("、") + " 已置空，请重新选一副" : "";
+            var tail = freed.length ? "；已从 " + freed.join("、") + " 摘下" : "";
             adrCdLibStatus("卡库「" + name + "」已删除" + tail
                 + (rest.length ? "" : "。已无任何卡库，保存一副新的即可（出厂示例会在下次读取时补回）"), "#d6b177");
         } catch (e) {
@@ -3725,7 +3760,9 @@
                     var tail = "";
                     if (ADR_CD_SLOTS.indexOf(slot) >= 0) {
                         var state = adrCdChatState();
-                        state.slots[slot] = name;
+                        var arrImp = adrCdSlotArr(state.slots[slot]);
+                        if (arrImp.indexOf(name) < 0) arrImp.push(name);
+                        state.slots[slot] = arrImp;
                         state.slotOn[slot] = true;
                         adrCdSaveChatState(state);
                         tail = "，已挂进" + ADR_CD_SLOT_FULL[slot] + "并启用";
@@ -3890,15 +3927,26 @@
 
             ADR_CD_SLOTS.forEach(function (slot) {
                 each("adr044-cd-slot-" + slot, function (el) {
-                    guard(el);
-                    el.addEventListener("change", function () {
-                        adrCdTouch(el);
+                    // v1.17.0：芯片点击委托挂容器上，innerHTML 重绘不掉监听
+                    el.addEventListener("click", function (ev) {
+                        var t = ev.target;
+                        var chip = null;
+                        while (t && t !== el) {
+                            if (t.getAttribute && t.getAttribute("data-adrcd-lib") != null) { chip = t; break; }
+                            t = t.parentNode;
+                        }
+                        if (!chip) return;
+                        var nm = chip.getAttribute("data-adrcd-lib") || "";
+                        if (!nm) return;
                         var state = adrCdChatState();
-                        state.slots[slot] = String(el.value || "");
-                        if (state.slots[slot]) state.slotOn[slot] = true;
+                        var arr = adrCdSlotArr(state.slots[slot]);
+                        var idx = arr.indexOf(nm);
+                        if (idx >= 0) arr.splice(idx, 1); else arr.push(nm);
+                        state.slots[slot] = arr;
+                        if (arr.length) state.slotOn[slot] = true;
                         adrCdSaveChatState(state);
                         var defs = adrCdSlotDefaults();
-                        defs[slot] = state.slots[slot];
+                        defs[slot] = arr.slice();
                         save("cdSlotDefaults", defs);
                         adrCdSaveSoon();
                         adrCdRefreshSlotSelects();
@@ -4042,20 +4090,35 @@
 
     // ---- 面板页（抽屉版 adr044 / 浮窗版 adr048 共用一套 id）----
 
+    // v1.17.0：仓库槽多选芯片。候选剔除已被别的槽挂走的库（一库一槽）。
+    function adrCdSlotChipsHTML(slot, state) {
+        var names = adrCdLibNames();
+        var mine = adrCdSlotArr(state.slots[slot]);
+        var taken = {};
+        ADR_CD_SLOTS.forEach(function (s) {
+            if (s === slot) return;
+            adrCdSlotArr(state.slots[s]).forEach(function (nm) { taken[nm] = true; });
+        });
+        var shown = names.filter(function (nm) { return !taken[nm]; });
+        if (!shown.length) return '<div class="adr044-cd-chip-empty">没有可挂的卡库（都被别的仓库挂走了）</div>';
+        return shown.map(function (nm) {
+            var on = mine.indexOf(nm) >= 0;
+            return '<button type="button" class="adr044-cd-chip' + (on ? " on" : "") + '" data-adrcd-lib="' + esc(nm) + '">' + esc(nm) + '</button>';
+        }).join("");
+    }
+
+    function adrCdSlotChipsSig(slot, state) {
+        return adrCdOptSig("chips-" + slot, adrCdLibNames(), JSON.stringify(state.slots || {}));
+    }
+
     function adrCdSlotRowHTML(slot, checkClass) {
         var state = adrCdChatState();
-        var names = adrCdLibNames();
-        var sel = String(state.slots[slot] || "");
-        var optionsHtml = '<option value="">（不使用）</option>'
-            + names.map(function (nm) {
-                return '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
-            }).join("");
         return '<div class="adr044-cd-slot-row">'
             + '<label class="' + checkClass + ' adr044-cd-slot-head">'
             + '<input type="checkbox" id="adr044-cd-slot-on-' + slot + '"' + (state.slotOn[slot] ? " checked" : "") + '> '
             + ADR_CD_SLOT_FULL[slot]
             + ' <span class="adr044-cd-slot-count" id="adr044-cd-slot-count-' + slot + '"></span></label>'
-            + '<select id="adr044-cd-slot-' + slot + '" data-optsig="' + esc(adrCdOptSig("slot-" + slot, names, sel)) + '">' + optionsHtml + '</select>'
+            + '<div class="adr044-cd-chiprow" id="adr044-cd-slot-' + slot + '" data-optsig="' + esc(adrCdSlotChipsSig(slot, state)) + '">' + adrCdSlotChipsHTML(slot, state) + '</div>'
             + '</div>';
     }
 
