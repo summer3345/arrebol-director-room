@@ -6096,7 +6096,7 @@
             adr048SetImportant(shell, "max-height", "calc(100vh - 128px)");
             adr048SetImportant(shell, "z-index", "2147483647");
             adr048SetImportant(shell, "overflow", "hidden");
-            adr048SetImportant(shell, "background", "rgba(31,31,35,.98)");
+            adr048SetImportant(shell, "background", "rgba(42,52,67,.98)");
             adr048SetImportant(shell, "color", "#f2f2f2");
             adr048SetImportant(shell, "border", "1px solid rgba(255,255,255,.18)");
             adr048SetImportant(shell, "border-radius", "14px");
@@ -6163,13 +6163,13 @@
             if (shell) {
                 adr048SetImportant(shell, "background", dawn
                     ? "linear-gradient(172deg, #FDF6F9 0%, #F8F1F8 44%, #F2EDF8 100%)"
-                    : "rgba(31,31,35,.98)");
-                adr048SetImportant(shell, "color", dawn ? "#4E3A52" : "#f2f2f2");
+                    : "rgba(42,52,67,.98)");
+                adr048SetImportant(shell, "color", dawn ? "#404D62" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
-                    ? "1px solid rgba(156,127,190,.30)"
+                    ? "1px solid rgba(116,136,162,.30)"
                     : "1px solid rgba(255,255,255,.18)");
                 adr048SetImportant(shell, "box-shadow", dawn
-                    ? "0 18px 48px rgba(120,86,128,.20), 0 0 0 1px rgba(255,255,255,.55)"
+                    ? "0 18px 48px rgba(84,100,124,.20), 0 0 0 1px rgba(255,255,255,.55)"
                     : "0 14px 42px rgba(0,0,0,.48)");
             }
 

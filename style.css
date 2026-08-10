@@ -1022,11 +1022,11 @@
 }
 
 #adr048-popup-shell {
-    background: linear-gradient(172deg, #251923 0%, #1B1216 38%, #170F13 100%) !important;
+    background: linear-gradient(172deg, #404D62 0%, #333F51 38%, #2A3443 100%) !important;
     color: #F6EEE7 !important;
     border: 1px solid rgba(242, 184, 198, .16) !important;
     border-radius: 20px !important;
-    box-shadow: 0 22px 60px rgba(8, 3, 6, .58), 0 0 0 1px rgba(232, 137, 107, .07) !important;
+    box-shadow: 0 22px 60px rgba(9, 14, 22, .58), 0 0 0 1px rgba(232, 137, 107, .07) !important;
 }
 
 /* 头部：暗河水面 + 霞线 */
@@ -1220,7 +1220,7 @@
 }
 
 #adr048-popup-body select option {
-    background: #251923 !important;
+    background: #333F51 !important;
     color: #F6EEE7 !important;
 }
 
@@ -1472,7 +1472,7 @@
     border-radius: 16px !important;
     border: 1px solid rgba(242, 184, 198, .30) !important;
     background: linear-gradient(165deg, rgba(43, 27, 36, .97), rgba(27, 18, 22, .97)) !important;
-    box-shadow: 0 16px 44px rgba(8, 3, 6, .5), 0 0 0 3px rgba(232, 137, 107, .12) !important;
+    box-shadow: 0 16px 44px rgba(9, 14, 22, .5), 0 0 0 3px rgba(232, 137, 107, .12) !important;
 }
 
 #adr044-auto-trigger-popup .adr044-auto-trigger-popup-title {
@@ -1483,7 +1483,7 @@
 
 #adr044-auto-trigger-popup[data-kind="error"] {
     border-color: rgba(220, 173, 117, .55) !important;
-    box-shadow: 0 16px 44px rgba(8, 3, 6, .5), 0 0 0 3px rgba(220, 173, 117, .16) !important;
+    box-shadow: 0 16px 44px rgba(9, 14, 22, .5), 0 0 0 3px rgba(220, 173, 117, .16) !important;
 }
 
 #adr044-auto-trigger-popup[data-kind="error"] .adr044-auto-trigger-popup-title {
@@ -1551,7 +1551,7 @@
     color: #F6EEE7 !important;
     -webkit-text-fill-color: #F6EEE7 !important;
     font-weight: 600 !important;
-    box-shadow: 0 2px 10px rgba(8, 3, 6, .20) !important;
+    box-shadow: 0 2px 10px rgba(9, 14, 22, .20) !important;
     transition: border-color .15s ease, transform .12s ease !important;
 }
 
@@ -1784,8 +1784,8 @@
    靠"更晚 + 更高特异度"压过上方全部暗河级联；壳体底色由
    adr048ApplyPanelTheme() 以内联 !important 同步（open 流程
    历史上就是内联刷色，样式表压不住，必须 JS 换轨）。
-   调色板：纸粉 #FDF6F9 / 藕紫 #F2EDF8 / 墨紫字 #4E3A52 /
-   晨霞粉 #C86F93 / 淡紫描边 rgba(156,127,190,*) / 晨金 #B48437。
+   调色板：纸粉 #FDF6F9 / 藕紫 #F2EDF8 / 砚蓝字 #404D62 /
+   晨霞粉 #C86F93 / 砚蓝描边 rgba(116,136,162,*) / 晨金 #B48437。
    ============================================================ */
 
 /* 开灯按钮本体（暗色态基础皮，亮色态在下方覆盖） */
@@ -1822,9 +1822,9 @@
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-shell {
     background: linear-gradient(172deg, #FDF6F9 0%, #F8F1F8 44%, #F2EDF8 100%) !important;
-    color: #4E3A52 !important;
-    border: 1px solid rgba(156, 127, 190, .30) !important;
-    box-shadow: 0 18px 48px rgba(120, 86, 128, .20), 0 0 0 1px rgba(255, 255, 255, .55) !important;
+    color: #404D62 !important;
+    border: 1px solid rgba(116, 136, 162, .30) !important;
+    box-shadow: 0 18px 48px rgba(84, 100, 124, .20), 0 0 0 1px rgba(255, 255, 255, .55) !important;
 }
 
 /* ---- 头部：晨雾水面 + 朝霞线 ---- */
@@ -1844,23 +1844,23 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head .adr048-title {
-    color: #4E3A52 !important;
+    color: #404D62 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head .adr048-title-d {
     color: #C86F93 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head .adr048-title-cn {
-    color: rgba(156, 127, 190, .95) !important;
+    color: rgba(116, 136, 162, .95) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-sub {
-    color: rgba(78, 58, 82, .48) !important;
+    color: rgba(64, 77, 98, .48) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-close,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-theme-toggle {
-    border: 1px solid rgba(156, 127, 190, .32) !important;
+    border: 1px solid rgba(116, 136, 162, .32) !important;
     background: rgba(255, 255, 255, .58) !important;
-    color: rgba(78, 58, 82, .82) !important;
+    color: rgba(64, 77, 98, .82) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-close:hover,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-theme-toggle:hover {
@@ -1881,11 +1881,11 @@
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-summary,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-note,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-status {
-    color: #4E3A52 !important;
+    color: #404D62 !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] .adr048-section {
-    border-top: 1px solid rgba(156, 127, 190, .16) !important;
+    border-top: 1px solid rgba(116, 136, 162, .16) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-summary {
@@ -1893,15 +1893,15 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body label {
-    color: rgba(78, 58, 82, .66) !important;
+    color: rgba(64, 77, 98, .66) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-note {
-    color: rgba(78, 58, 82, .52) !important;
+    color: rgba(64, 77, 98, .52) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-status {
-    color: rgba(78, 58, 82, .68) !important;
+    color: rgba(64, 77, 98, .68) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-blurb {
@@ -1913,10 +1913,10 @@
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body select,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body textarea {
     background: rgba(255, 255, 255, .82) !important;
-    color: #4E3A52 !important;
-    -webkit-text-fill-color: #4E3A52 !important;
+    color: #404D62 !important;
+    -webkit-text-fill-color: #404D62 !important;
     caret-color: #C86F93 !important;
-    border: 1px solid rgba(156, 127, 190, .34) !important;
+    border: 1px solid rgba(116, 136, 162, .34) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body input:focus,
@@ -1929,13 +1929,13 @@
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body input::placeholder,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body textarea::placeholder {
-    color: rgba(78, 58, 82, .36) !important;
+    color: rgba(64, 77, 98, .36) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body select {
     background-image:
-        linear-gradient(45deg, transparent 50%, rgba(156, 127, 190, .8) 50%),
-        linear-gradient(135deg, rgba(156, 127, 190, .8) 50%, transparent 50%) !important;
+        linear-gradient(45deg, transparent 50%, rgba(116, 136, 162, .8) 50%),
+        linear-gradient(135deg, rgba(116, 136, 162, .8) 50%, transparent 50%) !important;
     background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55% !important;
     background-size: 5px 5px, 5px 5px !important;
     background-repeat: no-repeat !important;
@@ -1943,15 +1943,15 @@
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body select option {
     background: #FDF6F9 !important;
-    color: #4E3A52 !important;
+    color: #404D62 !important;
 }
 
 /* ---- 按钮：基础=晨雾玻璃，主动作=霞粉藕紫渐变 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body button {
-    border: 1px solid rgba(156, 127, 190, .30) !important;
+    border: 1px solid rgba(116, 136, 162, .30) !important;
     background: rgba(255, 255, 255, .60) !important;
-    color: #4E3A52 !important;
-    -webkit-text-fill-color: #4E3A52 !important;
+    color: #404D62 !important;
+    -webkit-text-fill-color: #404D62 !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body button:hover {
@@ -1979,10 +1979,10 @@
 
 /* ---- 页签 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-tabs button {
-    border: 1px solid rgba(156, 127, 190, .26) !important;
+    border: 1px solid rgba(116, 136, 162, .26) !important;
     background: rgba(255, 255, 255, .48) !important;
-    color: rgba(78, 58, 82, .68) !important;
-    -webkit-text-fill-color: rgba(78, 58, 82, .68) !important;
+    color: rgba(64, 77, 98, .68) !important;
+    -webkit-text-fill-color: rgba(64, 77, 98, .68) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-tabs button.active {
@@ -2006,30 +2006,30 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-check {
-    color: rgba(78, 58, 82, .88) !important;
+    color: rgba(64, 77, 98, .88) !important;
 }
 
 /* ---- 分层抽屉 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer {
-    border: 1px solid rgba(156, 127, 190, .22) !important;
+    border: 1px solid rgba(116, 136, 162, .22) !important;
     background: rgba(255, 255, 255, .38) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer > summary {
-    color: rgba(78, 58, 82, .62) !important;
+    color: rgba(64, 77, 98, .62) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer > summary::before {
     color: rgba(200, 111, 147, .6) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer[open] > summary {
-    border-bottom: 1px dashed rgba(156, 127, 190, .22) !important;
+    border-bottom: 1px dashed rgba(116, 136, 162, .22) !important;
 }
 
 /* ---- 计数卡：晨光白卡，数字仍是金的 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-auto-counter {
     background: rgba(255, 255, 255, .66) !important;
-    border: 1px solid rgba(156, 127, 190, .28) !important;
+    border: 1px solid rgba(116, 136, 162, .28) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85) !important;
-    color: #4E3A52 !important;
+    color: #404D62 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-label {
     color: rgba(200, 111, 147, .95) !important;
@@ -2039,37 +2039,37 @@
     color: #B48437 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-nums {
-    color: rgba(78, 58, 82, .55) !important;
+    color: rgba(64, 77, 98, .55) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-nums b {
     color: #B48437 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-bar {
-    background: rgba(120, 86, 128, .10) !important;
+    background: rgba(84, 100, 124, .10) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-bar i {
     background: linear-gradient(90deg, #F096B4, #C9A6EC) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-line {
-    color: rgba(78, 58, 82, .82) !important;
+    color: rgba(64, 77, 98, .82) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-line b {
-    color: #4E3A52 !important;
+    color: #404D62 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-msg {
-    color: rgba(78, 58, 82, .72) !important;
+    color: rgba(64, 77, 98, .72) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-tech {
-    color: rgba(78, 58, 82, .38) !important;
+    color: rgba(64, 77, 98, .38) !important;
 }
 
 /* ---- 校准药丸 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-auto-calibrate {
     background: rgba(255, 255, 255, .78) !important;
     border: 1px solid rgba(200, 111, 147, .5) !important;
-    color: #4E3A52 !important;
-    -webkit-text-fill-color: #4E3A52 !important;
-    box-shadow: 0 2px 10px rgba(120, 86, 128, .12) !important;
+    color: #404D62 !important;
+    -webkit-text-fill-color: #404D62 !important;
+    box-shadow: 0 2px 10px rgba(84, 100, 124, .12) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-auto-calibrate:hover {
     border-color: rgba(200, 111, 147, .8) !important;
@@ -2077,7 +2077,7 @@
 
 /* ---- 模板小卡 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-template-compact {
-    border: 1px solid rgba(156, 127, 190, .22) !important;
+    border: 1px solid rgba(116, 136, 162, .22) !important;
     background: rgba(255, 255, 255, .42) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-template-status {
@@ -2095,8 +2095,8 @@
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-master-toggle[data-master-on="0"] {
     border-color: rgba(140, 132, 148, .38) !important;
     background: linear-gradient(135deg, rgba(210, 205, 216, .5), rgba(190, 185, 198, .4)) !important;
-    color: rgba(78, 58, 82, .5) !important;
-    -webkit-text-fill-color: rgba(78, 58, 82, .5) !important;
+    color: rgba(64, 77, 98, .5) !important;
+    -webkit-text-fill-color: rgba(64, 77, 98, .5) !important;
     box-shadow: none !important;
 }
 
