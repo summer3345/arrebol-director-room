@@ -4782,7 +4782,7 @@
         var item = data[type] && data[type][idx];
 
         if (!item) {
-            adrDTemplateStatus(type, "没有找到模板", "#e28a9c");
+            adrDTemplateStatus(type, "没有找到模板", "#C98BA3");
             return;
         }
 
@@ -4812,7 +4812,7 @@
         var text = preset ? String(preset.value || "") : "";
 
         if (!name) {
-            adrDTemplateStatus(type, "请先写模板名", "#e28a9c");
+            adrDTemplateStatus(type, "请先写模板名", "#C98BA3");
             return;
         }
 
@@ -4907,12 +4907,12 @@
         var arr = data[type] || [];
 
         if (!arr[idx]) {
-            adrDTemplateStatus(type, "没有选中的模板", "#e28a9c");
+            adrDTemplateStatus(type, "没有选中的模板", "#C98BA3");
             return;
         }
 
         if (arr.length <= 1) {
-            adrDTemplateStatus(type, "至少保留一个模板", "#e28a9c");
+            adrDTemplateStatus(type, "至少保留一个模板", "#C98BA3");
             return;
         }
 
@@ -5279,13 +5279,13 @@
 
         var fields = adrDCurrentApiFields(type);
         if (!fields.endpoint && !fields.apiKey && !fields.model) {
-            adrDApiProfileStatus(type, "请先填写 API 地址、密钥或模型", "#e28a9c");
+            adrDApiProfileStatus(type, "请先填写 API 地址、密钥或模型", "#C98BA3");
             return;
         }
 
         var name = adrDActiveApiProfileName(type);
         if (!name) {
-            adrDApiProfileStatus(type, "请先在当前预设框里写名字，例如 DS / Claude", "#e28a9c");
+            adrDApiProfileStatus(type, "请先在当前预设框里写名字，例如 DS / Claude", "#C98BA3");
             return;
         }
 
@@ -5316,7 +5316,7 @@
         var name = adrDSelectedApiProfileSelectName(type) || adrDActiveApiProfileName(type);
         var item = adrDSelectedApiProfileItem(type);
         if (!item) {
-            adrDApiProfileStatus(type, name ? "未保存的新预设名；填好 API 后点「保存」" : "请选择已有预设，或输入新名字后保存", "#d989a1");
+            adrDApiProfileStatus(type, name ? "未保存的新预设名；填好 API 后点「保存」" : "请选择已有预设，或输入新名字后保存", "#A9B2C8");
             return false;
         }
 
@@ -5335,7 +5335,7 @@
         var item = idx >= 0 ? arr[idx] : null;
 
         if (!item) {
-            adrDApiProfileStatus(type, "请先输入或选择要删除的预设", "#e28a9c");
+            adrDApiProfileStatus(type, "请先输入或选择要删除的预设", "#C98BA3");
             return;
         }
 
@@ -5372,7 +5372,7 @@
                         if (!name) {
                             adrDSaveSelectedApiProfile(type, "");
                             Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-api-profile-name-" + type)).forEach(function (input) { input.value = ""; });
-                            adrDApiProfileStatus(type, "输入新名字后点「保存」即可新增预设", "#d989a1");
+                            adrDApiProfileStatus(type, "输入新名字后点「保存」即可新增预设", "#A9B2C8");
                             return;
                         }
                         adrDApplyApiProfile(type);
@@ -5387,11 +5387,11 @@
                         var name = String(input.value || "").trim();
                         adrDResetConfirmAction("delete-api-profile-" + type);
                         if (!name) {
-                            adrDApiProfileStatus(type, "输入新名字后点「保存」即可新增预设", "#d989a1");
+                            adrDApiProfileStatus(type, "输入新名字后点「保存」即可新增预设", "#A9B2C8");
                         } else if (adrDFindApiProfileIndexByName(type, name) >= 0) {
-                            adrDApiProfileStatus(type, "同名保存会更新该预设", "#d989a1");
+                            adrDApiProfileStatus(type, "同名保存会更新该预设", "#A9B2C8");
                         } else {
-                            adrDApiProfileStatus(type, "新名字保存会新增预设，不影响旧预设", "#d989a1");
+                            adrDApiProfileStatus(type, "新名字保存会新增预设，不影响旧预设", "#A9B2C8");
                         }
                     }, true);
                 });
@@ -6162,7 +6162,7 @@
             var shell = d.querySelector("#adr048-popup-shell");
             if (shell) {
                 adr048SetImportant(shell, "background", dawn
-                    ? "linear-gradient(172deg, #FDF6F9 0%, #F8F1F8 44%, #F2EDF8 100%)"
+                    ? "linear-gradient(172deg, #FBF3F6 0%, #F2F1F7 44%, #ECF0F6 100%)"
                     : "rgba(42,52,67,.98)");
                 adr048SetImportant(shell, "color", dawn ? "#404D62" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
@@ -6350,7 +6350,7 @@
             btn.setAttribute("data-adr048-owned-fab", ADR048_FAB_INSTANCE_ID);
             btn.type = "button";
             /* 砚蓝入胭雾 · SVG 胶囊皮肤（按钮外壳透明，视觉全由 SVG 承担） */
-            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-label="ARB" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#404D62"/><stop offset="100%" stop-color="#DDBECA"/></linearGradient><linearGradient id="pkARB-river" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EBD0DB"/><stop offset="100%" stop-color="#404D62"/></linearGradient></defs><rect x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)"/><text x="60" y="22" text-anchor="middle" font-size="15.5" font-weight="700" fill="#F7ECF1" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="url(#pkARB-river)" stroke-width="2.4" stroke-linecap="round" opacity="0.9"/><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="#FFF3F7" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 96" opacity="0.95"><animate attributeName="stroke-dashoffset" values="101;0" dur="4.5s" repeatCount="indefinite"/></path></svg>';
+            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-label="ARB" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#404D62"/><stop offset="55%" stop-color="#A2AFC4"/><stop offset="100%" stop-color="#E4C8D0"/></linearGradient><linearGradient id="pkARB-river" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#E4C8D0"/><stop offset="100%" stop-color="#404D62"/></linearGradient></defs><rect x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)"/><text x="60" y="22" text-anchor="middle" font-size="15.5" font-weight="700" fill="#F7ECF1" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="url(#pkARB-river)" stroke-width="2.4" stroke-linecap="round" opacity="0.9"/><path d="M12 32 C 32 26 48 37 66 30 C 84 24 98 32 108 27" fill="none" stroke="#FFF3F7" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 96" opacity="0.95"><animate attributeName="stroke-dashoffset" values="101;0" dur="4.5s" repeatCount="indefinite"/></path></svg>';
             btn.title = "Arrebol D 小红霞";
             btn.setAttribute("aria-label", "Arrebol D 小红霞");
 
@@ -6370,8 +6370,8 @@
             setImp("background", "transparent");
             setImp("backdrop-filter", "none");
             setImp("-webkit-backdrop-filter", "none");
-            setImp("color", "rgba(95, 42, 65, .88)");
-            setImp("-webkit-text-fill-color", "rgba(95, 42, 65, .88)");
+            setImp("color", "rgba(64, 77, 98, .88)");
+            setImp("-webkit-text-fill-color", "rgba(64, 77, 98, .88)");
             setImp("font-size", "13px");
             setImp("font-weight", "800");
             setImp("line-height", "28px");

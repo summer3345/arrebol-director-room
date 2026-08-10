@@ -498,15 +498,15 @@
   margin: 8px 0 2px;
   padding: 7px 9px;
   border-radius: 10px;
-  background: rgba(255, 238, 246, 0.72);
-  border: 1px solid rgba(255, 170, 195, 0.42);
-  color: #9f5d76;
+  background: linear-gradient(135deg, rgba(228, 200, 208, 0.72), rgba(162, 175, 196, 0.58));
+  border: 1px solid rgba(162, 175, 196, 0.42);
+  color: #4E5A75;
   font-size: 12px;
   line-height: 1.45;
 }
 #adr048-popup-panel .adr044-auto-counter {
-  background: rgba(255, 238, 246, 0.78);
-  border-color: rgba(255, 170, 195, 0.45);
+  background: linear-gradient(135deg, rgba(228, 200, 208, 0.82), rgba(162, 175, 196, 0.64));
+  border-color: rgba(162, 175, 196, 0.45);
 }
 
 
@@ -515,8 +515,8 @@
   margin: 8px 0 10px;
   padding: 8px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 170, 195, 0.26);
-  background: rgba(255, 238, 246, 0.06);
+  border: 1px solid rgba(162, 175, 196, 0.26);
+  background: rgba(228, 200, 208, 0.06);
 }
 .adr044-template-compact select,
 .adr044-template-compact input {
@@ -538,7 +538,7 @@
   min-height: 15px;
   margin-top: 5px;
   font-size: 12px;
-  color: #d989a1;
+  color: #A9B2C8;
 }
 
 
@@ -882,7 +882,7 @@
     padding: 0 12px !important;
     border-radius: 999px !important;
     border: 1px solid rgba(255,255,255,.44) !important;
-    background: rgba(255, 196, 218, .72) !important;
+    background: rgba(228, 200, 208, .72) !important;
     color: rgba(95, 42, 65, .88) !important;
     -webkit-text-fill-color: rgba(95, 42, 65, .88) !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif !important;
@@ -903,14 +903,14 @@
 
 #adr048-fab:hover,
 #adr048-fab:focus-visible {
-    background: rgba(255, 196, 218, .84) !important;
+    background: rgba(228, 200, 208, .84) !important;
     box-shadow: 0 6px 14px rgba(255, 122, 162, .18) !important;
     transform: translateY(-1px) translateZ(0) !important;
     opacity: 1 !important;
 }
 
 #adr048-fab:active {
-    background: rgba(255, 196, 218, .78) !important;
+    background: rgba(228, 200, 208, .78) !important;
     box-shadow: 0 3px 9px rgba(255, 122, 162, .12) !important;
     transform: scale(.98) translateZ(0) !important;
 }
@@ -986,9 +986,9 @@
     margin: 0 0 10px;
     padding: 10px 14px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 196, 218, .55);
-    background: linear-gradient(135deg, rgba(255, 196, 218, .28), rgba(255, 156, 190, .18));
-    color: #f4d6e2;
+    border: 1px solid rgba(228, 200, 208, .55);
+    background: linear-gradient(135deg, rgba(228, 200, 208, .30), rgba(162, 175, 196, .24));
+    color: #E6E4EE;
     font-size: 13.5px;
     font-weight: 800;
     letter-spacing: .3px;
@@ -1009,7 +1009,7 @@
    v1.9.32 「暗河红霞」视觉整备 · UI-only
    设计语言：暗河（暖酒黑）+ 红霞（霞橘主色）+ 一线暮金。
    历史三套粉色系收编：霞橘 #E8896B 为唯一主强调，
-   霞粉 #F2B8C6 降为辅助描边/标签，暮金 #DCAD75 只给
+   霞粉 #E4C8D0 降为辅助描边/标签，暮金 #DCAD75 只给
    数字与头部霞线。圆角制式：6/10/14/20。
    仅覆盖弹窗、计数卡、总开关、toast；抽屉白输入框守卫
    与 FAB 药丸维持原样（跨主题可读性与既有识别度）。
@@ -1024,7 +1024,7 @@
 #adr048-popup-shell {
     background: linear-gradient(172deg, #404D62 0%, #333F51 38%, #2A3443 100%) !important;
     color: #F6EEE7 !important;
-    border: 1px solid rgba(242, 184, 198, .16) !important;
+    border: 1px solid rgba(228, 200, 208, .16) !important;
     border-radius: 20px !important;
     box-shadow: 0 22px 60px rgba(9, 14, 22, .58), 0 0 0 1px rgba(232, 137, 107, .07) !important;
 }
@@ -1047,9 +1047,10 @@
     height: 2px !important;
     background: linear-gradient(90deg,
         rgba(232, 137, 107, 0) 0%,
-        #E8896B 22%,
-        #F2B8C6 54%,
-        rgba(220, 173, 117, .85) 78%,
+        #E8896B 20%,
+        #E4C8D0 44%,
+        #A2AFC4 62%,
+        rgba(220, 173, 117, .85) 80%,
         rgba(220, 173, 117, 0) 100%) !important;
     background-size: 220% 100% !important;
     opacity: .9 !important;
@@ -1096,7 +1097,7 @@
     font-size: 11.5px !important;
     font-weight: 500 !important;
     letter-spacing: .14em !important;
-    color: rgba(242, 184, 198, .78) !important;
+    color: rgba(228, 200, 208, .78) !important;
 }
 
 #adr048-popup-sub {
@@ -1111,7 +1112,7 @@
     width: 34px !important;
     height: 34px !important;
     border-radius: 10px !important;
-    border: 1px solid rgba(242, 184, 198, .22) !important;
+    border: 1px solid rgba(228, 200, 208, .22) !important;
     background: rgba(246, 238, 231, .05) !important;
     color: rgba(246, 238, 231, .85) !important;
     font-size: 20px !important;
@@ -1146,7 +1147,7 @@
 
 /* 分区标题：去掉满屏加粗，改小号字距标签 */
 .adr048-section {
-    border-top: 1px solid rgba(242, 184, 198, .10) !important;
+    border-top: 1px solid rgba(228, 200, 208, .10) !important;
     padding: 12px 0 10px !important;
 }
 
@@ -1185,7 +1186,7 @@
     color: #F6EEE7 !important;
     -webkit-text-fill-color: #F6EEE7 !important;
     caret-color: #E8896B !important;
-    border: 1px solid rgba(242, 184, 198, .20) !important;
+    border: 1px solid rgba(228, 200, 208, .20) !important;
     border-radius: 10px !important;
     padding: 8px 10px !important;
     font-size: 14px !important;
@@ -1211,8 +1212,8 @@
     appearance: none !important;
     -webkit-appearance: none !important;
     background-image:
-        linear-gradient(45deg, transparent 50%, rgba(242,184,198,.75) 50%),
-        linear-gradient(135deg, rgba(242,184,198,.75) 50%, transparent 50%) !important;
+        linear-gradient(45deg, transparent 50%, rgba(228,200,208,.75) 50%),
+        linear-gradient(135deg, rgba(228,200,208,.75) 50%, transparent 50%) !important;
     background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55% !important;
     background-size: 5px 5px, 5px 5px !important;
     background-repeat: no-repeat !important;
@@ -1229,7 +1230,7 @@
     min-height: 32px !important;
     padding: 6px 12px !important;
     border-radius: 10px !important;
-    border: 1px solid rgba(242, 184, 198, .22) !important;
+    border: 1px solid rgba(228, 200, 208, .22) !important;
     background: rgba(246, 238, 231, .06) !important;
     color: #F6EEE7 !important;
     -webkit-text-fill-color: #F6EEE7 !important;
@@ -1276,7 +1277,7 @@
 #adr048-popup-body .adr048-tabs button {
     min-height: 30px !important;
     border-radius: 10px !important;
-    border: 1px solid rgba(242, 184, 198, .18) !important;
+    border: 1px solid rgba(228, 200, 208, .18) !important;
     background: rgba(246, 238, 231, .045) !important;
     color: rgba(246, 238, 231, .68) !important;
     -webkit-text-fill-color: rgba(246, 238, 231, .68) !important;
@@ -1299,7 +1300,7 @@
     max-width: 17px !important;
     flex: 0 0 17px !important;
     border-radius: 6px !important;
-    border: 1.5px solid rgba(242, 184, 198, .45) !important;
+    border: 1.5px solid rgba(228, 200, 208, .45) !important;
     background: rgba(246, 238, 231, .05) !important;
     box-shadow: none !important;
     margin: 0 8px 0 0 !important;
@@ -1328,7 +1329,7 @@
     padding: 10px 12px 11px !important;
     border-radius: 14px !important;
     background: linear-gradient(160deg, rgba(46, 31, 41, .96), rgba(32, 20, 27, .96)) !important;
-    border: 1px solid rgba(242, 184, 198, .18) !important;
+    border: 1px solid rgba(228, 200, 208, .18) !important;
     box-shadow: inset 0 1px 0 rgba(246, 238, 231, .05) !important;
     color: #F6EEE7 !important;
     font-size: 12px !important;
@@ -1346,7 +1347,7 @@
     font-size: 11px !important;
     font-weight: 600 !important;
     letter-spacing: .14em !important;
-    color: rgba(242, 184, 198, .88) !important;
+    color: rgba(228, 200, 208, .88) !important;
 }
 
 .arb-ct-tag {
@@ -1394,7 +1395,7 @@
     display: block !important;
     height: 100% !important;
     border-radius: 999px !important;
-    background: linear-gradient(90deg, #E8896B, #F2B8C6) !important;
+    background: linear-gradient(90deg, #E8896B, #E4C8D0, #A2AFC4) !important;
     transition: width .45s cubic-bezier(.22,.9,.3,1) !important;
 }
 
@@ -1426,7 +1427,7 @@
 /* 校准按钮：安静药丸 */
 .adr044-auto-calibrate {
     border-radius: 999px !important;
-    border: 1px solid rgba(242, 184, 198, .30) !important;
+    border: 1px solid rgba(228, 200, 208, .30) !important;
     background: rgba(246, 238, 231, .05) !important;
     color: rgba(246, 238, 231, .88) !important;
     -webkit-text-fill-color: rgba(246, 238, 231, .88) !important;
@@ -1436,13 +1437,13 @@
 /* 模板小卡与状态 */
 #adr048-popup-body .adr044-template-compact {
     border-radius: 14px !important;
-    border: 1px solid rgba(242, 184, 198, .14) !important;
+    border: 1px solid rgba(228, 200, 208, .14) !important;
     background: rgba(246, 238, 231, .03) !important;
     padding: 10px !important;
 }
 
 #adr048-popup-body .adr044-template-status {
-    color: rgba(242, 184, 198, .8) !important;
+    color: rgba(228, 200, 208, .8) !important;
 }
 
 /* 总开关：全场唯一的重笔 */
@@ -1470,14 +1471,14 @@
 /* toast 对齐同一语言 */
 #adr044-auto-trigger-popup {
     border-radius: 16px !important;
-    border: 1px solid rgba(242, 184, 198, .30) !important;
+    border: 1px solid rgba(228, 200, 208, .30) !important;
     background: linear-gradient(165deg, rgba(43, 27, 36, .97), rgba(27, 18, 22, .97)) !important;
     box-shadow: 0 16px 44px rgba(9, 14, 22, .5), 0 0 0 3px rgba(232, 137, 107, .12) !important;
 }
 
 #adr044-auto-trigger-popup .adr044-auto-trigger-popup-title {
-    color: #F2B8C6 !important;
-    -webkit-text-fill-color: #F2B8C6 !important;
+    color: #E4C8D0 !important;
+    -webkit-text-fill-color: #E4C8D0 !important;
     letter-spacing: .04em !important;
 }
 
@@ -1785,7 +1786,7 @@
    adr048ApplyPanelTheme() 以内联 !important 同步（open 流程
    历史上就是内联刷色，样式表压不住，必须 JS 换轨）。
    调色板：纸粉 #FDF6F9 / 藕紫 #F2EDF8 / 砚蓝字 #404D62 /
-   晨霞粉 #C86F93 / 砚蓝描边 rgba(116,136,162,*) / 晨金 #B48437。
+   晨霞粉 #AD8296 / 砚蓝描边 rgba(116,136,162,*) / 晨金 #B48437。
    ============================================================ */
 
 /* 开灯按钮本体（暗色态基础皮，亮色态在下方覆盖） */
@@ -1798,7 +1799,7 @@
     height: 34px !important;
     padding: 0 !important;
     border-radius: 10px !important;
-    border: 1px solid rgba(242, 184, 198, .22) !important;
+    border: 1px solid rgba(228, 200, 208, .22) !important;
     background: rgba(246, 238, 231, .05) !important;
     font-size: 16px !important;
     line-height: 1 !important;
@@ -1821,7 +1822,7 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-shell {
-    background: linear-gradient(172deg, #FDF6F9 0%, #F8F1F8 44%, #F2EDF8 100%) !important;
+    background: linear-gradient(172deg, #FBF3F6 0%, #F2F1F7 44%, #ECF0F6 100%) !important;
     color: #404D62 !important;
     border: 1px solid rgba(116, 136, 162, .30) !important;
     box-shadow: 0 18px 48px rgba(84, 100, 124, .20), 0 0 0 1px rgba(255, 255, 255, .55) !important;
@@ -1834,9 +1835,9 @@
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head::after {
     background: linear-gradient(90deg,
-        rgba(240, 150, 180, 0) 0%,
-        #F096B4 22%,
-        #C9A6EC 54%,
+        rgba(228, 200, 208, 0) 0%,
+        #E4C8D0 22%,
+        #A2AFC4 54%,
         rgba(228, 190, 140, .9) 78%,
         rgba(228, 190, 140, 0) 100%) !important;
     background-size: 220% 100% !important;
@@ -1847,7 +1848,7 @@
     color: #404D62 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head .adr048-title-d {
-    color: #C86F93 !important;
+    color: #AD8296 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-head .adr048-title-cn {
     color: rgba(116, 136, 162, .95) !important;
@@ -1864,16 +1865,16 @@
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-close:hover,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-theme-toggle:hover {
-    background: rgba(240, 160, 190, .22) !important;
-    border-color: rgba(200, 111, 147, .55) !important;
+    background: rgba(228, 200, 208, .40) !important;
+    border-color: rgba(173, 130, 150, .55) !important;
 }
 
 /* ---- 正文文字与滚动条 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body {
-    scrollbar-color: rgba(200, 111, 147, .38) transparent !important;
+    scrollbar-color: rgba(173, 130, 150, .38) transparent !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body::-webkit-scrollbar-thumb {
-    background: rgba(200, 111, 147, .32) !important;
+    background: rgba(173, 130, 150, .32) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body,
@@ -1889,7 +1890,7 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-summary {
-    color: #C86F93 !important;
+    color: #AD8296 !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body label {
@@ -1915,16 +1916,16 @@
     background: rgba(255, 255, 255, .82) !important;
     color: #404D62 !important;
     -webkit-text-fill-color: #404D62 !important;
-    caret-color: #C86F93 !important;
+    caret-color: #AD8296 !important;
     border: 1px solid rgba(116, 136, 162, .34) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body input:focus,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body select:focus,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body textarea:focus {
-    border-color: rgba(200, 111, 147, .62) !important;
+    border-color: rgba(173, 130, 150, .62) !important;
     background: rgba(255, 255, 255, .95) !important;
-    box-shadow: 0 0 0 3px rgba(200, 111, 147, .13) !important;
+    box-shadow: 0 0 0 3px rgba(173, 130, 150, .13) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body input::placeholder,
@@ -1955,18 +1956,18 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body button:hover {
-    background: rgba(240, 160, 190, .18) !important;
-    border-color: rgba(200, 111, 147, .5) !important;
+    background: rgba(228, 200, 208, .36) !important;
+    border-color: rgba(173, 130, 150, .5) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-plot-generate,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-emotion-generate,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-plot-inject,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-emotion-inject {
-    background: linear-gradient(135deg, rgba(240, 160, 190, .40), rgba(196, 156, 226, .34)) !important;
-    border-color: rgba(200, 111, 147, .55) !important;
-    color: #8A4666 !important;
-    -webkit-text-fill-color: #8A4666 !important;
+    background: linear-gradient(135deg, rgba(228, 200, 208, .58), rgba(162, 175, 196, .50)) !important;
+    border-color: rgba(173, 130, 150, .55) !important;
+    color: #4E5A75 !important;
+    -webkit-text-fill-color: #4E5A75 !important;
     font-weight: 700 !important;
 }
 
@@ -1974,7 +1975,7 @@
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-emotion-generate:hover,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-plot-inject:hover,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-emotion-inject:hover {
-    background: linear-gradient(135deg, rgba(240, 160, 190, .55), rgba(196, 156, 226, .46)) !important;
+    background: linear-gradient(135deg, rgba(228, 200, 208, .75), rgba(162, 175, 196, .64)) !important;
 }
 
 /* ---- 页签 ---- */
@@ -1986,23 +1987,23 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-tabs button.active {
-    background: linear-gradient(135deg, rgba(240, 160, 190, .42), rgba(196, 156, 226, .34)) !important;
-    border-color: rgba(200, 111, 147, .58) !important;
-    color: #8A4666 !important;
-    -webkit-text-fill-color: #8A4666 !important;
+    background: linear-gradient(135deg, rgba(228, 200, 208, .58), rgba(162, 175, 196, .50)) !important;
+    border-color: rgba(173, 130, 150, .58) !important;
+    color: #4E5A75 !important;
+    -webkit-text-fill-color: #4E5A75 !important;
 }
 
 /* ---- 勾选：圆圈换晨霞描边，选中=粉紫渐变 + 白勾 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-shell .adr048-check input[type="checkbox"] {
-    border: 1.5px solid rgba(200, 111, 147, .55) !important;
+    border: 1.5px solid rgba(173, 130, 150, .55) !important;
     background: rgba(255, 255, 255, .5) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-shell .adr048-check input[type="checkbox"]:checked {
-    border-color: rgba(200, 111, 147, .9) !important;
+    border-color: rgba(173, 130, 150, .9) !important;
     background:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat,
-        linear-gradient(135deg, #E893B2, #B48BD8) !important;
+        linear-gradient(135deg, #E4C8D0, #A2AFC4) !important;
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr048-check {
@@ -2018,7 +2019,7 @@
     color: rgba(64, 77, 98, .62) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer > summary::before {
-    color: rgba(200, 111, 147, .6) !important;
+    color: rgba(173, 130, 150, .6) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adrx-drawer[open] > summary {
     border-bottom: 1px dashed rgba(116, 136, 162, .22) !important;
@@ -2032,7 +2033,7 @@
     color: #404D62 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-label {
-    color: rgba(200, 111, 147, .95) !important;
+    color: rgba(173, 130, 150, .95) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-tag {
     border: 1px solid rgba(180, 132, 55, .45) !important;
@@ -2048,7 +2049,7 @@
     background: rgba(84, 100, 124, .10) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-bar i {
-    background: linear-gradient(90deg, #F096B4, #C9A6EC) !important;
+    background: linear-gradient(90deg, #E4C8D0, #A2AFC4) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .arb-ct-line {
     color: rgba(64, 77, 98, .82) !important;
@@ -2066,13 +2067,13 @@
 /* ---- 校准药丸 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-auto-calibrate {
     background: rgba(255, 255, 255, .78) !important;
-    border: 1px solid rgba(200, 111, 147, .5) !important;
+    border: 1px solid rgba(173, 130, 150, .5) !important;
     color: #404D62 !important;
     -webkit-text-fill-color: #404D62 !important;
     box-shadow: 0 2px 10px rgba(84, 100, 124, .12) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-auto-calibrate:hover {
-    border-color: rgba(200, 111, 147, .8) !important;
+    border-color: rgba(173, 130, 150, .8) !important;
 }
 
 /* ---- 模板小卡 ---- */
@@ -2081,16 +2082,16 @@
     background: rgba(255, 255, 255, .42) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] .adr044-template-status {
-    color: #C86F93 !important;
+    color: #AD8296 !important;
 }
 
 /* ---- 总开关 ---- */
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-master-toggle {
-    border: 1px solid rgba(200, 111, 147, .55) !important;
-    background: linear-gradient(135deg, rgba(240, 160, 190, .42), rgba(196, 156, 226, .32)) !important;
-    color: #8A4666 !important;
-    -webkit-text-fill-color: #8A4666 !important;
-    box-shadow: 0 4px 16px rgba(200, 111, 147, .14) !important;
+    border: 1px solid rgba(173, 130, 150, .55) !important;
+    background: linear-gradient(135deg, rgba(228, 200, 208, .58), rgba(162, 175, 196, .48)) !important;
+    color: #4E5A75 !important;
+    -webkit-text-fill-color: #4E5A75 !important;
+    box-shadow: 0 4px 16px rgba(173, 130, 150, .14) !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-master-toggle[data-master-on="0"] {
     border-color: rgba(140, 132, 148, .38) !important;
@@ -2121,7 +2122,7 @@
     color: #7A6238 !important;
 }
 #adr048-popup-panel[data-arb-theme="dawn"] input[type="range"] {
-    accent-color: #C86F93 !important;
+    accent-color: #AD8296 !important;
 }
 
 /* ---- 可达性 ---- */
@@ -2129,7 +2130,7 @@
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-close:focus-visible,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-theme-toggle:focus-visible,
 #adr048-popup-panel[data-arb-theme="dawn"] #adr044-master-toggle:focus-visible {
-    outline: 2px solid rgba(200, 111, 147, .8) !important;
+    outline: 2px solid rgba(173, 130, 150, .8) !important;
     outline-offset: 2px !important;
 }
 
@@ -2156,15 +2157,15 @@
 /* ============================================================
    v1.15.1 胶囊浮标分析脉冲
    导演分析进行中，光圈沿 999px 圆角贴胶囊呼吸。
-   取胭雾加深一度(#C9A0B4)——浅色顶栏上看得清，气质仍是红霞。
+   取胭雾加深一度(#A2AFC4)——浅色顶栏上看得清，气质仍是红霞。
    成功/失败/超时/手动打断皆由 JS 熄灯。
    ============================================================ */
 #adr048-fab.adr048-analyzing {
     animation: adr048-cap-pulse 1.5s ease-in-out infinite;
 }
 @keyframes adr048-cap-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 160, 180, .70); }
-    50%      { box-shadow: 0 0 0 9px rgba(201, 160, 180, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(162, 175, 196, .70); }
+    50%      { box-shadow: 0 0 0 9px rgba(162, 175, 196, 0); }
 }
 
 
@@ -2178,8 +2179,8 @@
 #adr048-fab.adr048-analyzing::after {
     content: "";
     width: 7px; height: 7px; border-radius: 50%;
-    background: #C9A0B4;
-    box-shadow: 0 0 5px rgba(201, 160, 180, .85);
+    background: #A2AFC4;
+    box-shadow: 0 0 5px rgba(162, 175, 196, .85);
     margin-left: 4px; align-self: center; flex: none;
     animation: adr048-lamp-breathe 1.2s ease-in-out infinite;
 }
@@ -2239,3 +2240,13 @@
     border-style: dashed !important;
     opacity: .6 !important;
 }
+
+
+/* ============================================================
+   v1.19.1 藕荷蓝灰 · UI-only 换色
+   全体粉色系收编为「藕荷 #E4C8D0 → 蓝灰 #A2AFC4」渐变：
+   计数卡 / 总开关 / 晨曦主题按钮·页签·勾选·进度条 /
+   FAB 胶囊尾色（砚蓝入藕荷）/ 暗色霞线与进度条尾段入暮。
+   深字 #4E5A75，深描边 #AD8296 / rgba(173,130,150)。
+   霞橘 #E8896B 与暮金 #DCAD75 不动。
+   ============================================================ */
