@@ -3261,7 +3261,7 @@
                 return "· 第 " + (Number.isFinite(Number(h.floor)) ? h.floor : "?") + " 楼｜卡池：" + (h.pool || "?")
                     + "｜模式：" + (h.mode || "?") + "｜卡面：" + (h.card || "");
             });
-            return "【投卡史｜抽卡小能手最近投放的场外事件卡】\n" + lines.join("\n")
+            return "【投卡史｜剧情小风铃最近投放的场外事件卡】\n" + lines.join("\n")
                 + "\n统筹须知：以上事件卡均已注入戏中。收线时请将其纳入兑现盘点视线范围。";
         } catch (e) { return ""; }
     }
@@ -3353,8 +3353,8 @@
 
     function adrCdStatusText() {
         var st = settings();
-        if (!adrDMasterEnabled()) return "总开关已关闭 · 抽卡小能手随组休息";
-        if (!st.cdEnabled) return "抽卡小能手未启用";
+        if (!adrDMasterEnabled()) return "总开关已关闭 · 剧情小风铃随组休息";
+        if (!st.cdEnabled) return "剧情小风铃未启用";
         var state = adrCdChatState();
         var on = ADR_CD_SLOTS.filter(function (s) { return state.slotOn[s] && adrCdSlotText(state, s); })
             .map(function (s) { return ADR_CD_SLOT_LABEL[s]; });
@@ -4242,8 +4242,8 @@
         var st = settings();
         var noteClass = checkClass === "adr048-check" ? "adr048-note" : "adr044-note";
         var mode = st.cdMode === "pick" ? "pick" : "blind";
-        return secOpen("抽卡小能手")
-            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-enabled"' + (st.cdEnabled ? " checked" : "") + '> 启用抽卡小能手</label>'
+        return secOpen("剧情小风铃 🎐")
+            + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-enabled"' + (st.cdEnabled ? " checked" : "") + '> 启用剧情小风铃</label>'
             + '<div class="adr044-cd-status-line" id="adr044-cd-status-line" title="点一下展开／收起">状态加载中…</div>'
             + '<div class="' + actionsClass + '"><button id="adr044-cd-preview-draw" type="button">试抽一张（仅预览）</button><button id="adr044-cd-selfcheck" type="button">🔧 自检</button></div>'
             + '<div class="adr044-cd-preview-out" id="adr044-cd-preview-out"></div>'
@@ -6162,7 +6162,7 @@
             var shell = d.querySelector("#adr048-popup-shell");
             if (shell) {
                 adr048SetImportant(shell, "background", dawn
-                    ? "linear-gradient(172deg, #FBF3F6 0%, #F2F1F7 44%, #ECF0F6 100%)"
+                    ? "linear-gradient(145deg, rgba(221,193,208,.42) 0%, rgba(221,193,208,.34) 42%, rgba(158,140,185,.28) 100%)"
                     : "rgba(42,52,67,.98)");
                 adr048SetImportant(shell, "color", dawn ? "#404D62" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
