@@ -1822,7 +1822,7 @@
 }
 
 #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-shell {
-    background: linear-gradient(145deg, rgba(221, 193, 208, .42) 0%, rgba(221, 193, 208, .34) 42%, rgba(158, 140, 185, .28) 100%) !important;
+    background: linear-gradient(180deg, rgba(221, 193, 208, .96) 0%, rgba(226, 202, 216, .96) 22%, rgba(232, 224, 235, .97) 49%, rgba(190, 171, 205, .97) 73%, rgba(158, 140, 185, .98) 100%) !important;
     color: #404D62 !important;
     border: 1px solid rgba(116, 136, 162, .30) !important;
     box-shadow: 0 18px 48px rgba(84, 100, 124, .20), 0 0 0 1px rgba(255, 255, 255, .55) !important;
