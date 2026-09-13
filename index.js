@@ -1,6 +1,8 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.29.3｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.29.4｜ripple & GPT & Claude
+ * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
+ *          小眼睛被审核打回按情欲场面已开门在 NSFW 库内盲抽（报告：用户反馈经江转达；施工 波哥 Claude Fable 5.1）
  * v1.29.2 轻收纳：API / 预设折叠，重新对表提至进度下方，抽卡同样整理（ripple & GPT）
  * v1.29.1 秀气版：缩字号 / 字重 / 留白，恢复浮标流波；浮标只跟随面板日夜（ripple & GPT）
  * v1.29.0 雾珠月汐：界面光感与留白精修，浮标自动昼夜 / 跟随面板（ripple & GPT）
@@ -2986,6 +2988,8 @@
             buildEnvelope: adrCdBuildEnvelope,
             buildSlotPools: adrCdBuildSlotPools,
             rollPool: adrCdRollPool,
+            nsfwGate: adrCdNsfwGate,
+            isModerationError: adrCdIsModerationError,
             factoryLib: ADR_CD_FACTORY_LIB
         };
     } catch (eCdTestHook) {}
@@ -3404,6 +3408,10 @@
 
         // v1.19.2：NSFW 双向硬门。菜单里没有 NSFW 池时整段不注入——省 token，也不把概念平白种进去。
         var hasNsfw = menu.some(function (m) { return String(m).indexOf("NSFW·") === 0; });
+        // v1.29.4：名单全是 NSFW 时不注入硬门。硬门说"不满足就当它不在名单上、宁可选次贴合的"，
+        // 名单里又只有它，再加一句"必须选一个"——三句话自相矛盾，模型只能答废话，答废话就降级。
+        var allNsfw = hasNsfw && menu.every(function (m) { return String(m).indexOf("NSFW·") === 0; });
+        if (allNsfw) hasNsfw = false;
 
         var sys = "你是抽卡助手的选池器。你只能看到卡池名单，看不到任何卡面内容。"
             + "你的任务：判断此刻的剧情氛围，从名单中选出最适合此刻投放一张事件卡的卡池。"
@@ -3497,6 +3505,9 @@
         var data;
         try { data = JSON.parse(raw); } catch (eJson) { throw new Error("择池返回非 JSON"); }
         var out = parseResponse(data);
+        if (!String(out || "").trim() && data && data.choices && data.choices[0] && data.choices[0].finish_reason === "content_filter") {
+            throw new Error("择池被内容审核拦下（finish_reason=content_filter）");
+        }
         var pick = adrCdSanitizePickResponse(out, menu);
         if (!pick) throw new Error("点池答复无效：" + adrCdTruncate(out, 40) + adrCdEmptyReplyHint(data, out));
         return pick;
@@ -3577,7 +3588,8 @@
         var url = chatUrl(endpoint);
         if (!url) throw new Error("择池 API 地址无效");
 
-        var hasNsfw = cands.some(function (c) { return c.slot === "nsfw"; });
+        var hasNsfw = cands.some(function (c) { return c.slot === "nsfw"; })
+            && cands.some(function (c) { return c.slot !== "nsfw"; });   // v1.29.4：候选全是 NSFW 就没有门可把
 
         var sys = "你是抽卡助手的选卡器。下面会给你几张候选事件卡，请挑出最适合此刻投放的那一张。"
             + "【刚刚这一楼】就是此刻，贴合与否一律以它为准。"
@@ -3657,6 +3669,9 @@
         var dataC;
         try { dataC = JSON.parse(rawC); } catch (eJ) { throw new Error("择卡返回非 JSON"); }
         var outC = String(parseResponse(dataC) || "").trim();
+        if (!outC && dataC && dataC.choices && dataC.choices[0] && dataC.choices[0].finish_reason === "content_filter") {
+            throw new Error("择卡被内容审核拦下（finish_reason=content_filter）");
+        }
         var mNum = outC.match(/-?\d+/);
         if (!mNum) throw new Error("选卡答复无效：" + adrCdTruncate(outC, 40) + adrCdEmptyReplyHint(dataC, outC));
         var n = Number(mNum[0]);
@@ -3671,8 +3686,22 @@
     // 这是 v1.19.2 自己标记的「已知未堵」，也是"莫名其妙抽到 NSFW"最可能的来源——
     // 降级是静默发生的，用户根本不知道那一张是随机给的。
     // （v1.21 另外两条闸只作用于盲抽路径，与这批反馈无关，v1.22 已撤除。）
-    function adrCdNsfwGate(degraded) {
-        return degraded ? { hardExclude: ["nsfw"] } : null;
+    // v1.29.4：只开 NSFW 仓库时不闸。那是用户自己的仓库配置——闸上了就是"永远空过"，
+    // 而小眼睛在情欲场面被审核打回是常态，等于 NSFW 库这一格从来投不出一张。
+    function adrCdNsfwGate(degraded, onlyNsfw) {
+        return (degraded && !onlyNsfw) ? { hardExclude: ["nsfw"] } : null;
+    }
+
+    // v1.29.4：认出"小眼睛被内容审核打回"。这种失败不是没应答，而是它看了【刚刚这一楼】之后
+    // 拒绝作答——恰恰说明这一楼正是情欲场面，也就是双向硬门本该开的时候。
+    // 只认 4xx 且报文带审核字样（DeepSeek「Content Exists Risk」、OpenAI/Azure content_filter、
+    // Gemini SAFETY 一类）；网络断、超时、答复格式不对都不算，仍按老规矩排除 NSFW。
+    var ADR_CD_MODERATION_RE = /content exists risk|content[_ ]filter|content (management )?policy|moderation|unsafe|harmful|inappropriate|safety|prohibited|sensitive|blocked|敏感|违规|不安全|安全策略|审核/i;
+    function adrCdIsModerationError(e) {
+        var m = e && e.message ? String(e.message) : String(e || "");
+        if (/finish_reason=content_filter/.test(m)) return true;
+        if (!/API (400|403|422)/.test(m)) return false;
+        return ADR_CD_MODERATION_RE.test(m);
     }
 
     // 前两段（掷仓库 → 掷卡池）抽成纯函数：仓库均等是本版核心承诺，必须可验证。
@@ -3717,7 +3746,10 @@
 
         var result = null;
         var usedMode = "盲抽";
-        var degraded = false;   // 择池失败降级过来的？降级时 NSFW 一律不参与
+        var degraded = false;   // 择池失败降级过来的？降级时 NSFW 一律不参与（只开 NSFW 时除外）
+        var onlyNsfw = slotPools.every(function (p) { return p.slot === "nsfw"; });
+        var hasNsfwPools = slotPools.some(function (p) { return p.slot === "nsfw"; });
+        var moderated = false;  // v1.29.4：小眼睛被审核打回——这一楼本身就是情欲场面
 
         // v1.23.0 择卡：候选按仓库均摊摸出来，连卡面一起给 DS 挑一张，或弃权。
         // 治的是"池选对了，池内那张不贴合"——择池只解决了前半段。
@@ -3726,24 +3758,41 @@
             try {
                 var cands = adrCdBuildCandidates(slotPools, state, adrCdCandidateCount(slotPools));
                 if (!cands.length) throw new Error("没有可用候选卡");
-                var idxC = await adrCdPickCardViaDS(cands, state);
-                console.log("[抽卡小能手] 小眼睛选卡：第 " + idxC + " 张"
-                    + "（候选 " + cands.length + " 张，耗时 " + (Date.now() - tC) + "ms）");
-                var chosen = cands[idxC - 1];
+                var chosen;
+                if (cands.length === 1) {
+                    // v1.29.4：只有一张候选（典型：只开 NSFW 且只有一个池）就没什么可挑，不问小眼睛——
+                    // 省一次调用，也不给审核打回的机会。
+                    chosen = cands[0];
+                    console.log("[抽卡小能手] 候选只有一张，不问小眼睛直接投");
+                    usedMode = "择卡·唯一候选";
+                } else {
+                    var idxC = await adrCdPickCardViaDS(cands, state);
+                    console.log("[抽卡小能手] 小眼睛选卡：第 " + idxC + " 张"
+                        + "（候选 " + cands.length + " 张，耗时 " + (Date.now() - tC) + "ms）");
+                    chosen = cands[idxC - 1];
+                    usedMode = "择卡";
+                }
                 result = { slot: chosen.slot, pool: chosen.pool, card: chosen.card };
-                usedMode = "择卡";
             } catch (eC) {
                 console.warn("[抽卡小能手] 择卡降级盲抽：" + (eC && eC.message ? eC.message : eC));
                 usedMode = "择卡降级盲抽";
                 degraded = true;
+                moderated = hasNsfwPools && adrCdIsModerationError(eC);
             }
         }
 
         if (st.cdMode === "pick" && !opts.preview) {
             var t0 = Date.now();
             try {
-                var pick = await adrCdPickPoolViaDS(slotPools, state);
-                console.log("[抽卡小能手] 小眼睛点池：" + pick + "（耗时 " + (Date.now() - t0) + "ms）");
+                var pick;
+                if (slotPools.length === 1) {
+                    // v1.29.4：名单只有一个池就没什么可点，不问小眼睛——省一次调用，也不给审核打回的机会。
+                    pick = slotPools[0].menuName;
+                    console.log("[抽卡小能手] 名单只有一个池，不问小眼睛直接投：" + pick);
+                } else {
+                    pick = await adrCdPickPoolViaDS(slotPools, state);
+                    console.log("[抽卡小能手] 小眼睛点池：" + pick + "（耗时 " + (Date.now() - t0) + "ms）");
+                }
 
                 var poolObj = null;
                 for (var i = 0; i < slotPools.length; i++) { if (slotPools[i].menuName === pick) { poolObj = slotPools[i]; break; } }
@@ -3766,18 +3815,25 @@
                 console.warn("[抽卡小能手] 择池降级盲抽：" + (ePick && ePick.message ? ePick.message : ePick));
                 usedMode = "择池降级盲抽";
                 degraded = true;
+                moderated = hasNsfwPools && adrCdIsModerationError(ePick);
             }
         }
 
-        if (!result) result = adrCdDrawBlind(slotPools, state, "", adrCdNsfwGate(degraded));
-        if (!result || !result.card) {
-            // 空手而归时说清是哪道闸拦的，别让人对着"无可抽卡面"猜。
-            var onlyNsfw = slotPools.length > 0 && slotPools.every(function (p) { return p.slot === "nsfw"; });
-            if (onlyNsfw && degraded) {
-                return { ok: false, reason: "择池没成功，而此刻只有 NSFW 库可抽——没人判准入条件时不投，这一轮空过" };
+        // v1.29.4：审核打回＝这一楼本身就是情欲场面＝双向硬门本该开。
+        // 旧规矩在这里把 NSFW 排除，于是"该来的时候"恰恰是"永远不来的时候"——
+        // 小眼睛看到情欲正文就被审核打回，一打回就降级，一降级就没有 NSFW。现按门已开处理，在 NSFW 库内盲抽。
+        if (!result && moderated && !onlyNsfw) {
+            var nsfwOnlyPools = slotPools.filter(function (p) { return p.slot === "nsfw"; });
+            result = adrCdDrawBlind(nsfwOnlyPools, state, "");
+            if (result) {
+                console.log("[抽卡小能手] 小眼睛的审核把这一楼打回了：按 NSFW 门已开处理，在 NSFW 库内盲抽");
+                usedMode = usedMode.replace("降级盲抽", "") + "·审核判 NSFW";
+                degraded = false;
             }
-            return { ok: false, reason: "无可抽卡面" };
         }
+
+        if (!result) result = adrCdDrawBlind(slotPools, state, "", adrCdNsfwGate(degraded, onlyNsfw));
+        if (!result || !result.card) return { ok: false, reason: "无可抽卡面" };
 
         if (opts.preview) {
             return { ok: true, pool: result.pool, card: result.card, mode: "试抽（盲抽）", preview: true };
@@ -4154,6 +4210,8 @@
         var lastRec = ((state.history || []).slice(-1)[0]) || null;
         if (lastRec && String(lastRec.mode || "").indexOf("降级") >= 0) {
             head += " · ⚠ 上一张是小眼睛没应答时随机给的";
+        } else if (lastRec && String(lastRec.mode || "").indexOf("审核判 NSFW") >= 0) {
+            head += " · ⚠ 上一张：小眼睛被审核打回，按情欲场面已开门在 NSFW 库内随机给的";
         }
 
         var h = (state.history || []).slice(-1)[0];
