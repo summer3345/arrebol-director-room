@@ -1,6 +1,6 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.30.0｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.30.1｜ripple & GPT & Claude
  * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
  *          小眼睛被审核打回按情欲场面已开门在 NSFW 库内盲抽（报告：用户反馈经江转达；施工 波哥 Claude Fable 5.1）
@@ -1257,7 +1257,9 @@
     function adrDStreamCollector() {
         var buf = "";
         var mode = "";           // "" 未定 | "sse" | "json"
-        var rawAll = "";
+        var rawAll = "";        // 仅整份 JSON 模式保留完整响应
+        var rawSample = "";     // SSE / 未定模式只留少量排错原文
+        var rawSampleLimit = 512;
         var content = "";
         var reasoningChars = 0;
         var finish = "";
@@ -1309,19 +1311,24 @@
             push: function (text) {
                 text = String(text || "");
                 if (!text) return;
-                rawAll += text;
+                if (rawSample.length < rawSampleLimit) {
+                    rawSample += text.slice(0, rawSampleLimit - rawSample.length);
+                }
                 if (!mode) {
-                    var head = rawAll.replace(/^[\s﻿]+/, "");
+                    // 纯前导空白无需积累；JSON 与 SSE 都从首个非空白字符开始解析。
+                    var head = text.replace(/^[\s﻿]+/, "");
                     if (!head) return;
                     mode = (head.charAt(0) === "{" || head.charAt(0) === "[") ? "json" : "sse";
-                    if (mode === "sse") { buf = rawAll.replace(/\r/g, ""); drain(false); }
+                    if (mode === "json") rawAll = head;
+                    else { buf = head.replace(/\r/g, ""); drain(false); }
                     return;
                 }
-                if (mode === "sse") { buf += text.replace(/\r/g, ""); drain(false); }
+                if (mode === "json") rawAll += text;
+                else { buf += text.replace(/\r/g, ""); drain(false); }
             },
             end: function () { if (mode === "sse") drain(true); },
             mode: function () { return mode; },
-            raw: function () { return rawAll; },
+            raw: function () { return mode === "json" ? rawAll : rawSample; },
             content: function () { return content; },
             reasoningChars: function () { return reasoningChars; },
             finish: function () { return finish; },

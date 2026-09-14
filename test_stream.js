@@ -193,6 +193,37 @@ async function primeDirector(b) {
         ok(b.win.__adrDStreamTest.emptyHint(0, "stop") === "", "正常收尾且没思考时不加提示");
     }
 
+    section("收集器 · 长思考释放原文，正文与兼容解析不截断");
+    {
+        const b = build({});
+        const collector = b.win.__adrDStreamTest.collector;
+        const col = collector();
+        const thought = "想".repeat(1024);
+        for (let i = 0; i < 4096; i++) col.push(delta({ reasoning_content: thought }));
+        ok(col.raw().length <= 512, "四百万字思考后排错原文仍不超过 512 字符");
+        ok(col.reasoningChars() === 4194304, "长思考仍完整计数");
+        const body = "正文".repeat(4096);
+        const last = delta({ content: body }, "stop");
+        for (let i = 0; i < last.length; i += 7) col.push(last.slice(i, i + 7));
+        col.push("data: [DONE]\n\n"); col.end();
+        ok(col.content() === body && col.finish() === "stop", "跨块长正文完整，结束原因保留");
+        ok(col.raw().length <= 512, "追加正文不会重新累积 SSE 原文");
+        const json = collector();
+        for (let i = 0; i < 100; i++) json.push(" \n".repeat(1024));
+        ok(json.mode() === "" && json.raw().length <= 512, "未判定格式时纯空白也不无限积累");
+        const whole = JSON.stringify({ choices: [{ message: { content: body } }] });
+        for (let i = 0; i < whole.length; i += 7) json.push(whole.slice(i, i + 7));
+        json.end();
+        ok(json.mode() === "json" && JSON.parse(json.raw()).choices[0].message.content === body, "长 JSON 分块响应完整保留，超过诊断样本也不截断");
+        const err = collector();
+        err.push(": heartbeat\n\n".repeat(100));
+        err.push(sse({ error: { message: "late upstream error" } })); err.end();
+        ok(err.error() && err.error().message.includes("late upstream error"), "排错样本用满后仍能解析后续错误");
+        const final = collector();
+        final.push(delta({ content: "未带空行的最后一块" }).trimEnd()); final.end();
+        ok(final.content() === "未带空行的最后一块", "流结束时保留尚未分隔的最后事件");
+    }
+
     // ───────────────────────────────────────────────
     section("导演 · 流式响应（带思考）照常注入");
     {
