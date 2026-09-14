@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.29.4｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.30.0｜ripple & GPT & Claude
+ * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
  *          小眼睛被审核打回按情欲场面已开门在 NSFW 库内盲抽（报告：用户反馈经江转达；施工 波哥 Claude Fable 5.1）
  * v1.29.2 轻收纳：API / 预设折叠，重新对表提至进度下方，抽卡同样整理（ripple & GPT）
@@ -1137,6 +1138,12 @@
         var r = activeRange();
         var out = "";
 
+        // v1.30.0：基调段最前——它是长期的框，一次性补充指令只是这一拍的临时插话。
+        var toneBlock = adrDToneBlock();
+        if (toneBlock) {
+            out += toneBlock + "\n\n";
+        }
+
         var extraBlock = adrDExtraInstructionBlock(type, extra);
         if (extraBlock) {
             out += extraBlock + "\n\n";
@@ -1168,6 +1175,7 @@
         } else {
             out += "请根据以上内容输出情感导演方向。只输出分析结果，不要复述分析过程，不要写正文。";
         }
+        if (toneBlock) out += "所有方向以【用户基调】为第一优先。";
 
         return out;
     }
@@ -1375,7 +1383,7 @@
         var body = {
             model: model,
             messages: [
-                { role: "system", content: preset },
+                { role: "system", content: preset + (adrDToneSystemLine() ? "\n\n" + adrDToneSystemLine() : "") },
                 { role: "user", content: await buildPrompt(type, extra || "") }
             ],
             temperature: 0.6,
@@ -1711,7 +1719,8 @@
             auto: { emotion: adrDNormAutoItem(auto.emotion), plot: adrDNormAutoItem(auto.plot) },
             log: { emotion: adrDNormLogList(log.emotion), plot: adrDNormLogList(log.plot) },
             float: fl,
-            graze: { emotion: adrDNormGraze(graze.emotion), plot: adrDNormGraze(graze.plot) }
+            graze: { emotion: adrDNormGraze(graze.emotion), plot: adrDNormGraze(graze.plot) },
+            tone: adrDNormTone(o.tone)   // v1.30.0 这局的基调
         };
     }
 
@@ -1805,6 +1814,260 @@
         }
         return metaOk || keyReady;
     }
+
+    // ================= v1.30.0 基调仓 =================
+    // 两位导演此前只认角色卡：卡写将军，就往家国天下调；卡苦大仇深，就往虐里调。
+    // 可同一张卡，有人想玩两小无猜、有人想搞笑、有人想国破山河在、有人纯搞色——卡不知道，用户知道。
+    // 基调是用户亲口写下的"这局想玩什么"，压过角色卡、世界书、人设与此前剧情暗示的一切调子，是两位导演的第一要义。
+    // 基调仓（账号级 toneStore）存命名条目，出厂几条按名补齐一次（toneSeeded 记账，删过不复活）；
+    // 这局用哪条、改成什么样，存在聊天文件（adrDChatState().tone），换聊天各记各的、换设备不失忆。
+    // 只喂两位导演；小眼睛（择池／择卡）不看基调，它的"整体调性"另有来源。
+    var ADR_D_FACTORY_TONES = {
+        "轻松日常": "这局想玩轻松的日常，不虐、不搞大冲突。重点是两个人相处时的松弛和小趣味，矛盾点到为止，当天就能翻篇。",
+        "甜甜恋爱": "这局就是想谈恋爱。往心动、暧昧、试探、靠近走，别拖、别虐、别搞第三者；角色卡里的旧账和苦难只当背景，不拿出来压人。",
+        "两小无猜": "这局想玩青梅竹马、两小无猜。熟稔、拌嘴、默契、不用解释的亲近感是重点；不搞陌生人式的试探，也不搞大起大落。",
+        "搞笑沙雕": "这局想玩搞笑的。允许夸张、吐槽、乌龙和反差萌，节奏要快、要好笑；深刻和沉重一概不要，哪怕卡本身很正经。",
+        "慢热细水": "这局想慢慢来。关系一步一步往前挪，重视日常细节和分寸感，不秒爱、不秒推进；情绪温度维持温热，偶尔一点小波澜。",
+        "虐恋深情": "这局想虐一点。误会、错过、身不由己都可以上，但要虐得有来有回、有回甘，不要单方面折磨；底色还是深情。",
+        "家国大义": "这局想玩大格局。个人感情放在时代和局势里写，家国、责任、代价是主线，感情线克制、点到为止，不要小情小爱盖过大势。",
+        "纯欲向": "这局以情欲张力为主线。允许直白的身体吸引和拉扯，感情线为它服务；剧情事件只做铺垫和调剂，不要抢戏，不要突然插入沉重转折。"
+    };
+
+    function adrDToneStore() {
+        var st = settings();
+        if (!st.toneStore || typeof st.toneStore !== "object" || Array.isArray(st.toneStore)) st.toneStore = {};
+        var seeded = Array.isArray(st.toneSeeded) ? st.toneSeeded.slice() : [];
+        var touched = false;
+        Object.keys(ADR_D_FACTORY_TONES).forEach(function (k) {
+            if (typeof st.toneStore[k] === "string") {
+                if (seeded.indexOf(k) < 0) { seeded.push(k); touched = true; }
+                return;
+            }
+            if (seeded.indexOf(k) >= 0) return;   // 删过就尊重，不复活
+            st.toneStore[k] = ADR_D_FACTORY_TONES[k];
+            seeded.push(k);
+            touched = true;
+        });
+        if (touched) { st.toneSeeded = seeded; save("toneStore", st.toneStore); save("toneSeeded", seeded); }
+        return st.toneStore;
+    }
+
+    function adrDToneNames() { return Object.keys(adrDToneStore()); }
+
+    function adrDSaveToneToStore(name, text) {
+        var store = adrDToneStore();
+        store[name] = text;
+        save("toneStore", store);
+        saveNow();
+    }
+
+    function adrDDeleteToneFromStore(name) {
+        var store = adrDToneStore();
+        if (!(name in store)) return false;
+        delete store[name];
+        save("toneStore", store);
+        var st = settings();
+        var seeded = Array.isArray(st.toneSeeded) ? st.toneSeeded.slice() : [];
+        if (seeded.indexOf(name) < 0) { seeded.push(name); save("toneSeeded", seeded); }   // 出厂条目删过就记账
+        saveNow();
+        return true;
+    }
+
+    function adrDNormTone(o) {
+        if (!o || typeof o !== "object" || typeof o.text !== "string" || !o.text.trim()) return null;
+        return { text: o.text, name: typeof o.name === "string" ? o.name : "", t: Number(o.t) || 0 };
+    }
+
+    function adrDChatTone() {
+        try { return adrDChatState().tone || null; } catch (e) { return null; }
+    }
+
+    function adrDToneText() {
+        var t = adrDChatTone();
+        return t ? String(t.text || "").trim() : "";
+    }
+
+    function adrDSetChatTone(text, name) {
+        try {
+            var state = adrDChatState();
+            var clean = String(text || "");
+            state.tone = clean.trim() ? { text: clean, name: String(name || ""), t: Date.now() } : null;
+            return adrDSaveChatState(state);
+        } catch (e) { return false; }
+    }
+
+    // 喂给导演的基调段：放在采买清单最前面，一次性补充指令之前——它是长期的框，补充指令只是这一拍的临时插话。
+    function adrDToneBlock() {
+        var text = adrDToneText();
+        if (!text) return "";
+        return [
+            "【用户基调 · 第一要义】",
+            "以下是用户亲口写下的、这局想玩的方向。它压过角色卡、世界书、人设与此前剧情所暗示的一切调子：卡写得再苦大仇深，用户说想谈恋爱，指导就得帮着谈恋爱；卡是家国天下，用户说想玩轻松校园，就往轻松校园调。",
+            "你给的每一条方向都必须服务于这个基调；与基调相悖的方向，哪怕更「符合原卡」，也不要给。若最近正文已经偏离了基调，指导要把它拉回来，而不是顺着偏。",
+            "基调正文：",
+            text,
+            "【基调结束】"
+        ].join("\n");
+    }
+
+    // 系统消息里再钉一句：系统位分量重，用户预设改成什么样都压不掉它。
+    function adrDToneSystemLine() {
+        if (!adrDToneText()) return "";
+        return "【硬性】用户消息里的【用户基调】是第一要义：所有分析与指导以它为准，角色卡、世界书与此前剧情只在不与基调冲突时才作依据。";
+    }
+
+    function adrDToneSelectOptionsHTML(sel) {
+        var names = adrDToneNames();
+        var html = '<option value=""' + (sel ? "" : " selected") + '>— 从基调仓选一条填入 —</option>';
+        names.forEach(function (nm) {
+            html += '<option value="' + esc(nm) + '"' + (nm === sel ? " selected" : "") + '>' + esc(nm) + '</option>';
+        });
+        return html;
+    }
+
+    function adrDToneSelectedName() {
+        var t = adrDChatTone();
+        if (!t || !t.name) return "";
+        return adrDToneNames().indexOf(t.name) >= 0 ? t.name : "";
+    }
+
+    function adrDToneHint() {
+        var t = adrDChatTone();
+        if (!t) return "留空＝不设基调，导演照卡走。选一条或自己写，按聊天各记各的，换设备不丢。";
+        return "这局基调已生效" + (t.name ? "（「" + t.name + "」）" : "（自己写的）") + "：两位导演以它为第一要义。";
+    }
+
+    function adrDToneBlockHTML(actionsClass) {
+        var t = adrDChatTone();
+        var sel = adrDToneSelectedName();
+        var names = adrDToneNames();
+        return '<label>这局的基调（你想玩什么 · 导演的第一要义 · 按聊天各记各的）</label>'
+            + '<select id="adr044-tone-select" data-optsig="' + esc(adrCdOptSig("tone", names, sel)) + '">' + adrDToneSelectOptionsHTML(sel) + '</select>'
+            + '<textarea id="adr044-tone" rows="3" placeholder="例：这局想玩轻松校园日常，不虐、不搞政治，重点是两小无猜的甜。留空＝不设基调，导演照卡走。">' + esc(t ? t.text : "") + '</textarea>'
+            + '<input type="text" id="adr044-tone-name" placeholder="存进基调仓时的名字（选中仓里一条时自动填）" value="' + esc(t ? t.name : "") + '">'
+            + '<div class="' + actionsClass + '"><button type="button" id="adr044-tone-save">存进基调仓</button><button type="button" id="adr044-tone-delete">从仓里删掉</button><button type="button" id="adr044-tone-clear">清空这局基调</button></div>'
+            + '<div class="adr044-template-status" id="adr044-tone-status">' + esc(adrDToneHint()) + '</div>';
+    }
+
+    function adrDToneStatus(text, color) {
+        adrCdSetTextAll("adr044-tone-status", text, color || "#d6b177");
+    }
+
+    // 从存档回填到两块面板。正在打字的那一个不动（activeElement），免得把手上的字冲掉。
+    function adrDRefreshToneFields() {
+        try {
+            var d = rootDoc();
+            var t = adrDChatTone();
+            var sel = adrDToneSelectedName();
+            var names = adrDToneNames();
+            var sig = adrCdOptSig("tone", names, sel);
+            var html = adrDToneSelectOptionsHTML(sel);
+            var active = d.activeElement;
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-tone-select")).forEach(function (el) { adrCdFillSelect(el, html, sel, sig); });
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-tone")).forEach(function (el) {
+                if (el === active) return;
+                var v = t ? t.text : "";
+                if (el.value !== v) el.value = v;
+            });
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-tone-name")).forEach(function (el) {
+                if (el === active) return;
+                var v = t ? t.name : "";
+                if (el.value !== v) el.value = v;
+            });
+            adrDToneStatus(adrDToneHint(), "");
+        } catch (e) {}
+    }
+
+    function adrDApplyTonePreset(name) {
+        try {
+            var store = adrDToneStore();
+            if (!name || typeof store[name] !== "string") { adrDRefreshToneFields(); return; }
+            var okSave = adrDSetChatTone(store[name], name);
+            adrDRefreshToneFields();
+            adrDToneStatus(okSave ? "已填入「" + name + "」并存进这局 ✓ 可以在下面继续改" : "已填入「" + name + "」，但这局存档尚未就绪，请退出聊天再进来重试", okSave ? "#8ed99d" : "#d4726a");
+        } catch (e) {}
+    }
+
+    function adrDSaveToneFromFields() {
+        try {
+            var ta = qForm("adr044-tone");
+            var nameEl = qForm("adr044-tone-name");
+            var selEl = qForm("adr044-tone-select");
+            var text = ta ? String(ta.value || "").trim() : adrDToneText();
+            var name = nameEl ? String(nameEl.value || "").trim() : "";
+            if (!name && selEl) name = String(selEl.value || "").trim();
+            if (!text) { adrDToneStatus("基调是空的，没什么可存", "#d4726a"); return; }
+            if (!name) { adrDToneStatus("先给这条基调起个名（上面那一行）", "#d4726a"); return; }
+            var existed = typeof adrDToneStore()[name] === "string";
+            adrDSaveToneToStore(name, text);
+            adrDSetChatTone(text, name);
+            adrDRefreshToneFields();
+            adrDToneStatus((existed ? "已更新仓里的「" : "已存进基调仓「") + name + "」✓ 这局也按它走", "#8ed99d");
+        } catch (e) {}
+    }
+
+    function adrDDeleteToneFromFields() {
+        try {
+            var selEl = qForm("adr044-tone-select");
+            var nameEl = qForm("adr044-tone-name");
+            var name = selEl ? String(selEl.value || "").trim() : "";
+            if (!name && nameEl) name = String(nameEl.value || "").trim();
+            if (!name) { adrDToneStatus("先在下拉里选中要删的那条", "#d4726a"); return; }
+            if (!adrDDeleteToneFromStore(name)) { adrDToneStatus("仓里没有「" + name + "」", "#d4726a"); return; }
+            // 这局的基调文字留着——删的是仓里的条目，不是这局的选择
+            var t = adrDChatTone();
+            if (t && t.name === name) adrDSetChatTone(t.text, "");
+            adrDRefreshToneFields();
+            adrDToneStatus("已从基调仓删掉「" + name + "」（这局的文字还在，不受影响）", "#d6b177");
+        } catch (e) {}
+    }
+
+    function adrDClearChatTone() {
+        try {
+            adrDSetChatTone("", "");
+            adrDRefreshToneFields();
+            adrDToneStatus("这局基调已清空，导演照卡走", "#d6b177");
+        } catch (e) {}
+    }
+
+    function adrDBindToneControls() {
+        try {
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-tone-select")).forEach(function (el) {
+                if (el.__adrDToneBound) return;
+                el.__adrDToneBound = true;
+                el.addEventListener("change", function () { adrDApplyTonePreset(String(el.value || "")); });
+            });
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-tone")).forEach(function (el) {
+                if (el.__adrDToneBound) return;
+                el.__adrDToneBound = true;
+                var commit = function () {
+                    var nameEl = qForm("adr044-tone-name");
+                    var t = adrDChatTone();
+                    var name = nameEl ? String(nameEl.value || "").trim() : (t ? t.name : "");
+                    adrDSetChatTone(el.value || "", name);
+                };
+                el.addEventListener("input", commit);
+                el.addEventListener("change", function () { commit(); adrDRefreshToneFields(); });
+                el.addEventListener("blur", function () { commit(); adrDRefreshToneFields(); });
+            });
+            Array.prototype.slice.call(rootDoc().querySelectorAll("#adr044-tone-name")).forEach(function (el) {
+                if (el.__adrDToneBound) return;
+                el.__adrDToneBound = true;
+                el.addEventListener("change", function () {
+                    var t = adrDChatTone();
+                    if (t) adrDSetChatTone(t.text, String(el.value || "").trim());
+                });
+            });
+        } catch (e) {}
+    }
+
+    try {
+        rootWin().__adrDToneTest = {
+            block: adrDToneBlock, systemLine: adrDToneSystemLine, text: adrDToneText,
+            set: adrDSetChatTone, store: adrDToneStore, names: adrDToneNames, factory: ADR_D_FACTORY_TONES,
+            refresh: adrDRefreshToneFields
+        };
+    } catch (eToneHook) {}
 
     // ---- 跟组导演：滚动存最近 N 条"已注入"的指导 ----
     function adrDDirectorLogList(type) {
@@ -5453,6 +5716,7 @@
             + opt(st.range, "custom", "自定义")
             + '</select>'
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
+            + adrDToneBlockHTML("adr044-actions")
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
             + '<label>导演稿怎么放进聊天</label><select id="adr044-inject-mode">'
@@ -5581,6 +5845,7 @@
             adrDSetAllById("adr044-range", st.range || "30");
             adrDSetAllById("adr044-custom", st.customRange || "");
             adrDSetAllById("adr044-memory", st.supplementMemory || "");
+            adrDRefreshToneFields();   // v1.30.0 基调按聊天走，从聊天文件回填
             adrDSetAllById("adr044-content-tags", st.contentTagNames || "content");
             adrDSetAllById("adr044-inject-mode", st.injectMode || "visible");
             adrDSetAllById("adr044-show-floating-window", "", st.showFloatingWindow);
@@ -6746,6 +7011,7 @@
         try {
             try { adrxInstallExpanders(); } catch (eExpand) {} // v1.26.0：文字框放大编辑按钮（幂等）
             try { adrCdBindControls(); } catch (eCdBind) {} // v1.10.0：抽卡控件随每次重绑一起带起（幂等）
+            try { adrDBindToneControls(); } catch (eToneBind) {} // v1.30.0：基调仓控件（幂等）
             if (!rootWin().adrDStableAutoSaveBound) {
                 rootWin().adrDStableAutoSaveBound = true;
                 rootDoc().addEventListener("input", function (ev) {
@@ -6786,6 +7052,9 @@
         ids["adr044-cd-env-save"] = function () { adrCdSaveEnvelopePreset(); };
         ids["adr044-cd-env-delete"] = function () { adrCdDeleteEnvelopePreset(); };
         ids["adr044-cd-load-models"] = function () { loadModels("cd"); };
+        ids["adr044-tone-save"] = function () { adrDSaveToneFromFields(); };
+        ids["adr044-tone-delete"] = function () { adrDDeleteToneFromFields(); };
+        ids["adr044-tone-clear"] = function () { adrDClearChatTone(); };
         ids["adr044-cd-test"] = function () { adrCdTestConnection(); };
         ids["adr044-cd-save"] = function () { syncType("cd"); status("cd", "已保存当前使用的择池 API ✓", "#8ed99d"); };
         ids["adr044-cd-preview-draw"] = function () { adrCdPreviewDraw(); };
@@ -7203,6 +7472,7 @@
             + opt(st.range, "custom", "自定义")
             + '</select>'
             + '<input type="number" id="adr044-custom" placeholder="自定义轮数" value="' + esc(st.customRange || "") + '" style="display:' + (String(st.range) === "custom" ? "block" : "none") + '">'
+            + adrDToneBlockHTML("adr048-actions")
             + '<label>角色卡要点 / 世界书 / 当前担心</label>'
             + '<textarea id="adr044-memory" rows="5" placeholder="这里会同时发给情感导演和统筹">' + esc(st.supplementMemory || "") + '</textarea>'
             + '<label>导演稿怎么放进聊天</label><select id="adr044-inject-mode">'
@@ -8690,7 +8960,7 @@
                     es.on(types.MESSAGE_SWIPED, function () { setTimeout(function () { adrDCheckNg("event"); }, 400); });
                 }
                 if (types.CHAT_CHANGED) {
-                    es.on(types.CHAT_CHANGED, function () { setTimeout(function () { adrDRestoreFloatForCurrentChat("chat-changed"); }, 900); });
+                    es.on(types.CHAT_CHANGED, function () { setTimeout(function () { adrDRestoreFloatForCurrentChat("chat-changed"); adrDRefreshToneFields(); }, 900); });
                 }
             }
         } catch (e) {}
@@ -8815,6 +9085,9 @@
             }
             if (id === "adr044-api-profile-save-cd") { adrDSaveCurrentApiProfile("cd"); return true; }
             if (id === "adr044-api-profile-delete-cd") { adrDRequestDeleteCurrentApiProfile("cd"); return true; }
+            if (id === "adr044-tone-save") { adrDSaveToneFromFields(); return true; }
+            if (id === "adr044-tone-delete") { adrDDeleteToneFromFields(); return true; }
+            if (id === "adr044-tone-clear") { adrDClearChatTone(); return true; }
 
             if (id === "adr044-probe-context") {
                 runContextProbe();
