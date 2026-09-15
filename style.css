@@ -6212,26 +6212,37 @@ html #adr044-drawer .adrx-drawer:is([data-drawer-id="shared-main"], [data-drawer
     }
 }
 
-/* v1.29.0 · 雾珠月汐：霞光在边缘，内容落在安静的珠白 / 海蓝面上。 */
+/* 浅色主题 · 粉霞水光：蜜桃、霞粉与雾蓝。深色主题沿用雾珠月汐。 */
 html #adr048-popup-panel[data-arb-theme="dawn"],
 html #adrx-editor[data-arb-theme="dawn"] {
-    --arb-surface: radial-gradient(ellipse at 2% 0%, #f3dceb 0, transparent 48%), radial-gradient(ellipse at 100% 18%, #e1e5fa 0, transparent 48%), linear-gradient(155deg, #faf7fb, #f4f2fb 65%, #eef7f8);
-    --arb-head: rgba(251, 247, 253, .86);
-    --arb-ink: #46425d;
-    --arb-muted: #757086;
-    --arb-faint: #878297;
-    --arb-line: rgba(141, 117, 162, .14);
+    --arb-ink-rgb: 65, 78, 96;
+    --arb-line-strong: rgba(159, 173, 190, .48);
+    --arb-rose: #a96973;
+    --arb-lilac: #8a879a;
+    --arb-sky: #6c8b9f;
+    --arb-primary-ink: #414e60;
+    --arb-glow: rgba(229, 204, 207, .28);
+    --arb-ring: rgba(159, 173, 190, .30);
+    --adr-deck-muted: #647184;
+    --adr-deck-line: rgba(159, 173, 190, .28);
+    --adr-deck-accent: #a96973;
+    --arb-surface: radial-gradient(ellipse at 2% 0%, #f4d7cf 0, transparent 48%), radial-gradient(ellipse at 100% 18%, #c1d8e5 0, transparent 48%), linear-gradient(155deg, #fff9f7, #faf2f1 65%, #edf5f8);
+    --arb-head: rgba(255, 249, 247, .90);
+    --arb-ink: #414e60;
+    --arb-muted: #647184;
+    --arb-faint: #6d798a;
+    --arb-line: rgba(159, 173, 190, .28);
     --arb-card: rgba(255, 255, 255, .62);
     --arb-card-strong: rgba(255, 255, 255, .83);
     --arb-field: rgba(255, 255, 255, .68);
-    --arb-shadow: rgba(107, 90, 144, .065);
-    --arb-primary: linear-gradient(115deg, #eed4e4, #d9cef2 55%, #ccdff0);
-    --arb-primary-hover: linear-gradient(115deg, #f3ddeb, #e3d9f7 55%, #d6e7f5);
-    --arb-accent-line: linear-gradient(100deg, #dcaac8, #b0a6dc 52%, #91c3cf);
-    --adr-deck-bg: #f0ebf6;
-    --adr-deck-ink: #46425d;
-    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(253,247,253,.82) 50%, rgba(233,239,252,.88));
-    --adr-pearl-glow: rgba(211, 174, 223, .20);
+    --arb-shadow: rgba(159, 173, 190, .12);
+    --arb-primary: linear-gradient(115deg, #fcbebf, #f4d7cf 55%, #c1d8e5);
+    --arb-primary-hover: linear-gradient(115deg, #fdd0d0, #f7e1db 55%, #d1e3ec);
+    --arb-accent-line: linear-gradient(100deg, #fcbebf, #c6c7d1 52%, #9fadbe);
+    --adr-deck-bg: #e5cccf;
+    --adr-deck-ink: #414e60;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(255,247,244,.82) 50%, rgba(225,239,245,.88));
+    --adr-pearl-glow: rgba(229, 204, 207, .24);
 }
 html #adr048-popup-panel[data-arb-theme="dusk"],
 html #adrx-editor[data-arb-theme="dusk"] {
@@ -6256,20 +6267,31 @@ html #adrx-editor[data-arb-theme="dusk"] {
     --adr-pearl-glow: rgba(143, 174, 214, .13);
 }
 html #adr044-drawer {
-    --adrx-ink: #46425d;
-    --adrx-muted: #757086;
-    --adrx-faint: #878297;
+    --adrx-line-strong: rgba(159, 173, 190, .48);
+    --adrx-rose: #a96973;
+    --adrx-lilac: #8a879a;
+    --adrx-sky: #6c8b9f;
+    --adrx-primary-ink: #414e60;
+    --adrx-glow: rgba(229, 204, 207, .28);
+    --adrx-ring: rgba(159, 173, 190, .30);
+    --adr-deck-muted: #647184;
+    --adr-deck-line: rgba(159, 173, 190, .28);
+    --adr-deck-accent: #a96973;
+    --adrx-primary-hover: linear-gradient(115deg, #fdd0d0, #f7e1db 55%, #d1e3ec);
+    --adrx-ink: #414e60;
+    --adrx-muted: #647184;
+    --adrx-faint: #6d798a;
     --adrx-card: rgba(255,255,255,.62);
     --adrx-field: rgba(255,255,255,.68);
-    --adrx-shadow: rgba(107,90,144,.065);
-    --adrx-primary: linear-gradient(115deg, #eed4e4, #d9cef2 55%, #ccdff0);
-    --adr-deck-bg: #f0ebf6;
-    --adr-deck-ink: #46425d;
-    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(253,247,253,.82) 50%, rgba(233,239,252,.88));
-    --adr-pearl-glow: rgba(211,174,223,.20);
+    --adrx-shadow: rgba(159,173,190,.12);
+    --adrx-primary: linear-gradient(115deg, #fcbebf, #f4d7cf 55%, #c1d8e5);
+    --adr-deck-bg: #e5cccf;
+    --adr-deck-ink: #414e60;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(255,247,244,.82) 50%, rgba(225,239,245,.88));
+    --adr-pearl-glow: rgba(229,204,207,.24);
 }
 html #adr044-drawer > .inline-drawer {
-    background: radial-gradient(ellipse at 2% 0%, #f3dceb, transparent 48%), radial-gradient(ellipse at 100% 18%, #e1e5fa, transparent 48%), linear-gradient(155deg, #faf7fb, #f4f2fb 65%, #eef7f8) !important;
+    background: radial-gradient(ellipse at 2% 0%, #f4d7cf, transparent 48%), radial-gradient(ellipse at 100% 18%, #c1d8e5, transparent 48%), linear-gradient(155deg, #fff9f7, #faf2f1 65%, #edf5f8) !important;
 }
 html #adr048-popup-panel[data-arb-theme] #adr048-popup-head {
     background: var(--arb-head) !important;
@@ -6328,12 +6350,12 @@ html #adr044-drawer .adrx-drawer:not([open]) {
     box-shadow: none !important;
 }
 /* Float colors use SVG stops, so dragging/opening and saved position stay intact. */
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-a { stop-color: #f4e2ef; }
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-b { stop-color: #dbd3f1; }
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-c { stop-color: #cce5eb; }
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-pearl { stop-color: #f6d8e9; }
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-word { fill: #625476; }
-html #adr048-fab[data-arb-theme="dawn"] .arb-fab-river { stroke: #987dad; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-a { stop-color: #fcbebf; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-b { stop-color: #f4d7cf; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-stop-c { stop-color: #c1d8e5; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-pearl { stop-color: #e5cccf; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-word { fill: #414e60; }
+html #adr048-fab[data-arb-theme="dawn"] .arb-fab-river { stroke: #75869e; }
 html #adr048-fab[data-arb-theme="dawn"] .arb-fab-moon,
 html #adr048-fab[data-arb-theme="dusk"] .arb-fab-sun { display: none; }
 html #adr048-fab[data-arb-theme="dusk"] .arb-fab-stop-a { stop-color: #263757; }
@@ -6345,6 +6367,12 @@ html #adr048-fab[data-arb-theme] .arb-fab-halo { animation: arb-pearl-breathe 5s
     html #adr048-fab[data-arb-theme],
     html #adr048-fab[data-arb-theme] *,
     html #adr048-fab[data-arb-theme]::after { animation: none !important; transition: none !important; }
+}
+
+/* Dawn water reflection; only color changes, no extra animation. */
+html #adr048-popup-panel[data-arb-theme="dawn"] #adr048-popup-body .adr-top-progress .adr044-auto-counter::before,
+html #adr044-drawer .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, #fcbebf, #c1d8e5, transparent);
 }
 
 /* v1.29.1 · 秀气版：缩字体与视觉间距，保持雾珠月汐配色。 */

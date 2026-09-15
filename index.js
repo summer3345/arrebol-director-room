@@ -7661,7 +7661,7 @@
             var shell = d.querySelector("#adr048-popup-shell");
             if (shell) {
                 adr048SetImportant(shell, "background", dawn
-                    ? "linear-gradient(180deg, rgba(221,193,208,.96) 0%, rgba(226,202,216,.96) 22%, rgba(232,224,235,.97) 49%, rgba(190,171,205,.97) 73%, rgba(158,140,185,.98) 100%)"
+                    ? "var(--arb-surface)"
                     : "rgba(42,52,67,.98)");
                 adr048SetImportant(shell, "color", dawn ? "#404D62" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
