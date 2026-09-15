@@ -6606,3 +6606,89 @@ html #adr044-drawer#adr044-drawer .adr044-box .adr-fold-card > :not(summary) { m
 
 html #adr048-popup-panel[data-arb-theme] #adr048-popup-body#adr048-popup-body .adrx-drawer:not(.adr-fold-card) > :is(input:not([type="checkbox"]), select, textarea),
 html #adr044-drawer#adr044-drawer .adr044-box .adrx-drawer:not(.adr-fold-card) > :is(input:not([type="checkbox"]), select, textarea) { width: calc(100% - 20px) !important; max-width: calc(100% - 20px) !important; }
+
+/* Three palettes: restore the original 雾珠月汐 without replacing 粉霞水光 or dusk. */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="pearl"],
+html #adrx-editor[data-arb-theme="dawn"][data-adr-palette="pearl"] {
+    --arb-surface: radial-gradient(ellipse at 2% 0%, #f3dceb 0, transparent 48%), radial-gradient(ellipse at 100% 18%, #e1e5fa 0, transparent 48%), linear-gradient(155deg, #faf7fb, #f4f2fb 65%, #eef7f8);
+    --arb-head: rgba(251, 247, 253, .86);
+    --arb-ink: #46425d;
+    --arb-muted: #757086;
+    --arb-faint: #878297;
+    --arb-line: rgba(141, 117, 162, .14);
+    --arb-card: rgba(255, 255, 255, .62);
+    --arb-card-strong: rgba(255, 255, 255, .83);
+    --arb-field: rgba(255, 255, 255, .68);
+    --arb-shadow: rgba(107, 90, 144, .065);
+    --arb-primary: linear-gradient(115deg, #eed4e4, #d9cef2 55%, #ccdff0);
+    --arb-primary-hover: linear-gradient(115deg, #f3ddeb, #e3d9f7 55%, #d6e7f5);
+    --arb-accent-line: linear-gradient(100deg, #dcaac8, #b0a6dc 52%, #91c3cf);
+    --adr-deck-bg: #f0ebf6;
+    --adr-deck-ink: #46425d;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(253,247,253,.82) 50%, rgba(233,239,252,.88));
+    --adr-pearl-glow: rgba(211, 174, 223, .20);
+}
+html #adr044-drawer[data-adr-palette="pearl"] {
+    --adrx-ink: #46425d;
+    --adrx-muted: #757086;
+    --adrx-faint: #878297;
+    --adrx-card: rgba(255,255,255,.62);
+    --adrx-field: rgba(255,255,255,.68);
+    --adrx-shadow: rgba(107,90,144,.065);
+    --adrx-primary: linear-gradient(115deg, #eed4e4, #d9cef2 55%, #ccdff0);
+    --adr-deck-bg: #f0ebf6;
+    --adr-deck-ink: #46425d;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.92), rgba(253,247,253,.82) 50%, rgba(233,239,252,.88));
+    --adr-pearl-glow: rgba(211,174,223,.20);
+}
+html #adr044-drawer[data-adr-palette="pearl"] > .inline-drawer {
+    background: radial-gradient(ellipse at 2% 0%, #f3dceb, transparent 48%), radial-gradient(ellipse at 100% 18%, #e1e5fa, transparent 48%), linear-gradient(155deg, #faf7fb, #f4f2fb 65%, #eef7f8) !important;
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-stop-b {
+    stop-color: #dbd3f1;
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-stop-c {
+    stop-color: #cce5eb;
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-pearl {
+    stop-color: #f6d8e9;
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-word {
+    fill: #625476;
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-river {
+    stroke: #987dad;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="pearl"],
+html #adrx-editor[data-arb-theme="dawn"][data-adr-palette="pearl"] {
+    --arb-line-strong: rgba(64,70,110,.17);
+    --arb-rose: #cc86a9;
+    --arb-lilac: #a08ed0;
+    --arb-sky: #7fabd6;
+    --arb-primary-ink: #3a2c5a;
+    --arb-glow: rgba(190,160,232,.28);
+    --arb-ring: rgba(204,134,169,.18);
+    --arb-ink-rgb: 54, 59, 82;
+    --adr-deck-muted: #727086;
+    --adr-deck-line: rgba(86,76,120,.12);
+    --adr-deck-accent: #9a638a;
+}
+html #adr044-drawer[data-adr-palette="pearl"] {
+    --adrx-line-strong: rgba(64,70,110,.17);
+    --adrx-rose: #cc86a9;
+    --adrx-lilac: #a08ed0;
+    --adrx-sky: #7fabd6;
+    --adrx-primary-ink: #3a2c5a;
+    --adrx-glow: rgba(190,160,232,.28);
+    --adrx-ring: rgba(204,134,169,.18);
+    --adrx-primary-hover: linear-gradient(135deg, #f4cfe2 0%, #d5c2f1 52%, #c1cff1 100%);
+    --adr-deck-muted: #727086;
+    --adr-deck-line: rgba(86,76,120,.12);
+    --adr-deck-accent: #9a638a;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="pearl"] #adr048-popup-body .adr-top-progress .adr044-auto-counter::before,
+html #adr044-drawer[data-adr-palette="pearl"] .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, rgba(218,184,227,.85), rgba(158,201,215,.75), transparent);
+}
+
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-stop-a { stop-color: #f4e2ef; }

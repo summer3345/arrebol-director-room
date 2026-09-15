@@ -1,6 +1,6 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.30.1｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.30.2｜ripple & GPT & Claude
  * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
  *          小眼睛被审核打回按情欲场面已开门在 NSFW 库内盲抽（报告：用户反馈经江转达；施工 波哥 Claude Fable 5.1）
@@ -74,6 +74,7 @@
         autoInjectPlot: true,
         injectMode: "visible",
         showFloatingWindow: true,
+        themePalette: "",          // dusk / sunset / pearl; empty migrates the previous light switch.
         dawnTheme: false,           // v1.14.4 开灯：浮窗朝霞浅色皮，默认关（暗河红霞）
         showAutoTriggerPopup: true,
         streamEnabled: true,        // v1.27.1 导演请求流式接收；中转站不支持流式时可关
@@ -6942,6 +6943,7 @@
             var ov = d.createElement("div");
             ov.id = "adrx-editor";
             ov.setAttribute("data-arb-theme", theme);
+            ov.setAttribute("data-adr-palette", adr048Palette());
             ov.setAttribute("role", "dialog");
             ov.setAttribute("aria-modal", "true");
             ov.innerHTML = ''
@@ -7651,8 +7653,10 @@
             var d = rootDoc();
             var p = d.querySelector("#adr048-popup-panel");
             if (!p) return;
-            var dawn = settings().dawnTheme === true;
+            var palette = adr048Palette();
+            var dawn = palette !== "dusk";
             p.setAttribute("data-arb-theme", dawn ? "dawn" : "dusk");
+            p.setAttribute("data-adr-palette", palette);
 
             if (p.getAttribute("data-open") === "1") {
                 adr048SetImportant(p, "background", dawn ? "rgba(228,207,224,.40)" : "rgba(0,0,0,.25)");
@@ -7673,7 +7677,13 @@
             }
 
             var tg = d.querySelector("#adr048-theme-toggle");
-            if (tg) tg.textContent = dawn ? "☀️" : "🌙";
+            if (tg) {
+                var labels = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐" };
+                var next = adr048NextPalette(palette);
+                tg.textContent = { dusk: "🌙", sunset: "🌸", pearl: "🫧" }[palette];
+                tg.title = "当前：" + labels[palette] + " · 点击切换：" + labels[next];
+                tg.setAttribute("aria-label", tg.title);
+            }
         } catch (e) {}
     }
 
@@ -7687,13 +7697,15 @@
                 var adr048FlipTheme = function (ev) {
                     try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
                     try {
-                        save("dawnTheme", settings().dawnTheme !== true);
+                        var next = adr048NextPalette(adr048Palette());
+                        save("themePalette", next);
+                        save("dawnTheme", next !== "dusk");
                         saveNow();
                         adr048ApplyPanelTheme();
                     } catch (e2) {}
                 };
                 themeBtn.addEventListener("click", adr048FlipTheme, true);
-                themeBtn.addEventListener("touchend", adr048FlipTheme, true);
+                // Native click also covers touch and keyboard; avoid a touchend/click double advance.
             }
 
             var close = d.querySelector("#adr048-popup-close");
@@ -7819,15 +7831,31 @@
         }
     }
 
-    // UI-only: day/night means the panel's sun/moon switch. Old clock preferences are ignored.
+    // Keep the previous light/dark attribute for shared layout; palette selects the colors.
+    function adr048Palette() {
+        var st = settings();
+        if (["dusk", "sunset", "pearl"].indexOf(st.themePalette) !== -1) return st.themePalette;
+        return st.dawnTheme === true ? "sunset" : "dusk";
+    }
+
+    function adr048NextPalette(palette) {
+        var order = ["dusk", "sunset", "pearl"];
+        return order[(order.indexOf(palette) + 1) % order.length];
+    }
+
     function adr048FabTheme() {
-        return settings().dawnTheme === true ? "dawn" : "dusk";
+        return adr048Palette() === "dusk" ? "dusk" : "dawn";
     }
 
     function adr048ApplyFabTheme() {
         try {
-            var btn = rootDoc().querySelector("#adr048-fab");
+            var d = rootDoc();
+            var palette = adr048Palette();
+            var drawer = d.querySelector("#adr044-drawer");
+            if (drawer) drawer.setAttribute("data-adr-palette", palette);
+            var btn = d.querySelector("#adr048-fab");
             if (!btn) return;
+            btn.setAttribute("data-adr-palette", palette);
             var theme = adr048FabTheme();
             if (btn.getAttribute("data-arb-theme") !== theme) btn.setAttribute("data-arb-theme", theme);
         } catch (e) {}
