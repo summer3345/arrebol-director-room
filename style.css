@@ -6692,3 +6692,128 @@ html #adr044-drawer[data-adr-palette="pearl"] .adr-top-progress .adr044-auto-cou
 }
 
 html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="pearl"] .arb-fab-stop-a { stop-color: #f4e2ef; }
+
+/* ============================================================
+   v1.31.0 第四套配色「天青如梦」（提议：江；施工：波哥）
+   取自一张水彩：上半是雾灰天青 #8DAEC3，下半是如梦令暖陶土 #AD9484，
+   中间一圈留白。浅色底沿用 dawn 那一层，这里只覆盖令牌；
+   浮窗、放大编辑器、内嵌抽屉、浮标四处同源，切到它就一起换。
+   ============================================================ */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"],
+html #adrx-editor[data-arb-theme="dawn"][data-adr-palette="celadon"] {
+    --arb-surface:
+        radial-gradient(ellipse at 10% -2%, rgba(141, 174, 195, .62) 0, transparent 52%),
+        radial-gradient(ellipse at 88% 12%, rgba(141, 174, 195, .28) 0, transparent 40%),
+        radial-gradient(ellipse at 90% 104%, rgba(173, 148, 132, .52) 0, transparent 50%),
+        radial-gradient(ellipse at 8% 92%, rgba(173, 148, 132, .30) 0, transparent 42%),
+        linear-gradient(178deg, #eef4f7 0%, #f4f4f3 50%, #eee6e0 100%);
+    --arb-backdrop:
+        radial-gradient(circle at 12% 6%, rgba(141, 174, 195, .22), transparent 36%),
+        radial-gradient(circle at 90% 92%, rgba(173, 148, 132, .18), transparent 36%),
+        linear-gradient(170deg, rgba(240, 246, 249, .16), rgba(238, 230, 224, .12));
+    --arb-head: rgba(238, 244, 247, .86);
+    --arb-pearl: #fbfdfe;
+    --arb-ink: #3f4a55;
+    --arb-ink-rgb: 63, 74, 85;
+    --arb-muted: #66727c;
+    --arb-faint: #7d8790;
+    --arb-line: rgba(113, 138, 155, .18);
+    --arb-line-strong: rgba(113, 138, 155, .32);
+    --arb-rose: #a98b7a;
+    --arb-lilac: #9fb4c2;
+    --arb-sky: #8daec3;
+    --arb-gold: #b39678;
+    --arb-card: rgba(255, 255, 255, .58);
+    --arb-card-strong: rgba(255, 255, 255, .80);
+    --arb-field: rgba(255, 255, 255, .70);
+    --arb-field-focus: rgba(255, 255, 255, .96);
+    --arb-shadow: rgba(97, 118, 132, .10);
+    --arb-tab: rgba(255, 255, 255, .40);
+    --arb-tab-active: linear-gradient(135deg, rgba(255, 255, 255, .94), rgba(238, 244, 247, .84));
+    --arb-primary: linear-gradient(115deg, #c3d8e4, #a9c3d2 48%, #d4c2b6);
+    --arb-primary-hover: linear-gradient(115deg, #cfe1ec, #b7cedb 48%, #dfd0c6);
+    --arb-primary-ink: #2f3b46;
+    --arb-accent-line: linear-gradient(100deg, #8daec3, #c3c9cc 52%, #ad9484);
+    --arb-glow: rgba(141, 174, 195, .30);
+    --arb-ring: rgba(141, 174, 195, .24);
+    --adr-deck-bg: #e3ebf0;
+    --adr-deck-ink: #3f4a55;
+    --adr-deck-muted: #66727c;
+    --adr-deck-line: rgba(113, 138, 155, .22);
+    --adr-deck-accent: #a98b7a;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.93), rgba(238,244,247,.84) 50%, rgba(240,232,226,.88));
+    --adr-pearl-glow: rgba(141, 174, 195, .22);
+}
+html #adr044-drawer[data-adr-palette="celadon"] {
+    --adrx-ink: #3f4a55;
+    --adrx-muted: #66727c;
+    --adrx-faint: #7d8790;
+    --adrx-line-strong: rgba(113, 138, 155, .32);
+    --adrx-rose: #a98b7a;
+    --adrx-lilac: #9fb4c2;
+    --adrx-sky: #8daec3;
+    --adrx-card: rgba(255,255,255,.58);
+    --adrx-field: rgba(255,255,255,.70);
+    --adrx-shadow: rgba(97,118,132,.10);
+    --adrx-primary: linear-gradient(115deg, #c3d8e4, #a9c3d2 48%, #d4c2b6);
+    --adrx-primary-hover: linear-gradient(115deg, #cfe1ec, #b7cedb 48%, #dfd0c6);
+    --adrx-primary-ink: #2f3b46;
+    --adrx-glow: rgba(141,174,195,.30);
+    --adrx-ring: rgba(141,174,195,.24);
+    --adr-deck-bg: #e3ebf0;
+    --adr-deck-ink: #3f4a55;
+    --adr-deck-muted: #66727c;
+    --adr-deck-line: rgba(113,138,155,.22);
+    --adr-deck-accent: #a98b7a;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.93), rgba(238,244,247,.84) 50%, rgba(240,232,226,.88));
+    --adr-pearl-glow: rgba(141,174,195,.22);
+}
+html #adr044-drawer[data-adr-palette="celadon"] > .inline-drawer {
+    background:
+        radial-gradient(ellipse at 4% 0%, rgba(141,174,195,.55), transparent 48%),
+        radial-gradient(ellipse at 100% 100%, rgba(173,148,132,.48), transparent 48%),
+        linear-gradient(175deg, #eef4f7, #f4f4f3 55%, #eee6e0) !important;
+}
+/* 头部霞线与标题：天青到陶土，中间过一段留白 */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-head::after {
+    background: linear-gradient(90deg,
+        rgba(141, 174, 195, 0) 0%,
+        #8daec3 22%,
+        #dfe3e4 52%,
+        #ad9484 80%,
+        rgba(173, 148, 132, 0) 100%) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-head .adr048-title { color: #3f4a55 !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-head .adr048-title-d { color: #a98b7a !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-head .adr048-title-cn { color: rgba(113, 138, 155, .98) !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-sub { color: rgba(63, 74, 85, .50) !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-close,
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-theme-toggle {
+    border: 1px solid rgba(113, 138, 155, .34) !important;
+    background: rgba(255, 255, 255, .60) !important;
+    color: rgba(63, 74, 85, .84) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-body .adr-top-progress .adr044-auto-counter::before,
+html #adr044-drawer[data-adr-palette="celadon"] .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, rgba(141,174,195,.90), rgba(173,148,132,.80), transparent);
+}
+/* 浮标：天青压顶、陶土收尾，珠心留白 */
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-stop-a { stop-color: #d3e3ec; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-stop-b { stop-color: #8daec3; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-stop-c { stop-color: #ad9484; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-pearl { stop-color: #e9eff3; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-word { fill: #3f4a55; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-river { stroke: #6f8ea2; }
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-current { stroke: #fbfdff; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-body #adr044-master-toggle::before {
+    background:
+        radial-gradient(circle at 6px 50%, #8daec3 0 3.2px, transparent 3.8px),
+        radial-gradient(circle at 6px 50%, rgba(141, 174, 195, .30) 0 6.5px, transparent 7px);
+}
+html #adr048-fab[data-arb-theme="dawn"][data-adr-palette="celadon"] .arb-fab-pearl-edge { stop-color: #8daec3; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr048-popup-head .adr048-head-txt::before {
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .95) 0 14%, transparent 34%),
+        linear-gradient(145deg, #cfe0ea, #8daec3 52%, #ad9484);
+    box-shadow: 0 0 0 3px var(--arb-ring), 0 4px 12px rgba(113, 138, 155, .28);
+}

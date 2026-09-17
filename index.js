@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.30.2｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.31.0｜ripple & GPT & Claude
+ * v1.31.0 第四套配色「天青如梦」：雾灰天青 #8DAEC3 压顶、如梦令陶土 #AD9484 收尾，浮窗／抽屉／编辑器／浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
  *          小眼睛被审核打回按情欲场面已开门在 NSFW 库内盲抽（报告：用户反馈经江转达；施工 波哥 Claude Fable 5.1）
@@ -74,7 +75,7 @@
         autoInjectPlot: true,
         injectMode: "visible",
         showFloatingWindow: true,
-        themePalette: "",          // dusk / sunset / pearl; empty migrates the previous light switch.
+        themePalette: "",          // dusk / sunset / pearl / celadon; empty migrates the previous light switch.
         dawnTheme: false,           // v1.14.4 开灯：浮窗朝霞浅色皮，默认关（暗河红霞）
         showAutoTriggerPopup: true,
         streamEnabled: true,        // v1.27.1 导演请求流式接收；中转站不支持流式时可关
@@ -7659,7 +7660,9 @@
             p.setAttribute("data-adr-palette", palette);
 
             if (p.getAttribute("data-open") === "1") {
-                adr048SetImportant(p, "background", dawn ? "rgba(228,207,224,.40)" : "rgba(0,0,0,.25)");
+                // v1.31.0：幕布随配色——天青用冷雾，其余浅色仍是粉霞那层薄纱。
+                var veil = palette === "celadon" ? "rgba(205,220,228,.42)" : "rgba(228,207,224,.40)";
+                adr048SetImportant(p, "background", dawn ? veil : "rgba(0,0,0,.25)");
             }
 
             var shell = d.querySelector("#adr048-popup-shell");
@@ -7667,7 +7670,7 @@
                 adr048SetImportant(shell, "background", dawn
                     ? "var(--arb-surface)"
                     : "rgba(42,52,67,.98)");
-                adr048SetImportant(shell, "color", dawn ? "#404D62" : "#f2f2f2");
+                adr048SetImportant(shell, "color", dawn ? "var(--arb-ink)" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
                     ? "1px solid rgba(255,255,255,.92)"
                     : "1px solid rgba(228,212,246,.16)");
@@ -7678,10 +7681,9 @@
 
             var tg = d.querySelector("#adr048-theme-toggle");
             if (tg) {
-                var labels = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐" };
                 var next = adr048NextPalette(palette);
-                tg.textContent = { dusk: "🌙", sunset: "🌸", pearl: "🫧" }[palette];
-                tg.title = "当前：" + labels[palette] + " · 点击切换：" + labels[next];
+                tg.textContent = ADR_PALETTE_ICON[palette];
+                tg.title = "当前：" + ADR_PALETTE_LABEL[palette] + " · 点击切换：" + ADR_PALETTE_LABEL[next];
                 tg.setAttribute("aria-label", tg.title);
             }
         } catch (e) {}
@@ -7831,16 +7833,21 @@
         }
     }
 
+    // v1.31.0：第四套「天青如梦」（celadon）。顺序：暗河夜色 → 粉霞水光 → 雾珠月汐 → 天青如梦 → 回到夜色。
+    var ADR_PALETTES = ["dusk", "sunset", "pearl", "celadon"];
+    var ADR_PALETTE_LABEL = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐", celadon: "天青如梦" };
+    var ADR_PALETTE_ICON = { dusk: "🌙", sunset: "🌸", pearl: "🫧", celadon: "🕊️" };
+
     // Keep the previous light/dark attribute for shared layout; palette selects the colors.
     function adr048Palette() {
         var st = settings();
-        if (["dusk", "sunset", "pearl"].indexOf(st.themePalette) !== -1) return st.themePalette;
+        if (ADR_PALETTES.indexOf(st.themePalette) !== -1) return st.themePalette;
         return st.dawnTheme === true ? "sunset" : "dusk";
     }
 
     function adr048NextPalette(palette) {
-        var order = ["dusk", "sunset", "pearl"];
-        return order[(order.indexOf(palette) + 1) % order.length];
+        var i = ADR_PALETTES.indexOf(palette);
+        return ADR_PALETTES[(i + 1) % ADR_PALETTES.length];
     }
 
     function adr048FabTheme() {
@@ -7879,7 +7886,7 @@
             btn.setAttribute("data-adr048-owned-fab", ADR048_FAB_INSTANCE_ID);
             btn.type = "button";
             // SVG palette follows data-arb-theme; the button and drag listeners are never rebuilt.
-            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="1"><stop class="arb-fab-stop-a" offset="0" stop-color="#263757"/><stop class="arb-fab-stop-b" offset=".55" stop-color="#616ca3"/><stop class="arb-fab-stop-c" offset="1" stop-color="#ac95c9"/></linearGradient><radialGradient id="pkARB-pearl" cx=".3" cy=".25" r=".85"><stop offset="0" stop-color="#fff"/><stop class="arb-fab-pearl" offset=".5" stop-color="#c8d8f5"/><stop offset="1" stop-color="#a996d1"/></radialGradient></defs><rect class="arb-fab-shell" x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)" stroke="#ffffff" stroke-opacity=".45"/><path d="M18 5 Q 59 0 102 5" stroke="#fff" stroke-opacity=".5" fill="none"/><circle class="arb-fab-halo" cx="23" cy="22" r="14" fill="none" stroke="#fff" stroke-opacity=".3"/><circle class="arb-fab-core" cx="23" cy="22" r="10" fill="url(#pkARB-pearl)"/><path class="arb-fab-moon" d="M27 14a9 9 0 1 0 3 13A9 9 0 0 1 27 14" fill="#f8f5ff"/><path class="arb-fab-sun" d="M23 16v12m-6-6h12m-10-4 8 8m0-8-8 8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><text class="arb-fab-word" x="74" y="23" text-anchor="middle" font-size="14" font-weight="600" fill="#f5f4ff" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path class="arb-fab-river" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#ede8ff" stroke-width="1" stroke-linecap="round" opacity=".7"/><path class="arb-fab-current" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#fff8ff" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 57"/></svg>';
+            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="1"><stop class="arb-fab-stop-a" offset="0" stop-color="#263757"/><stop class="arb-fab-stop-b" offset=".55" stop-color="#616ca3"/><stop class="arb-fab-stop-c" offset="1" stop-color="#ac95c9"/></linearGradient><radialGradient id="pkARB-pearl" cx=".3" cy=".25" r=".85"><stop offset="0" stop-color="#fff"/><stop class="arb-fab-pearl" offset=".5" stop-color="#c8d8f5"/><stop class="arb-fab-pearl-edge" offset="1" stop-color="#a996d1"/></radialGradient></defs><rect class="arb-fab-shell" x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)" stroke="#ffffff" stroke-opacity=".45"/><path d="M18 5 Q 59 0 102 5" stroke="#fff" stroke-opacity=".5" fill="none"/><circle class="arb-fab-halo" cx="23" cy="22" r="14" fill="none" stroke="#fff" stroke-opacity=".3"/><circle class="arb-fab-core" cx="23" cy="22" r="10" fill="url(#pkARB-pearl)"/><path class="arb-fab-moon" d="M27 14a9 9 0 1 0 3 13A9 9 0 0 1 27 14" fill="#f8f5ff"/><path class="arb-fab-sun" d="M23 16v12m-6-6h12m-10-4 8 8m0-8-8 8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><text class="arb-fab-word" x="74" y="23" text-anchor="middle" font-size="14" font-weight="600" fill="#f5f4ff" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path class="arb-fab-river" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#ede8ff" stroke-width="1" stroke-linecap="round" opacity=".7"/><path class="arb-fab-current" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#fff8ff" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 57"/></svg>';
             btn.title = "Arrebol D 小红霞";
             btn.setAttribute("aria-label", "Arrebol D 小红霞");
 
