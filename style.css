@@ -4390,8 +4390,9 @@ html #adr048-popup-panel[data-arb-theme] #adr048-popup-body .adr048-summary::bef
     width: 3px;
     height: 13px;
     border-radius: 999px;
-    background: linear-gradient(180deg, #e9b6d4, #97a5ea);
-    box-shadow: 0 0 8px rgba(190, 160, 232, .5);
+    /* v1.31.1：竖条跟配色走（原为钉死的粉→蓝紫） */
+    background: linear-gradient(180deg, var(--arb-rose), var(--arb-sky));
+    box-shadow: 0 0 8px var(--arb-glow);
 }
 
 html #adr048-popup-panel[data-arb-theme] #adr048-popup-body label {
