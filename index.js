@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.32.0｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.33.0｜ripple & GPT & Claude
+ * v1.33.0 浮标改版：去掉珠心／光环／日月，只留一条流淌的暗河；四段渐变 + 玻璃高光 + 两道漂流水波，五套配色各自上色（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.32.0 第五套配色「暗河红霞」：Rose Ink #3A071F 打底、Powder Rose #E2A6BA 描边、Ivory Bloom 落字，深色组第二员，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.31.0 第四套配色「天青如梦」：雾灰天青 #8DAEC3 压顶、如梦令陶土 #AD9484 收尾，浮窗／抽屉／编辑器／浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
@@ -7893,7 +7894,25 @@
             btn.setAttribute("data-adr048-owned-fab", ADR048_FAB_INSTANCE_ID);
             btn.type = "button";
             // SVG palette follows data-arb-theme; the button and drag listeners are never rebuilt.
-            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="height:100%;width:auto;display:block;pointer-events:none"><defs><linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="1"><stop class="arb-fab-stop-a" offset="0" stop-color="#263757"/><stop class="arb-fab-stop-b" offset=".55" stop-color="#616ca3"/><stop class="arb-fab-stop-c" offset="1" stop-color="#ac95c9"/></linearGradient><radialGradient id="pkARB-pearl" cx=".3" cy=".25" r=".85"><stop offset="0" stop-color="#fff"/><stop class="arb-fab-pearl" offset=".5" stop-color="#c8d8f5"/><stop class="arb-fab-pearl-edge" offset="1" stop-color="#a996d1"/></radialGradient></defs><rect class="arb-fab-shell" x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)" stroke="#ffffff" stroke-opacity=".45"/><path d="M18 5 Q 59 0 102 5" stroke="#fff" stroke-opacity=".5" fill="none"/><circle class="arb-fab-halo" cx="23" cy="22" r="14" fill="none" stroke="#fff" stroke-opacity=".3"/><circle class="arb-fab-core" cx="23" cy="22" r="10" fill="url(#pkARB-pearl)"/><path class="arb-fab-moon" d="M27 14a9 9 0 1 0 3 13A9 9 0 0 1 27 14" fill="#f8f5ff"/><path class="arb-fab-sun" d="M23 16v12m-6-6h12m-10-4 8 8m0-8-8 8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><text class="arb-fab-word" x="74" y="23" text-anchor="middle" font-size="14" font-weight="600" fill="#f5f4ff" letter-spacing="3" font-family="-apple-system,sans-serif">ARB</text><path class="arb-fab-river" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#ede8ff" stroke-width="1" stroke-linecap="round" opacity=".7"/><path class="arb-fab-current" d="M46 32 Q 60 28 74 32 T104 30" fill="none" stroke="#fff8ff" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 57"/></svg>';
+            // v1.33.0：浮标改版——去掉珠心／光环／日月，只留一条流淌的暗河。
+            // 四段渐变底 + 玻璃高光 + 两道错位漂流的水波 + 一段沿波行走的亮流；
+            // 每一处颜色都挂类名，由 style.css 按 data-adr-palette 逐套上色。
+            btn.innerHTML = '<svg viewBox="0 0 120 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="height:100%;width:auto;display:block;pointer-events:none;overflow:visible">'
+                + '<defs>'
+                + '<linearGradient id="pkARB-bg" x1="0" y1="0" x2="1" y2="1"><stop class="arb-fab-stop-a" offset="0" stop-color="#2b2f5c"/><stop class="arb-fab-stop-b" offset=".38" stop-color="#55609e"/><stop class="arb-fab-stop-c" offset=".72" stop-color="#8f8fd0"/><stop class="arb-fab-stop-d" offset="1" stop-color="#c9b3e6"/></linearGradient>'
+                + '<linearGradient id="pkARB-sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".50"/><stop offset=".45" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#fff" stop-opacity=".16"/></linearGradient>'
+                + '<linearGradient id="pkARB-river" x1="0" y1="0" x2="1" y2="0"><stop class="arb-fab-river-a" offset="0" stop-color="#fff" stop-opacity="0"/><stop class="arb-fab-river-b" offset=".5" stop-color="#fff" stop-opacity=".9"/><stop class="arb-fab-river-c" offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+                + '<clipPath id="pkARB-clip"><rect x="1" y="1" width="118" height="42" rx="21"/></clipPath>'
+                + '</defs>'
+                + '<rect class="arb-fab-shell" x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-bg)" stroke="#ffffff" stroke-opacity=".55"/>'
+                + '<rect class="arb-fab-sheen" x="1" y="1" width="118" height="42" rx="21" fill="url(#pkARB-sheen)"/>'
+                + '<g clip-path="url(#pkARB-clip)">'
+                + '<path class="arb-fab-river arb-fab-river-2" d="M-40 36 q 10 -3.5 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" fill="none" stroke="url(#pkARB-river)" stroke-width="1" stroke-linecap="round" opacity=".45"/>'
+                + '<path class="arb-fab-river arb-fab-river-1" d="M-40 31 q 10 -4.5 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" fill="none" stroke="url(#pkARB-river)" stroke-width="1.3" stroke-linecap="round" opacity=".85"/>'
+                + '<path class="arb-fab-current" d="M-40 31 q 10 -4.5 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="9 111" opacity=".95"/>'
+                + '</g>'
+                + '<text class="arb-fab-word" x="60" y="22" text-anchor="middle" font-size="13.5" font-weight="600" fill="#f5f4ff" letter-spacing="3.2" font-family="-apple-system,sans-serif">ARB</text>'
+                + '</svg>';
             btn.title = "Arrebol D 小红霞";
             btn.setAttribute("aria-label", "Arrebol D 小红霞");
 

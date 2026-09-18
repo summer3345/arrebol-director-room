@@ -6964,3 +6964,82 @@ html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-pearl-
 html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-word { fill: #fff0f5; }
 html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-river { stroke: #e2a6ba; }
 html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-current { stroke: #fff0f5; }
+
+/* ============================================================
+   v1.33.0 浮标改版「流淌的暗河」（提议：江；施工：波哥）
+   珠心／光环／日月全部拆掉，只留一条河：四段渐变底、玻璃高光、
+   两道错位漂流的水波、一段沿波行走的亮流。五套配色各自上色，
+   颜色比面板再轻一档、更透——浮标是挂在聊天上的一枚小东西，要仙不要重。
+   ============================================================ */
+html #adr048-fab[data-arb-theme] .arb-fab-halo,
+html #adr048-fab[data-arb-theme] .arb-fab-core,
+html #adr048-fab[data-arb-theme] .arb-fab-moon,
+html #adr048-fab[data-arb-theme] .arb-fab-sun { display: none !important; }
+
+html #adr048-fab[data-arb-theme] .arb-fab-river-1 { animation: arb-river-drift 7s linear infinite; }
+html #adr048-fab[data-arb-theme] .arb-fab-river-2 { animation: arb-river-drift-back 11s linear infinite; }
+html #adr048-fab[data-arb-theme] .arb-fab-current { animation: arb-wave-flow-long 6s linear infinite; }
+@keyframes arb-river-drift { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+@keyframes arb-river-drift-back { from { transform: translateX(-40px); } to { transform: translateX(0); } }
+@keyframes arb-wave-flow-long { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+    html #adr048-fab[data-arb-theme] .arb-fab-river-1,
+    html #adr048-fab[data-arb-theme] .arb-fab-river-2,
+    html #adr048-fab[data-arb-theme] .arb-fab-current { animation: none !important; }
+}
+html #adr048-fab[data-arb-theme] .arb-fab-shell { stroke: #fff; stroke-opacity: .55; }
+
+/* 暗河夜色：靛蓝→紫→淡紫→月白 */
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-stop-a { stop-color: #2b2f5c; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-stop-b { stop-color: #55609e; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-stop-c { stop-color: #8f8fd0; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-stop-d { stop-color: #c9b3e6; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-river-c { stop-color: #e9e4ff; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-river-b { stop-color: #f4efff; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-word { fill: #f7f4ff; }
+html #adr048-fab[data-adr-palette="dusk"] .arb-fab-current { stroke: #ffffff; }
+
+/* 粉霞水光：粉→杏→藕→天 */
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-stop-a { stop-color: #ffc4c8; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-stop-b { stop-color: #f8d6d8; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-stop-c { stop-color: #e6d3ea; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-stop-d { stop-color: #bdd7ec; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-river-c { stop-color: #b98aa0; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-river-b { stop-color: #ffffff; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-word { fill: #4a4a66; }
+html #adr048-fab[data-adr-palette="sunset"] .arb-fab-current { stroke: #ffffff; }
+
+/* 雾珠月汐：珠粉→藕紫→雾蓝→青白 */
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-stop-a { stop-color: #f7e3f0; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-stop-b { stop-color: #e6d7f5; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-stop-c { stop-color: #d3dcf6; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-stop-d { stop-color: #cde8ee; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-river-c { stop-color: #a58fc4; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-river-b { stop-color: #ffffff; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-word { fill: #5a4d74; }
+html #adr048-fab[data-adr-palette="pearl"] .arb-fab-current { stroke: #ffffff; }
+
+/* 天青如梦：雾白→天青→灰蓝→陶土 */
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-stop-a { stop-color: #dfeaf0; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-stop-b { stop-color: #a9c4d4; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-stop-c { stop-color: #8daec3; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-stop-d { stop-color: #c9b3a6; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-river-c { stop-color: #f2f7fa; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-river-b { stop-color: #ffffff; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-word { fill: #3f4a55; }
+html #adr048-fab[data-adr-palette="celadon"] .arb-fab-current { stroke: #ffffff; }
+
+/* 暗河红霞：墨玫→酒红→玫瑰→粉玫 */
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-stop-a { stop-color: #3a071f; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-stop-b { stop-color: #6f1f3b; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-stop-c { stop-color: #a94f74; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-stop-d { stop-color: #e2a6ba; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-river-c { stop-color: #ffd9e4; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-river-b { stop-color: #fff0f5; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-word { fill: #fff0f5; }
+html #adr048-fab[data-adr-palette="wine"] .arb-fab-current { stroke: #ffffff; }
