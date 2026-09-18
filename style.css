@@ -6818,3 +6818,149 @@ html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="celadon"] #adr
         linear-gradient(145deg, #cfe0ea, #8daec3 52%, #ad9484);
     box-shadow: 0 0 0 3px var(--arb-ring), 0 4px 12px rgba(113, 138, 155, .28);
 }
+
+/* ============================================================
+   v1.32.0 第五套配色「暗河红霞」（提议：江；施工：波哥）
+   真正的红霞：Rose Ink #3A071F 打底、Blush Wine #6F1F3B 起伏、
+   Petal Dust #B65A7C 点睛、Powder Rose #E2A6BA 描边、Ivory Bloom #FFF0F5 落字。
+   深色底沿用 dusk 那一层，这里只覆盖令牌与 dusk 钉死的几处紫；
+   浮窗、放大编辑器、浮标同源；内嵌抽屉给一版象牙粉的浅色。
+   ============================================================ */
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"],
+html #adrx-editor[data-arb-theme="dusk"][data-adr-palette="wine"] {
+    --arb-surface:
+        radial-gradient(ellipse at 6% -4%, rgba(226, 166, 186, .16) 0, transparent 36%),
+        radial-gradient(circle at 100% 4%, rgba(182, 90, 124, .20) 0, transparent 34%),
+        radial-gradient(circle at 82% 108%, rgba(111, 31, 59, .55) 0, transparent 42%),
+        linear-gradient(168deg, #4b1129 0%, #3a071f 55%, #2b0616 100%);
+    --arb-head: rgba(50, 8, 28, .94);
+    --arb-backdrop:
+        radial-gradient(circle at 14% 9%, rgba(226, 166, 186, .08), transparent 31%),
+        radial-gradient(circle at 87% 15%, rgba(182, 90, 124, .07), transparent 29%),
+        linear-gradient(135deg, rgba(58, 7, 31, .16), rgba(43, 6, 22, .12));
+    --arb-pearl: #fff0f5;
+    --arb-ink: #fff0f5;
+    --arb-ink-rgb: 255, 240, 245;
+    --arb-muted: rgba(255, 240, 245, .74);
+    --arb-faint: rgba(240, 210, 222, .52);
+    --arb-line: rgba(226, 166, 186, .14);
+    --arb-line-strong: rgba(226, 166, 186, .26);
+    --arb-rose: #e2a6ba;
+    --arb-lilac: #cf7f9d;
+    --arb-sky: #b65a7c;
+    --arb-gold: #f0cdb0;
+    --arb-card: rgba(255, 240, 245, .05);
+    --arb-card-strong: rgba(255, 240, 245, .085);
+    --arb-field: rgba(255, 240, 245, .06);
+    --arb-field-focus: rgba(255, 240, 245, .10);
+    --arb-shadow: rgba(30, 3, 15, .45);
+    --arb-tab: rgba(255, 240, 245, .05);
+    --arb-tab-active: rgba(255, 240, 245, .11);
+    --arb-primary: linear-gradient(115deg, #e2a6ba, #cf7f9d 55%, #b65a7c);
+    --arb-primary-hover: linear-gradient(115deg, #ecbccb, #d992ad 55%, #c46d8d);
+    --arb-primary-ink: #3a071f;
+    --arb-accent-line: linear-gradient(100deg, #e2a6ba, #cf7f9d 52%, #b65a7c);
+    --arb-glow: rgba(226, 166, 186, .30);
+    --arb-ring: rgba(226, 166, 186, .22);
+    --adr-deck-bg: #4b1129;
+    --adr-deck-ink: #fff0f5;
+    --adr-deck-muted: rgba(255, 240, 245, .74);
+    --adr-deck-line: rgba(226, 166, 186, .16);
+    --adr-deck-accent: #e2a6ba;
+    --adr-deck-card: linear-gradient(125deg, rgba(226,166,186,.14), rgba(182,90,124,.08) 55%, rgba(111,31,59,.20));
+    --adr-pearl-glow: rgba(182, 90, 124, .18);
+}
+/* dusk 钉死的几处紫，逐条改成酒红 */
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-shell::before {
+    border-color: rgba(255, 240, 245, .20) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-head::after {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(226, 166, 186, .55) 27%,
+        rgba(182, 90, 124, .50) 55%,
+        rgba(111, 31, 59, .55) 79%,
+        transparent 100%) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(226, 166, 186, .34), rgba(182, 90, 124, .30)) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body select option {
+    background: #3a071f !important;
+    color: #fff0f5 !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body input:focus,
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body select:focus,
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body textarea:focus {
+    border-color: rgba(226, 166, 186, .56) !important;
+    box-shadow: 0 0 0 3px rgba(182, 90, 124, .16) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body button:hover {
+    border-color: rgba(226, 166, 186, .44) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body #adr044-plot-generate,
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body #adr044-emotion-generate,
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body #adr044-plot-inject,
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body #adr044-emotion-inject {
+    border-color: rgba(226, 166, 186, .40) !important;
+    background: linear-gradient(135deg, rgba(226, 166, 186, .30), rgba(182, 90, 124, .26) 55%, rgba(111, 31, 59, .30)) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body #adr044-master-toggle::before {
+    background: radial-gradient(circle at 5px 50%, #e2a6ba 0 3px, rgba(226, 166, 186, .20) 3.5px 6px, transparent 6.5px);
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body .adr044-cd-chip.on {
+    border-color: rgba(226, 166, 186, .42) !important;
+    background: linear-gradient(135deg, rgba(226, 166, 186, .18), rgba(111, 31, 59, .22)) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-head .adr048-head-txt::before {
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .95) 0 14%, transparent 34%),
+        linear-gradient(145deg, #e2a6ba, #b65a7c 52%, #6f1f3b);
+    box-shadow: 0 0 0 3px var(--arb-ring), 0 4px 12px rgba(111, 31, 59, .40);
+}
+html #adr048-popup-panel[data-arb-theme="dusk"][data-adr-palette="wine"] #adr048-popup-body .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, rgba(226,166,186,.85), rgba(182,90,124,.75), transparent);
+}
+/* 内嵌抽屉：象牙粉浅色版 */
+html #adr044-drawer[data-adr-palette="wine"] {
+    --adrx-ink: #4a1a30;
+    --adrx-muted: #7a4a5c;
+    --adrx-faint: #8f6273;
+    --adrx-line-strong: rgba(111, 31, 59, .30);
+    --adrx-rose: #b65a7c;
+    --adrx-lilac: #cf8aa5;
+    --adrx-sky: #e2a6ba;
+    --adrx-card: rgba(255,255,255,.62);
+    --adrx-field: rgba(255,255,255,.70);
+    --adrx-shadow: rgba(111,31,59,.10);
+    --adrx-primary: linear-gradient(115deg, #e2a6ba, #d79cb0 55%, #b65a7c);
+    --adrx-primary-hover: linear-gradient(115deg, #ecbccb, #e0acbe 55%, #c46d8d);
+    --adrx-primary-ink: #3a071f;
+    --adrx-glow: rgba(226,166,186,.34);
+    --adrx-ring: rgba(182,90,124,.22);
+    --adr-deck-bg: #f6dde5;
+    --adr-deck-ink: #4a1a30;
+    --adr-deck-muted: #7a4a5c;
+    --adr-deck-line: rgba(111,31,59,.14);
+    --adr-deck-accent: #b65a7c;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.93), rgba(255,240,245,.86) 50%, rgba(246,221,229,.88));
+    --adr-pearl-glow: rgba(226,166,186,.26);
+}
+html #adr044-drawer[data-adr-palette="wine"] > .inline-drawer {
+    background:
+        radial-gradient(ellipse at 4% 0%, rgba(226,166,186,.55), transparent 48%),
+        radial-gradient(ellipse at 100% 100%, rgba(182,90,124,.32), transparent 48%),
+        linear-gradient(175deg, #fff6f9, #fdeef3 55%, #f8e3ea) !important;
+}
+html #adr044-drawer[data-adr-palette="wine"] .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, rgba(226,166,186,.90), rgba(182,90,124,.80), transparent);
+}
+/* 浮标：酒红打底、粉玫描边 */
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-stop-a { stop-color: #3a071f; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-stop-b { stop-color: #6f1f3b; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-stop-c { stop-color: #b65a7c; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-pearl { stop-color: #e2a6ba; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-pearl-edge { stop-color: #6f1f3b; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-word { fill: #fff0f5; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-river { stroke: #e2a6ba; }
+html #adr048-fab[data-arb-theme="dusk"][data-adr-palette="wine"] .arb-fab-current { stroke: #fff0f5; }

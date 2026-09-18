@@ -118,11 +118,11 @@ function build() {
         check(root().querySelector('#adr044-memory').value === '修改后的共享记忆', '重新打开浮窗保留编辑内容');
         check(root().querySelector('.adr-top-pane:not([hidden])').dataset.director === 'cd', '重新打开保留当前页');
         check(!root().querySelector('#adr044-stream-enabled').checked, '改版保留原流式开关');
-        // v1.31.0: four palettes cycle sunset → pearl → celadon → dusk → sunset; panel, drawer, editor and fab follow together.
+        // v1.32.0: five palettes cycle sunset → pearl → celadon → wine → dusk → sunset; wine is the second dark palette.
         const panel = () => d.querySelector('#adr048-popup-panel');
         const fabEl = () => d.querySelector('#adr048-fab');
         check(panel().dataset.adrPalette === 'sunset' && panel().dataset.arbTheme === 'dawn', '旧版开灯设置对应粉霞水光');
-        for (const [pal, theme] of [['pearl', 'dawn'], ['celadon', 'dawn'], ['dusk', 'dusk'], ['sunset', 'dawn']]) {
+        for (const [pal, theme] of [['pearl', 'dawn'], ['celadon', 'dawn'], ['wine', 'dusk'], ['dusk', 'dusk'], ['sunset', 'dawn']]) {
             click(d.querySelector('#adr048-theme-toggle')); await delay(50);
             check(panel().dataset.adrPalette === pal && panel().dataset.arbTheme === theme, '切到 ' + pal + '：面板配色与明暗属性正确');
             check(fabEl().dataset.adrPalette === pal && fabEl().dataset.arbTheme === theme, '切到 ' + pal + '：浮标同步');
@@ -130,8 +130,9 @@ function build() {
             check(e.extensionSettings[KEY].themePalette === pal, '切到 ' + pal + '：设置已保存');
         }
         check(d.querySelector('#adr048-theme-toggle').title.indexOf('粉霞水光') >= 0 && d.querySelector('#adr048-theme-toggle').title.indexOf('雾珠月汐') >= 0, '主题按钮提示写明当前与下一套');
-        click(d.querySelector('#adr048-theme-toggle')); click(d.querySelector('#adr048-theme-toggle')); click(d.querySelector('#adr048-theme-toggle')); await delay(50);
-        check(panel().dataset.arbTheme === 'dusk', '主题切换仍可用');
+        for (let i = 0; i < 4; i++) click(d.querySelector('#adr048-theme-toggle'));
+        await delay(50);
+        check(panel().dataset.arbTheme === 'dusk' && panel().dataset.adrPalette === 'dusk', '主题切换仍可用');
         const settings = e.extensionSettings[KEY];
         const fab = d.querySelector('#adr048-fab');
         const svg = fab.firstElementChild;
@@ -143,8 +144,10 @@ function build() {
         click(d.querySelector('#adr048-theme-toggle'));
         check(fab.dataset.arbTheme === 'dawn', '太阳按钮立即同步浮标日色');
         check(w.uiTest.adr048FabTheme({ getHours: () => 23 }) === 'dawn', '晚上也尊重用户选择的日间面板');
-        click(d.querySelector('#adr048-theme-toggle')); click(d.querySelector('#adr048-theme-toggle')); click(d.querySelector('#adr048-theme-toggle'));
-        check(fab.dataset.arbTheme === 'dusk', '月亮按钮立即同步浮标夜色');
+        for (let i = 0; i < 3; i++) click(d.querySelector('#adr048-theme-toggle'));
+        check(fab.dataset.arbTheme === 'dusk' && fab.dataset.adrPalette === 'wine', '红霞属深色组：浮标同步夜色底');
+        click(d.querySelector('#adr048-theme-toggle'));
+        check(fab.dataset.arbTheme === 'dusk' && fab.dataset.adrPalette === 'dusk', '月亮按钮立即同步浮标夜色');
         check(!root().querySelector('#adr044-fab-theme-mode'), '不再显示容易混淆的时钟设置');
         check(e.timers.filter(t => t.ms === 60000).length === 0, '不安装浮标时钟轮询');
         check(fab.firstElementChild === svg, '换色不重建浮标，不丢拖动监听');

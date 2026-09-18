@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.31.1｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.32.0｜ripple & GPT & Claude
+ * v1.32.0 第五套配色「暗河红霞」：Rose Ink #3A071F 打底、Powder Rose #E2A6BA 描边、Ivory Bloom 落字，深色组第二员，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.31.0 第四套配色「天青如梦」：雾灰天青 #8DAEC3 压顶、如梦令陶土 #AD9484 收尾，浮窗／抽屉／编辑器／浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.30.0 基调仓：用户写下这局想玩什么，两位导演以它为第一要义压过角色卡；仓里存命名条目、出厂八条，这局用哪条存聊天文件（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.29.4 NSFW 库投不出：只开 NSFW 时不再被降级闸拦成永远空过；唯一卡池／候选不问小眼睛；名单全 NSFW 不注入硬门；
@@ -75,7 +76,7 @@
         autoInjectPlot: true,
         injectMode: "visible",
         showFloatingWindow: true,
-        themePalette: "",          // dusk / sunset / pearl / celadon; empty migrates the previous light switch.
+        themePalette: "",          // dusk / sunset / pearl / celadon / wine; empty migrates the previous light switch.
         dawnTheme: false,           // v1.14.4 开灯：浮窗朝霞浅色皮，默认关（暗河红霞）
         showAutoTriggerPopup: true,
         streamEnabled: true,        // v1.27.1 导演请求流式接收；中转站不支持流式时可关
@@ -7655,28 +7656,30 @@
             var p = d.querySelector("#adr048-popup-panel");
             if (!p) return;
             var palette = adr048Palette();
-            var dawn = palette !== "dusk";
+            var dawn = !adr048IsDarkPalette(palette);
+            var wine = palette === "wine";
             p.setAttribute("data-arb-theme", dawn ? "dawn" : "dusk");
             p.setAttribute("data-adr-palette", palette);
 
             if (p.getAttribute("data-open") === "1") {
                 // v1.31.0：幕布随配色——天青用冷雾，其余浅色仍是粉霞那层薄纱。
                 var veil = palette === "celadon" ? "rgba(205,220,228,.42)" : "rgba(228,207,224,.40)";
-                adr048SetImportant(p, "background", dawn ? veil : "rgba(0,0,0,.25)");
+                adr048SetImportant(p, "background", dawn ? veil : (wine ? "rgba(58,7,31,.32)" : "rgba(0,0,0,.25)"));
             }
 
             var shell = d.querySelector("#adr048-popup-shell");
             if (shell) {
-                adr048SetImportant(shell, "background", dawn
+                // v1.32.0：红霞是深色组第二员，壳体走自己的令牌；夜色那套内联值原样保留。
+                adr048SetImportant(shell, "background", (dawn || wine)
                     ? "var(--arb-surface)"
                     : "rgba(42,52,67,.98)");
-                adr048SetImportant(shell, "color", dawn ? "var(--arb-ink)" : "#f2f2f2");
+                adr048SetImportant(shell, "color", (dawn || wine) ? "var(--arb-ink)" : "#f2f2f2");
                 adr048SetImportant(shell, "border", dawn
                     ? "1px solid rgba(255,255,255,.92)"
-                    : "1px solid rgba(228,212,246,.16)");
+                    : (wine ? "1px solid rgba(226,166,186,.20)" : "1px solid rgba(228,212,246,.16)"));
                 adr048SetImportant(shell, "box-shadow", dawn
                     ? "0 26px 70px rgba(70,64,110,.26), 0 0 0 1px rgba(64,70,110,.10)"
-                    : "0 26px 70px rgba(5,3,20,.58), 0 0 0 1px rgba(183,157,220,.06)");
+                    : (wine ? "0 26px 70px rgba(30,3,15,.62), 0 0 0 1px rgba(226,166,186,.08)" : "0 26px 70px rgba(5,3,20,.58), 0 0 0 1px rgba(183,157,220,.06)"));
             }
 
             var tg = d.querySelector("#adr048-theme-toggle");
@@ -7834,9 +7837,13 @@
     }
 
     // v1.31.0：第四套「天青如梦」（celadon）。顺序：暗河夜色 → 粉霞水光 → 雾珠月汐 → 天青如梦 → 回到夜色。
-    var ADR_PALETTES = ["dusk", "sunset", "pearl", "celadon"];
-    var ADR_PALETTE_LABEL = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐", celadon: "天青如梦" };
-    var ADR_PALETTE_ICON = { dusk: "🌙", sunset: "🌸", pearl: "🫧", celadon: "🕊️" };
+    // v1.32.0：第五套「暗河红霞」（wine），深色组第二员。顺序：夜色 → 粉霞 → 雾珠 → 天青 → 红霞 → 回到夜色。
+    var ADR_PALETTES = ["dusk", "sunset", "pearl", "celadon", "wine"];
+    var ADR_DARK_PALETTES = ["dusk", "wine"];
+    var ADR_PALETTE_LABEL = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐", celadon: "天青如梦", wine: "暗河红霞" };
+    var ADR_PALETTE_ICON = { dusk: "🌙", sunset: "🌸", pearl: "🫧", celadon: "🕊️", wine: "🌹" };
+
+    function adr048IsDarkPalette(palette) { return ADR_DARK_PALETTES.indexOf(palette) >= 0; }
 
     // Keep the previous light/dark attribute for shared layout; palette selects the colors.
     function adr048Palette() {
@@ -7851,7 +7858,7 @@
     }
 
     function adr048FabTheme() {
-        return adr048Palette() === "dusk" ? "dusk" : "dawn";
+        return adr048IsDarkPalette(adr048Palette()) ? "dusk" : "dawn";
     }
 
     function adr048ApplyFabTheme() {
