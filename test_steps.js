@@ -229,10 +229,13 @@ function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win,
         ok(e.draws.length === 1, "投了一张", "draws=" + e.draws.length);
         ok(e.xcalls.length === 1, "展开 API 被调了一次", "x=" + e.xcalls.length);
         const u = e.xcalls[0].user;
-        ok(u.indexOf("【抽到的事件卡】") >= 0 && /严格 5 幕/.test(u) && u.indexOf("【最近正文】") >= 0, "展开请求带卡面、幕数、最近正文");
+        ok(u.indexOf("【抽到的事件卡") >= 0 && /严格 5 幕/.test(u) && u.indexOf("【最近正文 · 此刻】") >= 0, "展开请求带卡面、幕数、最近正文");
         ok(/紧扣角色卡/.test(e.xcalls[0].sys) && /先分析，再切幕/.test(e.xcalls[0].sys), "出厂提示词：先分析再切幕、紧扣角色卡");
         ok(/只给事件，不给反应/.test(e.xcalls[0].sys) && /不写「两人抱在一起」/.test(e.xcalls[0].sys) && /他此刻并不知道/.test(e.xcalls[0].sys), "出厂提示词：只给外部事件，不预设两人反应");
         ok(e.xcalls[0].sys.indexOf("一句能说出口的话") < 0, "不再要求写台词");
+        ok(/事件卡是脊柱/.test(e.xcalls[0].sys) && /不搞超自然、不搞玄乎、不神神叨叨、不堆巧合/.test(e.xcalls[0].sys) && /不引入新的重要人物/.test(e.xcalls[0].sys), "言情责编取向：卡是脊柱、合情理、不加新人");
+        ok(u.indexOf("【最近正文 · 此刻】") < u.indexOf("【角色卡 / 世界书") || u.indexOf("【角色卡 / 世界书") < 0, "此刻在前、角色卡在后");
+        ok(e.xcalls[0].body.temperature === 0.5, "温度 0.5");
         ok(/不给反应/.test(T(e).trailer) && /用户那一侧留给用户/.test(T(e).trailer), "贴耳语也只给事件、反应留给两个人");
         const x = ex(e);
         ok(x && x.on && x.cursor === 0 && x.steps.length === 5, "账本：展开中，第一幕", JSON.stringify(x && { on: x.on, cursor: x.cursor, n: x.steps.length }));
