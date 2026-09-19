@@ -235,7 +235,8 @@ function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win,
         ok(e.xcalls[0].sys.indexOf("一句能说出口的话") < 0, "不再要求写台词");
         ok(/事件卡是脊柱/.test(e.xcalls[0].sys) && /不搞超自然、不搞玄乎、不神神叨叨、不堆巧合/.test(e.xcalls[0].sys) && /不引入新的重要人物/.test(e.xcalls[0].sys), "言情责编取向：卡是脊柱、合情理、不加新人");
         ok(u.indexOf("【最近正文 · 此刻】") < u.indexOf("【角色卡 / 世界书") || u.indexOf("【角色卡 / 世界书") < 0, "此刻在前、角色卡在后");
-        ok(e.xcalls[0].body.temperature === 0.5, "温度 0.5");
+        ok(e.xcalls[0].body.temperature === 0.9, "温度默认 0.9");
+        ok(/女性向言情的锚点/.test(e.xcalls[0].sys) && /给她选择的余地/.test(e.xcalls[0].sys) && /打打杀杀的大男主戏/.test(e.xcalls[0].sys), "出厂提示词带女性向言情锚点");
         ok(/不给反应/.test(T(e).trailer) && /用户那一侧留给用户/.test(T(e).trailer), "贴耳语也只给事件、反应留给两个人");
         const x = ex(e);
         ok(x && x.on && x.cursor === 0 && x.steps.length === 5, "账本：展开中，第一幕", JSON.stringify(x && { on: x.on, cursor: x.cursor, n: x.steps.length }));
@@ -378,6 +379,10 @@ function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win,
         ok(e.st().cdExpandN === 12 && d.querySelector("#adr044-cd-expand-n").value === "12", "幕数越界存 12 并回显封顶", e.st().cdExpandN + "/" + d.querySelector("#adr044-cd-expand-n").value);
         setInput(e.win, d.querySelector("#adr044-expand-endpoint"), "https://expand.example/v1"); await tick(200);
         ok(e.st().expandApiEndpoint === "https://expand.example/v1", "展开 API 地址存入独立字段");
+        setInput(e.win, d.querySelector("#adr044-cd-expand-temp"), "1"); await tick(200);
+        ok(e.st().cdExpandTemp === 1, "温度改成 1 即存");
+        setInput(e.win, d.querySelector("#adr044-cd-expand-temp"), "5"); await tick(200);
+        ok(e.st().cdExpandTemp === 2 && d.querySelector("#adr044-cd-expand-temp").value === "2", "温度越界封顶 2");
         ok(!e.st().cdApiEndpoint || e.st().cdApiEndpoint.indexOf("expand.example") < 0, "不串到小眼睛的 API 位");
         e.stop();
     }

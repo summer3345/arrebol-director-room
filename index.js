@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.34.2｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.34.3｜ripple & GPT & Claude
+ * v1.34.3 展开温度可调（默认 0.9）；出厂提示词加女性向言情锚点（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.2 展开提示词改言情责编取向：事件卡是脊柱、合情理不玄乎、不另起线不加新人；此刻在前角色卡在后；温度 0.5（反馈 江；施工 波哥 Claude Fable 5.1）
  * v1.34.1 分幕只给事件不预设反应；分幕在耳边面板里露出来，能改、删、调序、追加、重新展开（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.0 剧情展开推进：投卡时让独立 API 位的大模型先分析再把卡切成 N 幕，一回合只贴一幕（depth 0），回复位推进，走完自动结案（提议 江；施工 波哥 Claude Fable 5.1）
@@ -88,6 +89,7 @@
         cdExpandN: 5,
         cdExpandPer: 1,
         cdExpandNsfw: false,
+        cdExpandTemp: 0.9,          // v1.34.3 展开温度，可调
         expandApiEndpoint: "",
         expandApiKey: "",
         expandModel: "",
@@ -4256,6 +4258,13 @@
         "· 若有【用户基调】，它是第一要义：这段戏的味道按基调走，卡再沉重也不能压过它。",
         "· 只给事件，不给反应：你写的是这一幕世界抛给两个人的东西，不是两个人怎么接。不写 user 和角色的反应、情绪、动作、台词、决定。不写「两人抱在一起」，写「雨突然下大了，山道上只有一个能站两个人的岩缝」；不写「他决定去找她」，写「她怀孕带球跑了，他此刻并不知道」。允许写的是：时间、地点、天气、来了什么人、发生了什么、摆在眼前的东西、谁知道什么谁不知道什么、时限。",
         "",
+        "女性向言情的锚点（用这个插件的大多是女孩子，这段戏要让她在关系里有得可演）：",
+        "· 一切外部事件都为关系服务：它要么制造两个人不得不靠近、不得不同处、不得不合作的处境（只有一把伞、只剩一间房、一件必须两个人一起完成的事），要么制造一点距离（旁人在场、被打断、一个必须先走的理由），要么让旧物旧事旧账浮上来。事件本身可以很小，要紧的是它把两个人放到了什么位置上。",
+        "· 给角色表现的机会，而不是给他台词：让他有东西可以替她拿、可以先一步注意到、可以在旁人面前表态、可以选择说或不说——机会你给，怎么做他自己来。",
+        "· 给她选择的余地：每一幕都要留一个她可以接、可以不接、可以换个接法的口子，不把她逼进只有一种反应的死角。",
+        "· 心动是具体的：体温、距离、视线、一件被记住的小事、一个说错的称呼。事件要能长出这种具体，不要抽象的「气氛变得暧昧」。",
+        "· 忌：打打杀杀的大男主戏、权谋线跑偏、与两人关系无关的支线、为虐而虐、把角色写成另一个人、把她写成没有主意的人。",
+        "",
         "先分析，再切幕。分析是强制的，不许省，也不许只写一句话，按这四问答：",
         "一、此刻：两个人在哪、在做什么、关系走到哪一步、正文最后一句停在什么上。",
         "二、落法：这张卡在这个世界、这个身份下最自然的发生方式是什么？它怎么从此刻长出来？",
@@ -4287,6 +4296,11 @@
         var n = Math.round(Number(settings().cdExpandPer));
         if (!Number.isFinite(n)) n = 1;
         return Math.min(9, Math.max(1, n));
+    }
+    function adrCdExpandTemp() {
+        var t = Number(settings().cdExpandTemp);
+        if (!Number.isFinite(t)) t = 0.9;
+        return Math.min(2, Math.max(0, Math.round(t * 100) / 100));
     }
     function adrCdExpandPreset() {
         var p = settings().expandPreset;
@@ -4477,7 +4491,7 @@
         try { materials.recent = adrCdTruncate(await recentContentBlocks(adrCdPickReadRounds()), 5000); } catch (eR) {}
         var lastPaint = 0;
         var raw = await adrDChatCompletionText({
-            endpoint: st.expandApiEndpoint, key: st.expandApiKey, model: st.expandModel, temperature: 0.5,
+            endpoint: st.expandApiEndpoint, key: st.expandApiKey, model: st.expandModel, temperature: adrCdExpandTemp(),
             messages: [
                 { role: "system", content: adrCdExpandPreset() },
                 { role: "user", content: adrCdExpandUserPrompt(card, want, materials) }
@@ -5989,6 +6003,10 @@
                 guard(el);
                 el.addEventListener("change", function () { save("cdExpandN", Number(el.value)); var vN = adrCdExpandN(); save("cdExpandN", vN); el.value = String(vN); saveNow(); });
             });
+            each("adr044-cd-expand-temp", function (el) {
+                guard(el);
+                el.addEventListener("change", function () { save("cdExpandTemp", Number(el.value)); var vT = adrCdExpandTemp(); save("cdExpandTemp", vT); el.value = String(vT); saveNow(); });
+            });
             each("adr044-cd-expand-per", function (el) {
                 guard(el);
                 el.addEventListener("change", function () { save("cdExpandPer", Number(el.value)); var vP = adrCdExpandPer(); save("cdExpandPer", vP); el.value = String(vP); saveNow(); });
@@ -6224,6 +6242,7 @@
             + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-expand-enabled"' + (st.cdExpandEnabled ? " checked" : "") + '> 启用剧情展开推进（需填下面的 API）</label>'
             + '<label>切成几幕（' + ADR_CD_EXPAND_MIN + '–' + ADR_CD_EXPAND_MAX + '，默认 ' + ADR_CD_EXPAND_DEFAULT_N + '）</label><input type="number" id="adr044-cd-expand-n" min="' + ADR_CD_EXPAND_MIN + '" max="' + ADR_CD_EXPAND_MAX + '" value="' + esc(String(adrCdExpandN())) + '">'
             + '<label>每幕演几轮（默认 1）</label><input type="number" id="adr044-cd-expand-per" min="1" max="9" value="' + esc(String(adrCdExpandPer())) + '">'
+            + '<label>展开温度（0–2，默认 0.9；规矩钉死后高一点更有变化，同一张卡不同局展开得不一样）</label><input type="number" id="adr044-cd-expand-temp" min="0" max="2" step="0.1" value="' + esc(String(adrCdExpandTemp())) + '">'
             + '<label class="' + checkClass + '"><input type="checkbox" id="adr044-cd-expand-nsfw"' + (st.cdExpandNsfw ? " checked" : "") + '> NSFW 卡也展开（卡面会发给展开 API，走审核有被拒风险；默认关，NSFW 卡按整张投）</label>'
             + '<label>展开 API 地址</label><input type="text" id="adr044-expand-endpoint" value="' + esc(st.expandApiEndpoint || "") + '" placeholder="https://generativelanguage.googleapis.com/v1beta/openai">'
             + '<label>展开 API 密钥</label><input type="password" id="adr044-expand-key" value="' + esc(st.expandApiKey || "") + '" placeholder="sk-...">'
