@@ -187,6 +187,7 @@ function lastInj(e) { const arr = e.injections.filter(x => x.key === "ARREBOL_D_
 function ex(e) { return e.meta() && e.meta().expand; }
 async function say(e) { e.emit("message_sent"); await tick(300); }
 async function reply(e) { e.emit("message_received"); await tick(300); }
+function fire(win, el, type) { el.dispatchEvent(new win.Event(type, { bubbles: true })); }
 function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win, el); }
 
 (async () => {
@@ -230,6 +231,9 @@ function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win,
         const u = e.xcalls[0].user;
         ok(u.indexOf("【抽到的事件卡】") >= 0 && /严格 5 幕/.test(u) && u.indexOf("【最近正文】") >= 0, "展开请求带卡面、幕数、最近正文");
         ok(/紧扣角色卡/.test(e.xcalls[0].sys) && /先分析，再切幕/.test(e.xcalls[0].sys), "出厂提示词：先分析再切幕、紧扣角色卡");
+        ok(/只给事件，不给反应/.test(e.xcalls[0].sys) && /不写「两人抱在一起」/.test(e.xcalls[0].sys) && /他此刻并不知道/.test(e.xcalls[0].sys), "出厂提示词：只给外部事件，不预设两人反应");
+        ok(e.xcalls[0].sys.indexOf("一句能说出口的话") < 0, "不再要求写台词");
+        ok(/不给反应/.test(T(e).trailer) && /用户那一侧留给用户/.test(T(e).trailer), "贴耳语也只给事件、反应留给两个人");
         const x = ex(e);
         ok(x && x.on && x.cursor === 0 && x.steps.length === 5, "账本：展开中，第一幕", JSON.stringify(x && { on: x.on, cursor: x.cursor, n: x.steps.length }));
         const inj = lastInj(e);
@@ -372,6 +376,54 @@ function tapId(e, id) { const el = e.doc.querySelector("#" + id); tapFast(e.win,
         setInput(e.win, d.querySelector("#adr044-expand-endpoint"), "https://expand.example/v1"); await tick(200);
         ok(e.st().expandApiEndpoint === "https://expand.example/v1", "展开 API 地址存入独立字段");
         ok(!e.st().cdApiEndpoint || e.st().cdApiEndpoint.indexOf("expand.example") < 0, "不串到小眼睛的 API 位");
+        e.stop();
+    }
+
+    section("面板 · 分幕露出来能改：改当前幕立刻重贴，改别的只存，删、调序、追加、重新展开");
+    {
+        const e = await bootExpand();
+        await drawBeat(e);
+        const d = e.doc;
+        const rows = () => Array.from(d.querySelectorAll("#adr044-cd-expand-panel .adr044-cd-step"));
+        ok(rows().length === 5 && rows()[0].classList.contains("on"), "五幕各一行，当前幕高亮", "rows=" + rows().length);
+        ok(d.querySelectorAll("#adr044-cd-expand-panel .adr044-cd-step-text").length === 5, "每幕一个可编辑正文框");
+        // 改当前幕
+        const ta0 = d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-text[data-idx=\"0\"]");
+        ta0.value = "改过的第一幕：雨突然下大了，山道上只有一个岩缝。"; fire(e.win, ta0, "input"); fire(e.win, ta0, "change"); await tick(200);
+        ok(ex(e).steps[0].text.indexOf("改过的第一幕") === 0, "账本里第一幕改了");
+        ok(lastInj(e).value.indexOf("改过的第一幕") >= 0 && lastInj(e).depth === 0, "正贴着的那一幕改了字立刻重贴");
+        // 改别的幕
+        const nInj = e.injections.length;
+        const ta2 = d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-text[data-idx=\"2\"]");
+        ta2.value = "改过的第三幕"; fire(e.win, ta2, "input"); fire(e.win, ta2, "change"); await tick(200);
+        ok(ex(e).steps[2].text === "改过的第三幕" && e.injections.length === nInj, "改别的幕只存不重贴");
+        const nm = d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-name[data-idx=\"2\"]");
+        nm.value = "山雨"; fire(e.win, nm, "change"); await tick(200);
+        ok(ex(e).steps[2].name === "山雨", "小标题也能改");
+        // 下移当前幕：它的正文跟着走，光标跟着走，耳边序号变
+        const btn = act => d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"" + act + "\"][data-idx=\"0\"]");
+        btn("down").dispatchEvent(new e.win.MouseEvent("click", { bubbles: true })); await tick(200);
+        ok(ex(e).cursor === 1 && ex(e).steps[1].text.indexOf("改过的第一幕") === 0 && ex(e).steps[0].name === "采摘野莓", "当前幕下移：光标跟着正文走");
+        ok(/第 2\/5 幕/.test(lastInj(e).value) && lastInj(e).value.indexOf("改过的第一幕") >= 0, "耳边序号跟着变成第 2 幕");
+        // 删掉第 1 幕（在当前幕之前）：光标前移
+        d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"del\"][data-idx=\"0\"]").dispatchEvent(new e.win.MouseEvent("click", { bubbles: true })); await tick(200);
+        ok(ex(e).steps.length === 4 && ex(e).cursor === 0 && ex(e).steps[0].text.indexOf("改过的第一幕") === 0, "删当前幕之前的一幕：共 4 幕，光标前移仍指同一幕");
+        // 追加
+        d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"add\"]").dispatchEvent(new e.win.MouseEvent("click", { bubbles: true })); await tick(200);
+        ok(ex(e).steps.length === 5 && /改我/.test(ex(e).steps[4].text), "追加一幕带占位正文");
+        // 删到只剩一幕时拦下
+        for (let i = 0; i < 4; i++) { const b = d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"del\"][data-idx=\"1\"]"); if (b) { b.dispatchEvent(new e.win.MouseEvent("click", { bubbles: true })); await tick(120); } }
+        ok(ex(e).steps.length === 1, "删到只剩一幕");
+        d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"del\"][data-idx=\"0\"]").dispatchEvent(new e.win.MouseEvent("click", { bubbles: true })); await tick(120);
+        ok(ex(e).steps.length === 1 && /至少留一幕/.test(d.querySelector("#adr044-cd-life-status").textContent), "最后一幕删不掉，状态行提示");
+        // 重新展开
+        const xBefore = e.xcalls.length;
+        e.setXScript(() => "【分析】\n重来一遍。\n【步骤】\n" + planJson(["甲", "乙", "丙"], "重展第"));
+        d.querySelector("#adr044-cd-expand-panel .adr044-cd-step-btn[data-act=\"replan\"]").dispatchEvent(new e.win.MouseEvent("click", { bubbles: true }));
+        await waitFor(() => e.xcalls.length > xBefore && ex(e) && ex(e).steps.length === 3, 30000); await tick(200);
+        ok(e.xcalls.length === xBefore + 1 && ex(e).steps.length === 3 && ex(e).cursor === 0 && ex(e).on, "重新展开：又调了一次展开 API，换成 3 幕从头贴");
+        ok(lastInj(e).value.indexOf("重展第甲") >= 0 && /第 1\/3 幕/.test(lastInj(e).value), "耳边是新的第一幕");
+        ok(/重来一遍/.test(d.querySelector("#adr044-cd-expand-panel").textContent), "面板里能看到导演的分析");
         e.stop();
     }
 

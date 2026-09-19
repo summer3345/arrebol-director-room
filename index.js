@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.34.0｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.34.1｜ripple & GPT & Claude
+ * v1.34.1 分幕只给事件不预设反应；分幕在耳边面板里露出来，能改、删、调序、追加、重新展开（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.0 剧情展开推进：投卡时让独立 API 位的大模型先分析再把卡切成 N 幕，一回合只贴一幕（depth 0），回复位推进，走完自动结案（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.33.0 浮标改版：去掉珠心／光环／日月，只留一条流淌的暗河；四段渐变 + 玻璃高光 + 两道漂流水波，五套配色各自上色（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.32.0 第五套配色「暗河红霞」：Rose Ink #3A071F 打底、Powder Rose #E2A6BA 描边、Ivory Bloom 落字，深色组第二员，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
@@ -4249,12 +4250,16 @@
         "· 紧扣世界观：这个世界的规矩、时代、地点、身份，允许什么、不允许什么？事件卡里的人和物要落到这个世界里有名有姓。",
         "· 紧扣当前剧情：正文停在哪儿、两个人此刻什么关系、手里在做什么？这张卡必须从那里长出来，不是空降。",
         "· 若有【用户基调】，它是第一要义：这段戏的味道按基调走，卡再沉重也不能压过它。",
-        "· 一段戏要「丰富」，靠的是节奏起落——日常、意外、困境、靠近、余味。哪里该慢，哪里该出事，哪里该让人靠近一步？事件卡点名的事放在第几幕最合适？它没写、但这段戏该有的，补上。",
+        "· 一段戏要「丰富」，靠的是节奏起落——日常、意外、困境、推力、余味。哪里该慢，哪里该出事，哪里该给一个两个人不得不接的外部推力？事件卡点名的事放在第几幕最合适？它没写、但这段戏该有的，补上。",
         "",
-        "然后切幕。每一幕是「这一回合正文要演到的一件事」：",
-        "· 一幕只装一件事，装得实：地点、动作、感官细节、一句能说出口的话。40～120 字。",
+        "只给事件，不给反应（硬性）：你写的是这一幕世界抛给两个人的东西，不是两个人怎么接。",
+        "· 不写 user 和角色的反应、情绪、动作、台词、决定。不写「两人抱在一起」，写「雨突然下大了，山道上只有一个能站两个人的岩缝」；不写「他决定去找她」，写「她怀孕带球跑了，他此刻并不知道」。",
+        "· 反应交给演员和用户当场演：角色按人设接，用户那一侧永远留给用户。",
+        "· 允许写的是：时间、地点、天气、来了什么人、发生了什么、摆在眼前的东西、谁知道什么谁不知道什么、时限。",
+        "",
+        "然后切幕。每一幕是「这一回合世界抛给两个人的一件事」：",
+        "· 一幕只装一件外部事件，装得实：时间、地点、来了什么人、发生了什么、摆在眼前的是什么。40～120 字。",
         "· 幕与幕之间要接得上：上一幕的结尾就是这一幕的起点。不跳跃，也不让两幕演同一件事。",
-        "· 只写世界和角色这一侧发生什么，给用户留反应的余地；不替用户决定行动、不替用户说话。",
         "· 节奏按分析里定的走：不要每一幕都是高潮，也不要每一幕都在铺垫。",
         "· 第一幕必须接得上此刻的处境，从正文停下的地方长出来。",
         "· 最后一幕是这张卡的收口，不是整个故事的结局——收在余味上，留一点没说完的。",
@@ -4263,7 +4268,8 @@
         "· 引用文字一律用中文引号「」，绝不使用英文双引号 \" ——它会破坏输出格式。"
     ].join("\n");
     var ADR_CD_EXPAND_TRAILER = [
-        "这是剧情小风铃给这一回合的调度：本回合的正文必须走到上面这一幕，并把它演实——地点、动作、感官、对话都要落到纸面。",
+        "这是剧情小风铃给这一回合的调度：本回合的正文必须走到上面这一幕，把这件事演实——它确实发生了、摆在眼前，地点、时间、感官都落到纸面。",
+        "这一幕只给事件，不给反应：角色怎么接、说什么、做什么，按人设当场决定；用户那一侧留给用户，不替用户行动、不替用户说话。",
         "只演到这一幕为止。这一幕之后发生什么你不知道：不要往后推，不要替这段戏收尾，不要跳过它去演别的。不要提及这段文字本身。"
     ].join("\n");
 
@@ -4564,6 +4570,145 @@
         var state = adrCdChatState();
         if (!adrCdExpandActive(state)) { adrCdExpandStatus("耳边没有正在推进的分幕", "#d6b177"); return; }
         adrCdExpandGoto(state, state.expand.steps.length, "手动撤下这条线");
+    }
+
+    // ---- 面板：分幕露出来，能看能改（v1.34.1，照小萤火：改、删、调序、追加；正贴着的那一幕改了字立刻重贴）----
+    function adrCdExpandSig(ex) {
+        if (!ex) return "";
+        try { return JSON.stringify([ex.on, ex.finished, ex.cursor, ex.per, ex.served, ex.used, ex.steps]); } catch (e) { return String(Date.now()); }
+    }
+
+    function adrCdExpandListHTML(state) {
+        var ex = state && state.expand;
+        if (!ex || !ex.steps || !ex.steps.length) return "";
+        var head = ex.on
+            ? "【展开推进】第 " + (ex.cursor + 1) + "/" + ex.steps.length + " 幕" + (ex.per > 1 ? "（每幕 " + ex.per + " 轮，本幕已演 " + ex.served + (ex.used ? "+1" : "") + "）" : "")
+            : "【展开推进】" + (ex.finished ? "这条线已走完" : "未推进");
+        var html = '<div class="adr044-cd-step-head">' + esc(head) + '　<span class="adr044-cd-step-hint">每幕只写外部事件，反应留给两个人。改了字自动存，正贴着的那一幕立刻重贴。</span></div>';
+        ex.steps.forEach(function (st, i) {
+            var mark = ex.on ? (i < ex.cursor ? "✓" : (i === ex.cursor ? "▶" : "·")) : (ex.finished ? "✓" : "·");
+            html += '<div class="adr044-cd-step' + (ex.on && i === ex.cursor ? " on" : "") + '" data-idx="' + i + '">'
+                + '<div class="adr044-cd-step-row"><span class="adr044-cd-step-mark">' + mark + ' 第 ' + (i + 1) + ' 幕</span>'
+                + '<input type="text" class="adr044-cd-step-name" data-idx="' + i + '" value="' + esc(st.name || "") + '" placeholder="小标题" maxlength="24">'
+                + '<span class="adr044-cd-step-btns">'
+                + '<button type="button" class="adr044-cd-step-btn" data-act="up" data-idx="' + i + '" title="上移">▲</button>'
+                + '<button type="button" class="adr044-cd-step-btn" data-act="down" data-idx="' + i + '" title="下移">▼</button>'
+                + '<button type="button" class="adr044-cd-step-btn" data-act="del" data-idx="' + i + '" title="删掉这一幕">✕</button>'
+                + '</span></div>'
+                + '<textarea class="adr044-cd-step-text" data-idx="' + i + '" rows="2" placeholder="这一幕世界抛给两个人的一件事">' + esc(st.text || "") + '</textarea>'
+                + '</div>';
+        });
+        html += '<div class="adr044-cd-step-actions"><button type="button" class="adr044-cd-step-btn" data-act="add">＋ 追加一幕</button><button type="button" class="adr044-cd-step-btn" data-act="replan">↻ 重新展开这张卡</button></div>';
+        if (ex.analysis) html += '<details class="adr044-cd-step-analysis"><summary>导演的分析</summary><div>' + esc(ex.analysis) + '</div></details>';
+        return html;
+    }
+
+    function adrCdExpandRenderList(state) {
+        try {
+            var d = rootDoc();
+            var ex = state && state.expand;
+            var sig = adrCdExpandSig(ex);
+            var active = d.activeElement;
+            Array.prototype.slice.call(d.querySelectorAll("#adr044-cd-expand-panel")).forEach(function (el) {
+                if (el.getAttribute("data-sig") === sig) return;
+                if (active && el.contains(active)) return;   // 正在改字，不重画
+                el.innerHTML = adrCdExpandListHTML(state);
+                el.setAttribute("data-sig", sig);
+            });
+            try { adrxInstallExpanders(); } catch (eX) {}
+        } catch (e) {}
+    }
+
+    function adrCdExpandEditStep(idx, fieldName, value, commit) {
+        try {
+            var state = adrCdChatState();
+            var ex = state.expand;
+            if (!ex || !ex.steps[idx]) return;
+            var v = String(value || "");
+            if (fieldName === "name") ex.steps[idx].name = v.trim().slice(0, 24);
+            else ex.steps[idx].text = v.slice(0, ADR_CD_EXPAND_FIELD_MAX);
+            if (!commit) { adrCdSaveChatState(state); return; }
+            if (ex.on && idx === ex.cursor) {
+                state.floatText = adrCdExpandStepText(ex, idx);
+                adrCdSaveChatState(state);
+                adrCdApplyFloat(state.paused ? "" : state.floatText);
+                adrCdExpandStatus("第 " + (idx + 1) + " 幕改好了，已重贴到耳边 ✓", "#8ed99d");
+            } else {
+                adrCdSaveChatState(state);
+                adrCdExpandStatus("第 " + (idx + 1) + " 幕已存 ✓", "#8ed99d");
+            }
+            adrCdRefreshLifePanel();
+        } catch (e) {}
+    }
+
+    function adrCdExpandStepAction(act, idx) {
+        try {
+            var state = adrCdChatState();
+            var ex = state.expand;
+            if (act === "replan") { adrCdExpandReplan(); return; }
+            if (!ex) { adrCdExpandStatus("耳边没有分幕", "#d6b177"); return; }
+            var n = ex.steps.length;
+            if (act === "add") {
+                if (n >= ADR_CD_EXPAND_MAX) { adrCdExpandStatus("最多 " + ADR_CD_EXPAND_MAX + " 幕，够细了", "#d6b177"); return; }
+                ex.steps.push({ name: "第 " + (n + 1) + " 幕", text: "（写这一幕世界抛给两个人的一件事，改我）" });
+                if (ex.finished) { ex.finished = false; }
+                adrCdSaveChatState(state);
+                adrCdExpandStatus("追加了第 " + (n + 1) + " 幕，记得把正文改成真事", "#8ed99d");
+            } else if (act === "del") {
+                if (!ex.steps[idx]) return;
+                if (n <= 1) { adrCdExpandStatus("至少留一幕；不想要就「撤下这条线」", "#d6b177"); return; }
+                ex.steps.splice(idx, 1);
+                var reinject = false;
+                if (idx < ex.cursor) ex.cursor -= 1;
+                else if (idx === ex.cursor) { if (ex.cursor >= ex.steps.length) ex.cursor = ex.steps.length - 1; ex.served = 0; ex.used = false; reinject = true; }
+                if (ex.on && reinject) { state.floatText = adrCdExpandStepText(ex, ex.cursor); adrCdSaveChatState(state); adrCdApplyFloat(state.paused ? "" : state.floatText); }
+                else adrCdSaveChatState(state);
+                adrCdExpandStatus("删掉了一幕，现在共 " + ex.steps.length + " 幕" + (reinject ? "，耳边换成第 " + (ex.cursor + 1) + " 幕" : ""), "#d6b177");
+            } else if (act === "up" || act === "down") {
+                var j = act === "up" ? idx - 1 : idx + 1;
+                if (!ex.steps[idx] || !ex.steps[j]) return;
+                var tmp = ex.steps[idx]; ex.steps[idx] = ex.steps[j]; ex.steps[j] = tmp;
+                var touched = false;
+                if (ex.cursor === idx) { ex.cursor = j; touched = true; }
+                else if (ex.cursor === j) { ex.cursor = idx; touched = true; }
+                // 当前幕跟着它的正文走：它的序号变了，耳边的"第几幕"也要跟着变
+                if (ex.on && touched) { state.floatText = adrCdExpandStepText(ex, ex.cursor); adrCdSaveChatState(state); adrCdApplyFloat(state.paused ? "" : state.floatText); }
+                else adrCdSaveChatState(state);
+                adrCdExpandStatus("调了序 ✓", "#8ed99d");
+            }
+            adrCdUpdateStatusLine();
+            adrCdRefreshLifePanel();
+        } catch (e) {}
+    }
+
+    var adrCdExpandReplanRunning = false;
+    async function adrCdExpandReplan() {
+        if (adrCdExpandReplanRunning) { adrCdExpandStatus("正在重新展开，稍等", "#d6b177"); return; }
+        var state = adrCdChatState();
+        if (!state.floatCard) { adrCdExpandStatus("耳边没有卡，没什么可展开", "#d6b177"); return; }
+        var st = settings();
+        if (!st.expandApiEndpoint || !st.expandModel) { adrCdExpandStatus("先填展开 API 地址与模型", "#d4726a"); return; }
+        adrCdExpandReplanRunning = true;
+        var homeKey = adrDChatKey();
+        adrCdExpandStatus("导演正在重新展开「" + adrCdTruncate(state.floatCard, 20) + "」…", "#8ed99d");
+        try {
+            var info = await adrCdExpandCard(state.floatCard);
+            if (adrDChatKey() !== homeKey) { adrCdExpandReplanRunning = false; return; }
+            var fresh = adrCdChatState();
+            fresh.expand = { on: true, finished: false, steps: info.steps, cursor: 0, served: 0, used: false, per: info.per, analysis: info.analysis, card: info.card, t: info.t };
+            fresh.floatStage = "active";
+            fresh.floatText = adrCdExpandStepText(fresh.expand, 0);
+            var list = fresh.history || [];
+            if (list.length && list[list.length - 1].status === "done") list[list.length - 1].status = "live";
+            adrCdSaveChatState(fresh);
+            adrCdApplyFloat(fresh.paused ? "" : fresh.floatText);
+            adrCdExpandStatus("重新展开成 " + info.steps.length + " 幕，第一幕已贴上" + (info.warnings.length ? "（" + info.warnings.join("；") + "）" : ""), "#8ed99d");
+        } catch (e) {
+            adrCdExpandStatus("重新展开失败：" + adrCdTruncate(e && e.message ? e.message : String(e), 80), "#d4726a");
+        }
+        adrCdExpandReplanRunning = false;
+        adrCdUpdateStatusLine();
+        adrCdRefreshLifePanel();
     }
 
     function adrCdExpandPanelText(state) {
@@ -5079,7 +5224,7 @@
                 txt = "【" + stage + "】挂了 " + age + " 楼" + tail + "\n" + state.floatCard;
             }
             adrCdSetTextAll("adr044-cd-life-card", txt);
-            adrCdSetTextAll("adr044-cd-expand-panel", adrCdExpandPanelText(state));
+            adrCdExpandRenderList(state);
 
             var list = (state.history || []).slice().reverse();
             var lines = list.map(function (h, i) {
@@ -5802,7 +5947,31 @@
                 guard(el);
                 el.addEventListener("change", function () { save("cdApiEndpoint", String(el.value || "").trim()); saveNow(); });
             });
-            // v1.34.0 剧情展开推进
+            // v1.34.1 分幕列表：委托挂容器上，innerHTML 重画不掉监听
+            each("adr044-cd-expand-panel", function (el) {
+                function idxOf(t) { var v = t && t.getAttribute ? t.getAttribute("data-idx") : null; var n = Number(v); return Number.isFinite(n) ? n : -1; }
+                function fieldOf(t) {
+                    if (!t || !t.classList) return "";
+                    if (t.classList.contains("adr044-cd-step-text")) return "text";
+                    if (t.classList.contains("adr044-cd-step-name")) return "name";
+                    return "";
+                }
+                el.addEventListener("input", function (ev) {
+                    var f = fieldOf(ev.target); if (!f) return;
+                    adrCdExpandEditStep(idxOf(ev.target), f, ev.target.value, false);
+                });
+                el.addEventListener("change", function (ev) {
+                    var f = fieldOf(ev.target); if (!f) return;
+                    adrCdExpandEditStep(idxOf(ev.target), f, ev.target.value, true);
+                });
+                el.addEventListener("click", function (ev) {
+                    var t = ev.target;
+                    while (t && t !== el && !(t.classList && t.classList.contains("adr044-cd-step-btn"))) t = t.parentNode;
+                    if (!t || t === el) return;
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (e0) {}
+                    adrCdExpandStepAction(t.getAttribute("data-act"), idxOf(t));
+                });
+            });
             each("adr044-cd-expand-enabled", function (el) {
                 tapLock(el);
                 el.addEventListener("change", function () { adrCdTouch(el); save("cdExpandEnabled", !!el.checked); saveNow(); adrCdUpdateStatusLine(); });
