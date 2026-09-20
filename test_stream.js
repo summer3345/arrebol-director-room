@@ -103,8 +103,8 @@ function build(opts) {
         win.setTimeout = (fn, ms, ...a) => rT(fn, Math.max(0, Math.round((ms || 0) / SPEED)), ...a);
         win.setInterval = (fn, ms, ...a) => rI(fn, Math.max(1, Math.round((ms || 0) / SPEED)), ...a);
     }
-    // v1.36.1：jsdom 的 localStorage 按域名跨窗口共享（同 test_steps.js）。上一段窗口留下的设置备份
-    // 与聊天镜像会漏进这一段，其轮询还会持续往里写空账，把导演段的基准线冲掉——先清干净再跑。
+    // v1.36.1：jsdom 的 localStorage 按域名跨窗口共享（同 test_steps.js），上一段的设置备份与聊天镜像
+    // 会漏进这一段，先清干净再跑。真正让导演段时灵时不灵的是没关的旧窗口把事件循环堵住（见 stop()）。
     try { win.localStorage.clear(); } catch (e) {}
     win.eval(SRC);
 
@@ -118,7 +118,9 @@ function build(opts) {
         },
         emit(t, ...args) { (handlers[t] || []).forEach(f => { try { f(...args); } catch (e) {} }); },
         killPoll() { try { win.clearInterval(win.__arrebolDAutoTriggerPoll); win.__arrebolDAutoTriggerPoll = null; } catch (e) {} },
-        // 段落结束把窗口整个关掉：轮询、启动定时器一起停，不再有活窗口跨段写 localStorage。
+        // 段落结束把窗口整个关掉：轮询、启动定时器一起停。四个用完不关的收集器窗口各自跑初始化、建抽屉、轮询，
+        // 加速后挤在同一个事件循环里，导演段 4.2 秒那次基准线检查被拖到测试塞完第 2、3 轮之后才跑，
+        // 基准线记成 3 而不是 1，3−3=0 不到 N，请求就不发——抓现场：本该 +420ms 跑，实际 +1022ms。
         stop() { try { win.clearInterval(win.__arrebolDAutoTriggerPoll); win.__arrebolDAutoTriggerPoll = null; } catch (e) {} try { dom.window.close(); } catch (e2) {} },
         lastAi() { for (let i = chat.length - 1; i >= 0; i--) if (!chat[i].is_user) return chat[i]; return null; },
         statusText() { const el = win.document.querySelector("#adr044-emotion-status"); return el ? el.textContent : ""; }
