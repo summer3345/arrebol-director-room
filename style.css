@@ -7142,9 +7142,9 @@ html #adrx-editor[data-arb-theme="dawn"][data-adr-palette="skyrose"] {
     --arb-shadow: rgba(55, 89, 167, .10);
     --arb-tab: rgba(255, 255, 255, .42);
     --arb-tab-active: linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(251, 239, 243, .86));
-    --arb-primary: linear-gradient(115deg, #ef6f93, #e73e70 40%, #7a5aa0 70%, #3759a7);
-    --arb-primary-hover: linear-gradient(115deg, #f383a3, #ec5a85 40%, #8a6cb0 70%, #4a6bb8);
-    --arb-primary-ink: #ffffff;
+    --arb-primary: linear-gradient(115deg, #f8c6d4, #ee97b0 52%, #9dabd8);
+    --arb-primary-hover: linear-gradient(115deg, #fbd3de, #f2a8bd 52%, #adb9e0);
+    --arb-primary-ink: #2b3352;
     --arb-accent-line: linear-gradient(100deg, #e73e70, #fbfbfb 52%, #3759a7);
     --arb-glow: rgba(231, 62, 112, .26);
     --arb-ring: rgba(55, 89, 167, .22);
@@ -7167,9 +7167,9 @@ html #adr044-drawer[data-adr-palette="skyrose"] {
     --adrx-card: rgba(255,255,255,.62);
     --adrx-field: rgba(255,255,255,.74);
     --adrx-shadow: rgba(55,89,167,.10);
-    --adrx-primary: linear-gradient(115deg, #ef6f93, #e73e70 40%, #7a5aa0 70%, #3759a7);
-    --adrx-primary-hover: linear-gradient(115deg, #f383a3, #ec5a85 40%, #8a6cb0 70%, #4a6bb8);
-    --adrx-primary-ink: #ffffff;
+    --adrx-primary: linear-gradient(115deg, #f8c6d4, #ee97b0 52%, #9dabd8);
+    --adrx-primary-hover: linear-gradient(115deg, #fbd3de, #f2a8bd 52%, #adb9e0);
+    --adrx-primary-ink: #2b3352;
     --adrx-glow: rgba(231,62,112,.26);
     --adrx-ring: rgba(55,89,167,.22);
     --adr-deck-bg: #f3f0f7;
@@ -7220,27 +7220,27 @@ html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr
         linear-gradient(145deg, #f8b4c7, #e73e70 42%, #fbfbfb 60%, #3759a7);
     box-shadow: 0 0 0 3px var(--arb-ring), 0 4px 12px rgba(55, 89, 167, .26);
 }
-/* 胶囊开关、方形勾与计数条：玫红→紫→宝蓝 */
+/* 胶囊开关、方形勾与计数条：v1.36.3 与主按钮、浮标同调，粉为主、尾巴一点蓝 */
 html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-shell .adr048-section > .adr048-check input[type="checkbox"]:checked,
 html #adr044-drawer[data-adr-palette="skyrose"] .adr044-check input[type="checkbox"]:checked {
     background:
         radial-gradient(circle at calc(100% - 11px) 50%, #ffffff 0 7px, transparent 7.6px),
-        linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+        linear-gradient(90deg, #ee97b0, #d98aa8 55%, #8a9cd0) !important;
 }
 html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer .adr048-check input[type="checkbox"]:checked,
 html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer .adr044-check input[type="checkbox"]:checked,
 html #adr044-drawer[data-adr-palette="skyrose"] .adrx-drawer .adr044-check input[type="checkbox"]:checked {
     background:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat,
-        linear-gradient(135deg, #e73e70, #9c5a98 60%, #3759a7) !important;
+        linear-gradient(135deg, #ee97b0, #d98aa8 60%, #8a9cd0) !important;
 }
 html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer:is([data-drawer-id="shared-main"], [data-drawer-id^="trigger-"], .adr-fold-card) > .adr048-check input[type="checkbox"]:checked,
 html #adr044-drawer[data-adr-palette="skyrose"] .adrx-drawer:is([data-drawer-id="shared-main"], [data-drawer-id^="trigger-"], .adr-fold-card) > .adr044-check input[type="checkbox"]:checked {
-    background: radial-gradient(circle at calc(100% - 11px) 50%, #fff 0 7px, transparent 7.6px), linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+    background: radial-gradient(circle at calc(100% - 11px) 50%, #fff 0 7px, transparent 7.6px), linear-gradient(90deg, #ee97b0, #d98aa8 55%, #8a9cd0) !important;
 }
 html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .arb-ct-bar i,
 html #adr044-drawer[data-adr-palette="skyrose"] .arb-ct-bar i {
-    background: linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+    background: linear-gradient(90deg, #ee97b0, #d98aa8 55%, #8a9cd0) !important;
 }
 
 /* ============================================================
