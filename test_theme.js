@@ -39,8 +39,8 @@ e.ctx.adr048ApplyPanelTheme(); e.ctx.adr048BindPopupPanel(); e.ctx.adr048BindPop
 const btn = e.els['#adr048-theme-toggle'];
 assert.equal(btn.handlers.click.length,1);
 assert.equal(btn.handlers.touchend,undefined, 'touch uses native click, never a second advance');
-// Six-station cycle from the migrated sunset: pearl → celadon → wine → morandi → dusk → sunset.
-for (const [palette, label] of [['pearl','雾珠月汐'],['celadon','天青如梦'],['wine','暗河红霞'],['morandi','莫兰迪烟粉'],['dusk','暗河夜色'],['sunset','粉霞水光']]) {
+// Seven-station cycle from the migrated sunset: pearl → celadon → wine → morandi → skyrose → dusk → sunset.
+for (const [palette, label] of [['pearl','雾珠月汐'],['celadon','天青如梦'],['wine','暗河红霞'],['morandi','莫兰迪烟粉'],['skyrose','晴空粉霞'],['dusk','暗河夜色'],['sunset','粉霞水光']]) {
     btn.handlers.click[0]({preventDefault(){},stopPropagation(){}});
     assert.equal(e.state().themePalette,palette);
     assert.equal(e.state().dawnTheme,palette !== 'dusk');
@@ -54,7 +54,7 @@ for (const [palette, label] of [['pearl','雾珠月汐'],['celadon','天青如�
     assert.equal(reloaded.ctx.adr048Palette(),palette);
     assert.equal(reloaded.writes(),0, 'rendering does not save or alter preferences');
 }
-assert.equal(e.writes(),6);
+assert.equal(e.writes(),7);
 const noFab = setup({themePalette:'pearl'});delete noFab.els['#adr048-fab'];
 noFab.ctx.adr048ApplyFabTheme();assert.equal(noFab.els['#adr044-drawer'].attrs['data-adr-palette'],'pearl');
-console.log('PASS: legacy preference migration, six-way cycle, single touch/click activation, persistence, labels, panel/drawer/fab sync and hidden-fab handling.');
+console.log('PASS: legacy preference migration, seven-way cycle, single touch/click activation, persistence, labels, panel/drawer/fab sync and hidden-fab handling.');

@@ -7106,6 +7106,144 @@ html #adr044-drawer[data-adr-palette="morandi"] .arb-ct-bar i {
 }
 
 /* ============================================================
+   v1.36.0 第七套配色「晴空粉霞」（提议：江；施工：波哥）
+   三色组合：玫红 #E73E70 压左上、纸白 #FBFBFB 留中、宝蓝 #3759A7 收右下，
+   白天的晴空粉霞。浅色底沿用 dawn 那一层，这里只覆盖令牌；
+   浮窗、放大编辑器、内嵌抽屉、浮标四处同源，切到它就一起换。
+   ============================================================ */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"],
+html #adrx-editor[data-arb-theme="dawn"][data-adr-palette="skyrose"] {
+    --arb-surface:
+        radial-gradient(ellipse at 6% -4%, rgba(231, 62, 112, .58) 0, transparent 50%),
+        radial-gradient(ellipse at 40% 18%, rgba(231, 62, 112, .16) 0, transparent 38%),
+        radial-gradient(ellipse at 96% 106%, rgba(55, 89, 167, .56) 0, transparent 50%),
+        radial-gradient(ellipse at 62% 84%, rgba(55, 89, 167, .16) 0, transparent 38%),
+        linear-gradient(178deg, #fbeff3 0%, #fbfbfb 50%, #eff2f9 100%);
+    --arb-backdrop:
+        radial-gradient(circle at 10% 4%, rgba(231, 62, 112, .22), transparent 36%),
+        radial-gradient(circle at 92% 94%, rgba(55, 89, 167, .22), transparent 36%),
+        linear-gradient(170deg, rgba(251, 239, 243, .16), rgba(239, 242, 249, .12));
+    --arb-head: rgba(251, 251, 251, .86);
+    --arb-pearl: #ffffff;
+    --arb-ink: #2b3352;
+    --arb-ink-rgb: 43, 51, 82;
+    --arb-muted: #5f6684;
+    --arb-faint: #7c8299;
+    --arb-line: rgba(55, 89, 167, .16);
+    --arb-line-strong: rgba(55, 89, 167, .30);
+    --arb-rose: #e73e70;
+    --arb-lilac: #a35f9a;
+    --arb-sky: #3759a7;
+    --arb-gold: #b8935f;
+    --arb-card: rgba(255, 255, 255, .62);
+    --arb-card-strong: rgba(255, 255, 255, .84);
+    --arb-field: rgba(255, 255, 255, .74);
+    --arb-field-focus: rgba(255, 255, 255, .97);
+    --arb-shadow: rgba(55, 89, 167, .10);
+    --arb-tab: rgba(255, 255, 255, .42);
+    --arb-tab-active: linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(251, 239, 243, .86));
+    --arb-primary: linear-gradient(115deg, #ef6f93, #e73e70 40%, #7a5aa0 70%, #3759a7);
+    --arb-primary-hover: linear-gradient(115deg, #f383a3, #ec5a85 40%, #8a6cb0 70%, #4a6bb8);
+    --arb-primary-ink: #ffffff;
+    --arb-accent-line: linear-gradient(100deg, #e73e70, #fbfbfb 52%, #3759a7);
+    --arb-glow: rgba(231, 62, 112, .26);
+    --arb-ring: rgba(55, 89, 167, .22);
+    --adr-deck-bg: #f3f0f7;
+    --adr-deck-ink: #2b3352;
+    --adr-deck-muted: #5f6684;
+    --adr-deck-line: rgba(55, 89, 167, .18);
+    --adr-deck-accent: #e73e70;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.94), rgba(251,239,243,.86) 50%, rgba(239,242,249,.90));
+    --adr-pearl-glow: rgba(231, 62, 112, .18);
+}
+html #adr044-drawer[data-adr-palette="skyrose"] {
+    --adrx-ink: #2b3352;
+    --adrx-muted: #5f6684;
+    --adrx-faint: #7c8299;
+    --adrx-line-strong: rgba(55, 89, 167, .30);
+    --adrx-rose: #e73e70;
+    --adrx-lilac: #a35f9a;
+    --adrx-sky: #3759a7;
+    --adrx-card: rgba(255,255,255,.62);
+    --adrx-field: rgba(255,255,255,.74);
+    --adrx-shadow: rgba(55,89,167,.10);
+    --adrx-primary: linear-gradient(115deg, #ef6f93, #e73e70 40%, #7a5aa0 70%, #3759a7);
+    --adrx-primary-hover: linear-gradient(115deg, #f383a3, #ec5a85 40%, #8a6cb0 70%, #4a6bb8);
+    --adrx-primary-ink: #ffffff;
+    --adrx-glow: rgba(231,62,112,.26);
+    --adrx-ring: rgba(55,89,167,.22);
+    --adr-deck-bg: #f3f0f7;
+    --adr-deck-ink: #2b3352;
+    --adr-deck-muted: #5f6684;
+    --adr-deck-line: rgba(55,89,167,.18);
+    --adr-deck-accent: #e73e70;
+    --adr-deck-card: linear-gradient(125deg, rgba(255,255,255,.94), rgba(251,239,243,.86) 50%, rgba(239,242,249,.90));
+    --adr-pearl-glow: rgba(231,62,112,.18);
+}
+html #adr044-drawer[data-adr-palette="skyrose"] > .inline-drawer {
+    background:
+        radial-gradient(ellipse at 2% 0%, rgba(231,62,112,.52), transparent 46%),
+        radial-gradient(ellipse at 100% 100%, rgba(55,89,167,.50), transparent 46%),
+        linear-gradient(175deg, #fbeff3, #fbfbfb 52%, #eff2f9) !important;
+}
+/* 头部霞线与标题：玫红→纸白→宝蓝，三色横过去 */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-head::after {
+    background: linear-gradient(90deg,
+        rgba(231, 62, 112, 0) 0%,
+        #e73e70 22%,
+        #fbfbfb 52%,
+        #3759a7 80%,
+        rgba(55, 89, 167, 0) 100%) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-head .adr048-title { color: #2b3352 !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-head .adr048-title-d { color: #e73e70 !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-head .adr048-title-cn { color: rgba(55, 89, 167, .96) !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-sub { color: rgba(43, 51, 82, .50) !important; }
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-close,
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-theme-toggle {
+    border: 1px solid rgba(55, 89, 167, .32) !important;
+    background: rgba(255, 255, 255, .64) !important;
+    color: rgba(43, 51, 82, .84) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adr-top-progress .adr044-auto-counter::before,
+html #adr044-drawer[data-adr-palette="skyrose"] .adr-top-progress .adr044-auto-counter::before {
+    background: linear-gradient(90deg, transparent, rgba(231,62,112,.90), rgba(55,89,167,.85), transparent);
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body #adr044-master-toggle::before {
+    background:
+        radial-gradient(circle at 6px 50%, #e73e70 0 3.2px, transparent 3.8px),
+        radial-gradient(circle at 6px 50%, rgba(231, 62, 112, .28) 0 6.5px, transparent 7px);
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-head .adr048-head-txt::before {
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .95) 0 14%, transparent 34%),
+        linear-gradient(145deg, #f8b4c7, #e73e70 42%, #fbfbfb 60%, #3759a7);
+    box-shadow: 0 0 0 3px var(--arb-ring), 0 4px 12px rgba(55, 89, 167, .26);
+}
+/* 胶囊开关、方形勾与计数条：玫红→紫→宝蓝 */
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-shell .adr048-section > .adr048-check input[type="checkbox"]:checked,
+html #adr044-drawer[data-adr-palette="skyrose"] .adr044-check input[type="checkbox"]:checked {
+    background:
+        radial-gradient(circle at calc(100% - 11px) 50%, #ffffff 0 7px, transparent 7.6px),
+        linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer .adr048-check input[type="checkbox"]:checked,
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer .adr044-check input[type="checkbox"]:checked,
+html #adr044-drawer[data-adr-palette="skyrose"] .adrx-drawer .adr044-check input[type="checkbox"]:checked {
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat,
+        linear-gradient(135deg, #e73e70, #9c5a98 60%, #3759a7) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .adrx-drawer:is([data-drawer-id="shared-main"], [data-drawer-id^="trigger-"], .adr-fold-card) > .adr048-check input[type="checkbox"]:checked,
+html #adr044-drawer[data-adr-palette="skyrose"] .adrx-drawer:is([data-drawer-id="shared-main"], [data-drawer-id^="trigger-"], .adr-fold-card) > .adr044-check input[type="checkbox"]:checked {
+    background: radial-gradient(circle at calc(100% - 11px) 50%, #fff 0 7px, transparent 7.6px), linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+}
+html #adr048-popup-panel[data-arb-theme="dawn"][data-adr-palette="skyrose"] #adr048-popup-body .arb-ct-bar i,
+html #adr044-drawer[data-adr-palette="skyrose"] .arb-ct-bar i {
+    background: linear-gradient(90deg, #e73e70, #9c5a98 55%, #3759a7) !important;
+}
+
+/* ============================================================
    v1.33.0 浮标改版「流淌的暗河」（提议：江；施工：波哥）
    珠心／光环／日月全部拆掉，只留一条河：四段渐变底、玻璃高光、
    两道错位漂流的水波、一段沿波行走的亮流。五套配色各自上色，
@@ -7194,6 +7332,17 @@ html #adr048-fab[data-adr-palette="morandi"] .arb-fab-river-c { stop-color: #594
 html #adr048-fab[data-adr-palette="morandi"] .arb-fab-river-b { stop-color: #ffffff; }
 html #adr048-fab[data-adr-palette="morandi"] .arb-fab-word { fill: #2e2726; }
 html #adr048-fab[data-adr-palette="morandi"] .arb-fab-current { stroke: #ffffff; }
+
+/* 晴空粉霞：霞粉→玫红→紫→宝蓝，三色一条河 */
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-a { stop-color: #f6a3bb; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-b { stop-color: #e73e70; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-c { stop-color: #8a5aa0; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-d { stop-color: #3759a7; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-a,
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-c { stop-color: #ffe3ea; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-b { stop-color: #fbfbfb; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-word { fill: #fbfbfb; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-current { stroke: #ffffff; }
 
 /* ============================================================
    v1.34.1 分幕列表（耳边卡面板里能看能改）
