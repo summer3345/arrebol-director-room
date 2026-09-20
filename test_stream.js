@@ -103,6 +103,9 @@ function build(opts) {
         win.setTimeout = (fn, ms, ...a) => rT(fn, Math.max(0, Math.round((ms || 0) / SPEED)), ...a);
         win.setInterval = (fn, ms, ...a) => rI(fn, Math.max(1, Math.round((ms || 0) / SPEED)), ...a);
     }
+    // v1.36.1：jsdom 的 localStorage 按域名跨窗口共享（同 test_steps.js）。上一段窗口留下的设置备份
+    // 与聊天镜像会漏进这一段，其轮询还会持续往里写空账，把导演段的基准线冲掉——先清干净再跑。
+    try { win.localStorage.clear(); } catch (e) {}
     win.eval(SRC);
 
     return {
@@ -115,6 +118,8 @@ function build(opts) {
         },
         emit(t, ...args) { (handlers[t] || []).forEach(f => { try { f(...args); } catch (e) {} }); },
         killPoll() { try { win.clearInterval(win.__arrebolDAutoTriggerPoll); win.__arrebolDAutoTriggerPoll = null; } catch (e) {} },
+        // 段落结束把窗口整个关掉：轮询、启动定时器一起停，不再有活窗口跨段写 localStorage。
+        stop() { try { win.clearInterval(win.__arrebolDAutoTriggerPoll); win.__arrebolDAutoTriggerPoll = null; } catch (e) {} try { dom.window.close(); } catch (e2) {} },
         lastAi() { for (let i = chat.length - 1; i >= 0; i--) if (!chat[i].is_user) return chat[i]; return null; },
         statusText() { const el = win.document.querySelector("#adr044-emotion-status"); return el ? el.textContent : ""; }
     };
@@ -150,6 +155,7 @@ async function primeDirector(b) {
         ok(col.reasoningChars() === 20, "思考只计字数不进正文", col.reasoningChars());
         ok(col.finish() === "stop", "finish_reason 记下了");
         ok(!col.error(), "没有报错");
+        b.stop();
     }
 
     section("收集器 · chunk 边界切在 JSON 中间、CRLF、多字节");
@@ -171,6 +177,7 @@ async function primeDirector(b) {
         await b.win.__adrDStreamTest.readBody(res, t => col2.push(t));
         col2.end();
         ok(col2.content() === "暗河", "UTF-8 多字节被切开也解得对", JSON.stringify(col2.content()));
+        b.stop();
     }
 
     section("收集器 · 整份 JSON 与流中报错");
@@ -191,6 +198,7 @@ async function primeDirector(b) {
 
         ok(b.win.__adrDStreamTest.emptyHint(300, "length").indexOf("300 字思考") >= 0, "空正文提示写明思考字数");
         ok(b.win.__adrDStreamTest.emptyHint(0, "stop") === "", "正常收尾且没思考时不加提示");
+        b.stop();
     }
 
     section("收集器 · 长思考释放原文，正文与兼容解析不截断");
@@ -222,6 +230,7 @@ async function primeDirector(b) {
         const final = collector();
         final.push(delta({ content: "未带空行的最后一块" }).trimEnd()); final.end();
         ok(final.content() === "未带空行的最后一块", "流结束时保留尚未分隔的最后事件");
+        b.stop();
     }
 
     // ───────────────────────────────────────────────
@@ -247,7 +256,7 @@ async function primeDirector(b) {
         const mes = b.lastAi().mes;
         ok(mes.indexOf("【情感方向】") >= 0 && mes.indexOf("维持") >= 0, "稿子正文完整");
         ok(mes.indexOf("让我想想") < 0 && mes.indexOf("想好了") < 0, "思考内容没有混进稿子");
-        b.killPoll();
+        b.stop();
     }
 
     section("导演 · 服务端不理 stream、回整份 JSON 也照常");
@@ -256,7 +265,7 @@ async function primeDirector(b) {
         b.setResponder(() => ({ ok: true, status: 200, text: async () => JSON.stringify({ choices: [{ message: { content: "【情感方向】\n维持" } }] }) }));
         await primeDirector(b);
         ok(await waitFor(() => b.lastAi() && b.lastAi().mes.indexOf("arrebol_d_visible") >= 0, 30000), "老式整份 JSON（没有 body）仍注入");
-        b.killPoll();
+        b.stop();
     }
 
     section("导演 · 只回思考不回正文，失败原因说清楚");
@@ -271,7 +280,7 @@ async function primeDirector(b) {
         const s = b.statusText();
         ok(s.indexOf("思考") >= 0 && s.indexOf("length") >= 0, "失败文案点名思考吃光额度与 length", s);
         ok(!(b.lastAi() && b.lastAi().mes.indexOf("arrebol_d_visible") >= 0), "没有把空稿注进聊天");
-        b.killPoll();
+        b.stop();
     }
 
     section("导演 · 半路断流：空闲 120 秒才判超时，收到一块就重新上表");
@@ -286,7 +295,7 @@ async function primeDirector(b) {
         ok(await waitFor(() => b.statusText().indexOf("已收到") >= 0, 30000), "收到首块后状态行显示进度", b.statusText());
         ok(await waitFor(() => b.statusText().indexOf("失败") >= 0, 150000), "空闲超时后判失败", b.statusText());
         ok(b.statusText().indexOf("没有新内容") >= 0, "失败文案说明是流式接收中断", b.statusText());
-        b.killPoll();
+        b.stop();
     }
 
     // ───────────────────────────────────────────────
@@ -301,7 +310,7 @@ async function primeDirector(b) {
         ok(b.calls.length === 1 && b.calls[0].body.stream === false, "关掉开关后请求体 stream:false", JSON.stringify(b.calls[0] && b.calls[0].body.stream));
         ok(String(b.calls[0].headers.Accept || "").indexOf("event-stream") < 0, "Accept 头不再要 event-stream");
         ok(await waitFor(() => b.lastAi() && b.lastAi().mes.indexOf("arrebol_d_visible") >= 0, 30000), "整份 JSON 走 body 流读回来也照常注入");
-        b.killPoll();
+        b.stop();
     }
 
     section("开关 · 默认开、面板里有勾选框、改动会存");
@@ -319,7 +328,7 @@ async function primeDirector(b) {
         box.checked = true; box.dispatchEvent(new b.win.Event("change", { bubbles: true }));
         await tick(500);
         ok(st.streamEnabled === true, "再勾上也存回去");
-        b.killPoll();
+        b.stop();
     }
 
     console.log("\n════════════════════════════════");

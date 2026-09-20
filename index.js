@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.36.0｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.36.1｜ripple & GPT & Claude
+ * v1.36.1 test_stream.js 时序抖动修复：jsdom 跨窗口共享 localStorage，段落间清干净、窗口用完关掉（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.36.0 第七套配色「晴空粉霞」：玫红压左上、纸白留中、宝蓝收右下，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.35.0 第六套配色「莫兰迪烟粉」：烟粉铺面、炉灰点睛、木烟压影，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.3 展开温度可调（默认 0.9）；出厂提示词加女性向言情锚点（提议 江；施工 波哥 Claude Fable 5.1）
