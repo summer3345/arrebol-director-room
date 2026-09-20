@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.34.3｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.35.0｜ripple & GPT & Claude
+ * v1.35.0 第六套配色「莫兰迪烟粉」：烟粉铺面、炉灰点睛、木烟压影，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.3 展开温度可调（默认 0.9）；出厂提示词加女性向言情锚点（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.34.2 展开提示词改言情责编取向：事件卡是脊柱、合情理不玄乎、不另起线不加新人；此刻在前角色卡在后；温度 0.5（反馈 江；施工 波哥 Claude Fable 5.1）
  * v1.34.1 分幕只给事件不预设反应；分幕在耳边面板里露出来，能改、删、调序、追加、重新展开（提议 江；施工 波哥 Claude Fable 5.1）
@@ -81,7 +82,7 @@
         autoInjectPlot: true,
         injectMode: "visible",
         showFloatingWindow: true,
-        themePalette: "",          // dusk / sunset / pearl / celadon / wine; empty migrates the previous light switch.
+        themePalette: "",          // dusk / sunset / pearl / celadon / wine / morandi; empty migrates the previous light switch.
         dawnTheme: false,           // v1.14.4 开灯：浮窗朝霞浅色皮，默认关（暗河红霞）
         showAutoTriggerPopup: true,
         streamEnabled: true,        // v1.27.1 导演请求流式接收；中转站不支持流式时可关
@@ -8363,7 +8364,9 @@
 
             if (p.getAttribute("data-open") === "1") {
                 // v1.31.0：幕布随配色——天青用冷雾，其余浅色仍是粉霞那层薄纱。
-                var veil = palette === "celadon" ? "rgba(205,220,228,.42)" : "rgba(228,207,224,.40)";
+                // v1.35.0：烟粉用一层烟灰粉的薄纱。
+                var veil = palette === "celadon" ? "rgba(205,220,228,.42)"
+                    : (palette === "morandi" ? "rgba(214,192,196,.42)" : "rgba(228,207,224,.40)");
                 adr048SetImportant(p, "background", dawn ? veil : (wine ? "rgba(58,7,31,.32)" : "rgba(0,0,0,.25)"));
             }
 
@@ -8538,10 +8541,11 @@
 
     // v1.31.0：第四套「天青如梦」（celadon）。顺序：暗河夜色 → 粉霞水光 → 雾珠月汐 → 天青如梦 → 回到夜色。
     // v1.32.0：第五套「暗河红霞」（wine），深色组第二员。顺序：夜色 → 粉霞 → 雾珠 → 天青 → 红霞 → 回到夜色。
-    var ADR_PALETTES = ["dusk", "sunset", "pearl", "celadon", "wine"];
+    // v1.35.0：第六套「莫兰迪烟粉」（morandi），浅色。顺序：夜色 → 粉霞 → 雾珠 → 天青 → 红霞 → 烟粉 → 回到夜色。
+    var ADR_PALETTES = ["dusk", "sunset", "pearl", "celadon", "wine", "morandi"];
     var ADR_DARK_PALETTES = ["dusk", "wine"];
-    var ADR_PALETTE_LABEL = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐", celadon: "天青如梦", wine: "暗河红霞" };
-    var ADR_PALETTE_ICON = { dusk: "🌙", sunset: "🌸", pearl: "🫧", celadon: "🕊️", wine: "🌹" };
+    var ADR_PALETTE_LABEL = { dusk: "暗河夜色", sunset: "粉霞水光", pearl: "雾珠月汐", celadon: "天青如梦", wine: "暗河红霞", morandi: "莫兰迪烟粉" };
+    var ADR_PALETTE_ICON = { dusk: "🌙", sunset: "🌸", pearl: "🫧", celadon: "🕊️", wine: "🌹", morandi: "🎀" };
 
     function adr048IsDarkPalette(palette) { return ADR_DARK_PALETTES.indexOf(palette) >= 0; }
 
