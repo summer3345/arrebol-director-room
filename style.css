@@ -7333,15 +7333,15 @@ html #adr048-fab[data-adr-palette="morandi"] .arb-fab-river-b { stop-color: #fff
 html #adr048-fab[data-adr-palette="morandi"] .arb-fab-word { fill: #2e2726; }
 html #adr048-fab[data-adr-palette="morandi"] .arb-fab-current { stroke: #ffffff; }
 
-/* 晴空粉霞：霞粉→玫红→紫→宝蓝，三色一条河 */
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-a { stop-color: #f6a3bb; }
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-b { stop-color: #e73e70; }
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-c { stop-color: #8a5aa0; }
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-d { stop-color: #3759a7; }
+/* 晴空粉霞：霞白→烟粉→玫粉→宝蓝。v1.36.2：前四分之三都是粉，宝蓝只在尾巴上收一下——别再像国旗 */
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-a { stop-color: #fdeaef; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-b { stop-color: #f6b9ca; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-c { stop-color: #ea8aa6; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-stop-d { stop-color: #6f86c4; }
 html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-a,
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-c { stop-color: #ffe3ea; }
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-b { stop-color: #fbfbfb; }
-html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-word { fill: #fbfbfb; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-c { stop-color: #d9648a; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-river-b { stop-color: #ffffff; }
+html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-word { fill: #2b3352; }
 html #adr048-fab[data-adr-palette="skyrose"] .arb-fab-current { stroke: #ffffff; }
 
 /* ============================================================

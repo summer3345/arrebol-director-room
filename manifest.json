@@ -6,6 +6,6 @@
   "js": "index.js",
   "css": "style.css",
   "author": "ripple & GPT & Claude",
-  "version": "1.36.1",
-  "description": "情感导演＋统筹双导演自动触发，外加剧情小风铃抽卡模块（三仓库·三段抽·择池／择卡·卡的生命周期）。每版改了什么、为什么改，见扩展目录下 CHANGELOG.md（此处只留一句，扩展面板不再渲染成一堵墙）。ripple & GPT & Claude｜v1.10–1.19 施工：波哥（Claude Fable 5）｜v1.19.2–1.23.1 施工：五哥（Claude Opus 5）｜v1.23.2–1.24.0 审读、热修与导演记忆迁入聊天文件：波哥（Claude Fable 5.1）｜v1.25.0–1.26.0 「琉璃暗河」换皮与放大编辑：波哥（Claude Fable 5.1）｜v1.27.0–1.27.1 导演请求改流式接收（含开关）：波哥（Claude Fable 5.1）｜v1.29.4 NSFW 库投不出热修：波哥（Claude Fable 5.1）｜v1.30.0 基调仓：波哥（Claude Fable 5.1）｜v1.31.0–1.31.1 第四套配色「天青如梦」：波哥（Claude Fable 5.1）｜v1.32.0 第五套配色「暗河红霞」：波哥（Claude Fable 5.1）｜v1.33.0 浮标改版「流淌的暗河」：波哥（Claude Fable 5.1）｜v1.34.0–1.34.3 剧情展开推进：波哥（Claude Fable 5.1）｜v1.35.0 第六套配色「莫兰迪烟粉」：波哥（Claude Fable 5.1）｜v1.36.0 第七套配色「晴空粉霞」：波哥（Claude Fable 5.1）｜v1.36.1 test_stream.js 时序抖动修复：波哥（Claude Fable 5.1）"
+  "version": "1.36.2",
+  "description": "情感导演＋统筹双导演自动触发，外加剧情小风铃抽卡模块（三仓库·三段抽·择池／择卡·卡的生命周期）。每版改了什么、为什么改，见扩展目录下 CHANGELOG.md（此处只留一句，扩展面板不再渲染成一堵墙）。ripple & GPT & Claude｜v1.10–1.19 施工：波哥（Claude Fable 5）｜v1.19.2–1.23.1 施工：五哥（Claude Opus 5）｜v1.23.2–1.24.0 审读、热修与导演记忆迁入聊天文件：波哥（Claude Fable 5.1）｜v1.25.0–1.26.0 「琉璃暗河」换皮与放大编辑：波哥（Claude Fable 5.1）｜v1.27.0–1.27.1 导演请求改流式接收（含开关）：波哥（Claude Fable 5.1）｜v1.29.4 NSFW 库投不出热修：波哥（Claude Fable 5.1）｜v1.30.0 基调仓：波哥（Claude Fable 5.1）｜v1.31.0–1.31.1 第四套配色「天青如梦」：波哥（Claude Fable 5.1）｜v1.32.0 第五套配色「暗河红霞」：波哥（Claude Fable 5.1）｜v1.33.0 浮标改版「流淌的暗河」：波哥（Claude Fable 5.1）｜v1.34.0–1.34.3 剧情展开推进：波哥（Claude Fable 5.1）｜v1.35.0 第六套配色「莫兰迪烟粉」：波哥（Claude Fable 5.1）｜v1.36.0 第七套配色「晴空粉霞」：波哥（Claude Fable 5.1）｜v1.36.1 test_stream.js 时序抖动修复：波哥（Claude Fable 5.1）｜v1.36.2 晴空粉霞浮标重调：波哥（Claude Fable 5.1）"
 }

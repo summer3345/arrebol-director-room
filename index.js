@@ -1,6 +1,7 @@
 
 /*
- * Arrebol D 暗河红霞导演系统 v1.36.1｜ripple & GPT & Claude
+ * Arrebol D 暗河红霞导演系统 v1.36.2｜ripple & GPT & Claude
+ * v1.36.2 晴空粉霞浮标重调：前四分之三都是粉，宝蓝只在尾巴上收一下，字色落墨（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.36.1 test_stream.js 时序抖动修复：用完不关的收集器窗口堵住事件循环、基准线检查跑晚；段落结束关窗口、开窗清 localStorage（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.36.0 第七套配色「晴空粉霞」：玫红压左上、纸白留中、宝蓝收右下，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
  * v1.35.0 第六套配色「莫兰迪烟粉」：烟粉铺面、炉灰点睛、木烟压影，浮标同步（提议 江；施工 波哥 Claude Fable 5.1）
